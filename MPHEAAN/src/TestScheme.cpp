@@ -20,6 +20,7 @@
 #include "SecretKey.h"
 #include "StringUtils.h"
 #include "TimeUtils.h"
+#include "Numb.h"
 
 using namespace std;
 using namespace NTL;
@@ -31,33 +32,34 @@ using namespace NTL;
 
 
 void TestScheme::testEncode(long logNx, long logQ, long logp, long lognx) {
-	cout << "!!! START TEST ENCODE !!!" << endl;
+	long Ny = 256;
+	Ring2XY ring(logNx, logQ);
+	uint64_t* mx1 = new uint64_t[Ny]();
+	uint64_t* mx2 = new uint64_t[Ny]();
+	for (long i = 0; i < Ny; ++i) {
+		mx1[i] = 1;
+		mx2[i] = 1;
+	}
+	ring.multiplier.NTTY(mx1, 0);
+	ring.multiplier.NTTY(mx2, 0);
 
-		srand(time(NULL));
-		SetNumThreads(8);
+	uint64_t p = ring.multiplier.pVec[0];
+	for (long i = 0; i < Ny; ++i) {
+		mulMod(mx1[i], mx1[i], mx2[i], p);
+	}
+	ring.multiplier.INTTY(mx1, 0);
+	ring.multiplier.INTTY(mx2, 0);
 
-		TimeUtils timeutils;
-		Ring2XY ring(logNx, logQ);
-		SecretKey secretKey(ring);
-		Scheme scheme(secretKey, ring);
+	for (long i = 0; i < Ny; ++i) {
+		cout << mx1[i] << " ";
+	}
+	cout << endl;
 
-		long nx = 1 << lognx;
-		long n = nx * ring.Ny;
+	for (long i = 0; i < Ny; ++i) {
+		cout << mx2[i] << " ";
+	}
+	cout << endl;
 
-		complex<double>* mmat = EvaluatorUtils::randomComplexArray(n);
-		StringUtils::showVec(mmat, n);
-
-		timeutils.start("Encode matrix");
-		Plaintext msg = scheme.encode(mmat, nx, ring.Ny, logp, logQ);
-		timeutils.stop("Encode matrix");
-
-		timeutils.start("Decode matrix");
-		complex<double>* dmat = scheme.decode(msg);
-		timeutils.stop("Decode matrix");
-
-		StringUtils::showVec(mmat, n);
-
-		cout << "!!! END TEST ENCODE !!!" << endl;
 }
 
 void TestScheme::testEncrypt(long logNx, long logNy, long logQ, long logp, long lognx, long logny) {
@@ -67,13 +69,13 @@ void TestScheme::testEncrypt(long logNx, long logNy, long logQ, long logp, long 
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring2XY ring(logNx, logNy , logQ);
+	Ring2XY ring(logNx, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 
 	long nx = (1 << lognx);
 	long ny = (1 << logny);
-	long n = nx * ny;
+	long n = nx * ring.Ny;
 
 	complex<double>* mmat = EvaluatorUtils::randomComplexArray(n);
 
@@ -85,9 +87,13 @@ void TestScheme::testEncrypt(long logNx, long logNy, long logQ, long logp, long 
 	Ciphertext cipher = scheme.encryptMsg(msg);
 	timeutils.stop("Encrypt msg");
 
-	timeutils.start("Decrypt matrix");
-	complex<double>* dmat = scheme.decrypt(secretKey, cipher);
-	timeutils.stop("Decrypt matrix");
+	timeutils.start("Decrypt msg");
+	Plaintext dsg = scheme.decryptMsg(secretKey, cipher);
+	timeutils.stop("Decrypt msg");
+
+	timeutils.start("Decode matrix");
+	complex<double>* dmat = scheme.decode(dsg);
+	timeutils.stop("Decode matrix");
 
 	StringUtils::compare(mmat, dmat, n, "val");
 
@@ -212,7 +218,7 @@ void TestScheme::testRotateFast(long logNx, long logNy, long logQ, long logp, lo
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring2XY ring(logNx, logNy, logQ);
+	Ring2XY ring(logNx, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 

@@ -84,8 +84,8 @@ uint64_t findPrimitiveRoot(uint64_t modulus) {
 	findPrimeFactors(s, phi);
 	for (uint64_t r = 2; r <= phi; r++) {
 		bool flag = false;
-		for (auto it = s.begin(); it != s.end(); it++) {
-			if (powMod(r, phi / (*it), modulus) == 1) {
+		for (uint64_t i : s) {
+			if(powMod(r, phi / i, modulus) == 1) {
 				flag = true;
 				break;
 			}
@@ -99,8 +99,7 @@ uint64_t findPrimitiveRoot(uint64_t modulus) {
 
 // Algorithm to find m-th primitive root in Z_mod
 uint64_t findMthRootOfUnity(uint64_t M, uint64_t mod) {
-	uint64_t res;
-	res = findPrimitiveRoot(mod);
+	uint64_t res = findPrimitiveRoot(mod);
 	uint64_t factor = (mod - 1) / M;
 	res = powMod(res, factor, mod);
 	return res;

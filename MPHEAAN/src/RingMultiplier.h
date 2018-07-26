@@ -18,12 +18,19 @@ class RingMultiplier {
 public:
 
 	long logNx;
-	long logNy;
-	long logN;
-
 	long Nx;
+
+	long logNy;
 	long Ny;
+
+	long logN;
 	long N;
+
+	long* gyPows;
+	uint64_t** dftomegaPows;
+	uint64_t** dftomegaPowsInv;
+	uint64_t** omegaPows;
+	uint64_t** omegaPowsInv;
 
 	uint64_t* pVec;
 	uint64_t* prVec;
@@ -47,22 +54,33 @@ public:
 	ZZ** pHat;
 	uint64_t** pHatInvModp;
 
-	RingMultiplier(long logNx = 0, long logNy = 0, long logQ = 0);
+	RingMultiplier(long logNx = 0, long logQ = 0);
+
+	void arrayBitReverse(uint64_t* a, long n);
+
+	void butt1(uint64_t& a1, uint64_t& a2, uint64_t& p, uint64_t& pInv, uint64_t& W);
+	void butt2(uint64_t& a1, uint64_t& a2, uint64_t& p, uint64_t& pInv, uint64_t& W);
+
+	void divByN(uint64_t& a, uint64_t& p, uint64_t& pInv, uint64_t& NScaleInv);
 
 	void NTTX(uint64_t* a, long ix);
-	void NTTY(uint64_t* a, long iy);
-
 	void INTTX(uint64_t* a, long ix);
+
+	void NTTPO2Y(uint64_t* a, long iy);
+	void INTTPO2Y(uint64_t* a, long iy);
+
+	void NTTY(uint64_t* a, long iy);
 	void INTTY(uint64_t* a, long iy);
 
 	long MaxBits(const ZZ* f, long n);
 
 	void multXpoly(ZZ* x, const ZZ* a, const ZZ* b, const ZZ& q);
-	void multYpoly(ZZ* x, const ZZ* a, const ZZ* b, const ZZ& q);
-	void mult(ZZ* x, const ZZ* a, const ZZ* b, const ZZ& q);
-
 	void multXpolyAndEqual(ZZ* a, const ZZ* b, const ZZ& q);
+
+	void multYpoly(ZZ* x, const ZZ* a, const ZZ* b, const ZZ& q);
 	void multYpolyAndEqual(ZZ* a, const ZZ* b, const ZZ& q);
+
+	void mult(ZZ* x, const ZZ* a, const ZZ* b, const ZZ& q);
 	void multAndEqual(ZZ* a, const ZZ* b, const ZZ& q);
 
 	void square(ZZ* x, const ZZ* a, const ZZ& q);

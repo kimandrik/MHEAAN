@@ -30,9 +30,7 @@ void Scheme::addEncKey(SecretKey& secretKey) {
 
 	ring.sampleUniform(ax, ring.logQQ);
 	ring.sampleGauss(ex);
-
 	ring.mult(bx, secretKey.sxy, ax, ring.QQ);
-
 	ring.sub(bx, ex, bx, ring.QQ);
 
 	delete[] ex;
@@ -173,9 +171,8 @@ void Scheme::addSquareMatrixKeys(SecretKey& secretKey, long lognx) {
 
 Plaintext Scheme::encode(complex<double>* vals, long nx, long ny, long logp, long logq) {
 	ZZ* mx = new ZZ[ring.N];
-//	ring.encode(mx, vals, nx, logp + ring.logQ);
-	ring.encode(mx, vals, nx, logp);
-	return Plaintext(mx, logp, logq, ring.Nx, ring.Ny, nx, ny, true);
+	ring.encode(mx, vals, nx, logp + ring.logQ);
+	return Plaintext(mx, logp, logq, ring.Nx, ring.Ny, nx, ring.Ny, true);
 }
 
 Plaintext Scheme::encode(double* vals, long nx, long ny, long logp, long logq) {

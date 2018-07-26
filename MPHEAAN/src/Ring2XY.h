@@ -79,6 +79,8 @@ public:
 
 
 	void arrayBitReverse(complex<double>* vals, const long n);
+	void DFTY(complex<double>* vals);
+	void IDFTY(complex<double>* vals);
 
 	void EMBX(complex<double>* vals, const long nx);
 	void IEMBX(complex<double>* vals, const long nx);
@@ -93,17 +95,19 @@ public:
 	void encode(ZZ* mxy, double* vals, long nx, long logp);
 	void decode(ZZ* mxy, complex<double>*vals, long nx, long logp, long logq);
 
+
 	//----------------------------------------------------------------------------------
 	//   MULTIPLICATION
 	//----------------------------------------------------------------------------------
 
 
 	void multXpoly(ZZ* x, const ZZ* a, const ZZ* b, const ZZ& q);
-	void multYpoly(ZZ* x, const ZZ* a, const ZZ* b, const ZZ& q);
-	void mult(ZZ* x, const ZZ* a, const ZZ* b, const ZZ& q);
-
 	void multXpolyAndEqual(ZZ* a, const ZZ* b, const ZZ& q);
+
+	void multYpoly(ZZ* x, const ZZ* a, const ZZ* b, const ZZ& q);
 	void multYpolyAndEqual(ZZ* a, const ZZ* b, const ZZ& q);
+
+	void mult(ZZ* x, const ZZ* a, const ZZ* b, const ZZ& q);
 	void multAndEqual(ZZ* a, const ZZ* b, const ZZ& q);
 
 	void square(ZZ* x, const ZZ* a, const ZZ& q);
@@ -116,7 +120,6 @@ public:
 
 
 	void mod(ZZ* res, ZZ* p, ZZ& q);
-
 	void modAndEqual(ZZ* p, ZZ& q);
 
 	void negate(ZZ* res, ZZ* p);
@@ -168,15 +171,6 @@ public:
 	void sampleHWT(ZZ* res);
 	void sampleZO(ZZ* res);
 	void sampleUniform(ZZ* res, const long bits);
-
-
-	//----------------------------------------------------------------------------------
-	//   DFT
-	//----------------------------------------------------------------------------------
-
-
-	void DFTY(complex<double>* vals);
-	void IDFTY(complex<double>* vals);
 
 };
 

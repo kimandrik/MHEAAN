@@ -12,19 +12,16 @@
 
 
 Ring2XY::Ring2XY(long logNx, long logQ, double sigma, long h) :
-		logNx(logNx), logQ(logQ), sigma(sigma), h(h), multiplier(logNx, logNy, logQ) {
-	logN = logNx + 8;
+		logNx(logNx), logQ(logQ), sigma(sigma), h(h), multiplier(logNx, logQ) {
 
 	Nx = (1 << logNx);
-	N = (1 << logN);
-
 	Mx = 1 << (logNx + 1);
-
-	Nh = N >> 1;
-
 	Nxh = Nx >> 1;
-
 	logNxh = logNx - 1;
+
+	logN = logNx + 8;
+	N = (1 << logN);
+	Nh = N >> 1;
 
 	logQQ = 2 * logQ;
 
@@ -37,6 +34,7 @@ Ring2XY::Ring2XY(long logNx, long logQ, double sigma, long h) :
 	logNy = 8;
 	Ny = 1 << logNy;
 	My = Ny + 1;
+
 	gxPows = new long[Nxh + 1];
 	long gxPow = 1;
 	for (long i = 0; i < Nxh; ++i) {
@@ -133,6 +131,45 @@ void Ring2XY::arrayBitReverse(complex<double>* vals, const long n) {
 		if(i < j) {
 			swap(vals[i], vals[j]);
 		}
+	}
+}
+
+void Ring2XY::DFTY(complex<double>* vals) {
+	arrayBitReverse(vals, Ny);
+	for (long len = 2; len <= Ny; len <<= 1) {
+		long lenh = len >> 1;
+		long gap = Ny / len;
+		for (long i = 0; i < Ny; i += len) {
+			for (long j = 0; j < lenh; ++j) {
+				long idx = j * gap;
+				complex<double> u = vals[i + j];
+				complex<double> v = vals[i + j + lenh];
+				v *= ksiyPows[idx];
+				vals[i + j] = u + v;
+				vals[i + j + lenh] = u - v;
+			}
+		}
+	}
+}
+
+void Ring2XY::IDFTY(complex<double>* vals) {
+	arrayBitReverse(vals, Ny);
+	for (long len = 2; len <= Ny; len <<= 1) {
+		long lenh = len >> 1;
+		long gap = Ny / len;
+		for (long i = 0; i < Ny; i += len) {
+			for (long j = 0; j < lenh; ++j) {
+				long idx = Ny - j * gap;
+				complex<double> u = vals[i + j];
+				complex<double> v = vals[i + j + lenh];
+				v *= ksiyPows[idx];
+				vals[i + j] = u + v;
+				vals[i + j + lenh] = u - v;
+			}
+		}
+	}
+	for (long iy = 0; iy < Ny; ++iy) {
+		vals[iy] /= Ny;
 	}
 }
 
@@ -322,20 +359,20 @@ void Ring2XY::multXpoly(ZZ* x, const ZZ* a, const ZZ* b, const ZZ& q) {
 	multiplier.multXpoly(x, a, b, q);
 }
 
-void Ring2XY::multYpoly(ZZ* x, const ZZ* a, const ZZ* b, const ZZ& q) {
-	multiplier.multYpoly(x, a, b, q);
-}
-
-void Ring2XY::mult(ZZ* x, const ZZ* a, const ZZ* b, const ZZ& q) {
-	multiplier.mult(x, a, b, q);
-}
-
 void Ring2XY::multXpolyAndEqual(ZZ* a, const ZZ* b, const ZZ& q) {
 	multiplier.multXpolyAndEqual(a, b, q);
 }
 
+void Ring2XY::multYpoly(ZZ* x, const ZZ* a, const ZZ* b, const ZZ& q) {
+	multiplier.multYpoly(x, a, b, q);
+}
+
 void Ring2XY::multYpolyAndEqual(ZZ* a, const ZZ* b, const ZZ& q) {
 	multiplier.multYpolyAndEqual(a, b, q);
+}
+
+void Ring2XY::mult(ZZ* x, const ZZ* a, const ZZ* b, const ZZ& q) {
+	multiplier.mult(x, a, b, q);
 }
 
 void Ring2XY::multAndEqual(ZZ* a, const ZZ* b, const ZZ& q) {
@@ -625,49 +662,3 @@ void Ring2XY::sampleUniform(ZZ* res, long bits) {
 		res[i] = RandomBits_ZZ(bits);
 	}
 }
-
-
-//----------------------------------------------------------------------------------
-//   DFT
-//----------------------------------------------------------------------------------
-
-
-void Ring2XY::DFTY(complex<double>* vals) {
-	arrayBitReverse(vals, Ny);
-	for (long len = 2; len <= Ny; len <<= 1) {
-		long lenh = len >> 1;
-		long gap = Ny / len;
-		for (long i = 0; i < Ny; i += len) {
-			for (long j = 0; j < lenh; ++j) {
-				long idx = j * gap;
-				complex<double> u = vals[i + j];
-				complex<double> v = vals[i + j + lenh];
-				v *= ksiyPows[idx];
-				vals[i + j] = u + v;
-				vals[i + j + lenh] = u - v;
-			}
-		}
-	}
-}
-
-void Ring2XY::IDFTY(complex<double>* vals) {
-	arrayBitReverse(vals, Ny);
-	for (long len = 2; len <= Ny; len <<= 1) {
-		long lenh = len >> 1;
-		long gap = Ny / len;
-		for (long i = 0; i < Ny; i += len) {
-			for (long j = 0; j < lenh; ++j) {
-				long idx = Ny - j * gap;
-				complex<double> u = vals[i + j];
-				complex<double> v = vals[i + j + lenh];
-				v *= ksiyPows[idx];
-				vals[i + j] = u + v;
-				vals[i + j + lenh] = u - v;
-			}
-		}
-	}
-	for (long iy = 0; iy < Ny; ++iy) {
-		vals[iy] /= Ny;
-	}
-}
-
