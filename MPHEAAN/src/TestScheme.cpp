@@ -99,7 +99,7 @@ void TestScheme::testStandard(long logNx, long logNy, long logQ, long logp, long
 	cout << "!!! START TEST STANDARD !!!" << endl;
 
 //	srand(time(NULL));
-	SetNumThreads(1);
+	SetNumThreads(8);
 
 	TimeUtils timeutils;
 	Ring2XY ring(logNx, logQ);

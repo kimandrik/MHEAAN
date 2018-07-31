@@ -72,8 +72,14 @@ public:
 	void NTTY(uint64_t* a, long index);
 	void INTTY(uint64_t* a, long index);
 
+	void NTTY1(uint64_t* a, long index);
+	void INTTY1(uint64_t* a, long index);
+
 	void NTTXY(uint64_t* a, long index);
 	void INTTXY(uint64_t* a, long index);
+
+	void NTTXY1(uint64_t* a, long index);
+	void INTTXY1(uint64_t* a, long index);
 
 	long MaxBits(const ZZ* f, long n);
 
