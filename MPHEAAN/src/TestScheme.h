@@ -17,8 +17,6 @@ public:
 	//----------------------------------------------------------------------------------
 
 
-	static void testEncode(long logNx, long logQ, long logp, long lognx);
-
 	static void testEncrypt(long logNx, long logNy, long logQ, long logp, long lognx, long logny);
 
 	static void testEncryptSingle(long logNx, long logNy, long logQ, long logp);
@@ -95,7 +93,7 @@ public:
 
 	static void testCiphertextWriteAndRead(long logNx, long logNy, long logQ, long logp, long lognx, long logny);
 
-	static void test(long logNx, long logNy, long logQ, long logp, long lognx, long logny);
+	static void test();
 };
 
 #endif

@@ -19,7 +19,11 @@ Ring2XY::Ring2XY(long logNx, long logQ, double sigma, long h) :
 	Nxh = Nx >> 1;
 	logNxh = logNx - 1;
 
-	logN = logNx + 8;
+	logNy = 8;
+	Ny = 1 << logNy;
+	My = Ny + 1;
+
+	logN = logNx + logNy;
 	N = (1 << logN);
 	Nh = N >> 1;
 
@@ -30,10 +34,6 @@ Ring2XY::Ring2XY(long logNx, long logQ, double sigma, long h) :
 
 	long gx = 5;
 	long gy = 3;
-
-	logNy = 8;
-	Ny = 1 << logNy;
-	My = Ny + 1;
 
 	gxPows = new long[Nxh + 1];
 	long gxPow = 1;
@@ -159,7 +159,7 @@ void Ring2XY::IDFTY(complex<double>* vals) {
 		long gap = Ny / len;
 		for (long i = 0; i < Ny; i += len) {
 			for (long j = 0; j < lenh; ++j) {
-				long idx = Ny - j * gap;
+				long idx = Ny - (j * gap);
 				complex<double> u = vals[i + j];
 				complex<double> v = vals[i + j + lenh];
 				v *= ksiyPows[idx];
@@ -215,26 +215,6 @@ void Ring2XY::IEMBX(complex<double>* vals, const long nx) {
 }
 
 void Ring2XY::EMBY(complex<double>* vals) {
-	for (long i = 0; i < Ny; ++i) {
-		vals[i] *= omegaPows[i];
-	}
-	DFTY(vals);
-	for (long i = 0; i < Ny; ++i) {
-		vals[i] /= dftomegaPows[i];
-	}
-	IDFTY(vals);
-
-	complex<double>* tmp = new complex<double>[Ny]();
-	for (long i = 0; i < Ny; ++i) {
-		tmp[gyPows[Ny - i] - 1] = vals[i];
-	}
-	for (long i = 0; i < Ny; ++i) {
-		vals[i] = tmp[i];
-	}
-	delete[] tmp;
-}
-
-void Ring2XY::IEMBY(complex<double>* vals) {
 	complex<double>* tmp = new complex<double>[Ny];
 	for (long i = 0; i < Ny; ++i) {
 		tmp[i] = vals[gyPows[Ny - i] - 1];
@@ -252,6 +232,26 @@ void Ring2XY::IEMBY(complex<double>* vals) {
 	for (long i = 0; i < Ny; ++i) {
 		vals[i] /= omegaPows[i];
 	}
+}
+
+void Ring2XY::IEMBY(complex<double>* vals) {
+	for (long i = 0; i < Ny; ++i) {
+		vals[i] *= omegaPows[i];
+	}
+	DFTY(vals);
+	for (long i = 0; i < Ny; ++i) {
+		vals[i] /= dftomegaPows[i];
+	}
+	IDFTY(vals);
+
+	complex<double>* tmp = new complex<double>[Ny]();
+	for (long i = 0; i < Ny; ++i) {
+		tmp[gyPows[Ny - i] - 1] = vals[i];
+	}
+	for (long i = 0; i < Ny; ++i) {
+		vals[i] = tmp[i];
+	}
+	delete[] tmp;
 }
 
 void Ring2XY::EMBXY(complex<double>* vals, const long nx) {

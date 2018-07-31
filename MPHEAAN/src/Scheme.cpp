@@ -178,7 +178,7 @@ Plaintext Scheme::encode(complex<double>* vals, long nx, long ny, long logp, lon
 Plaintext Scheme::encode(double* vals, long nx, long ny, long logp, long logq) {
 	ZZ* mxy = new ZZ[ring.N];
 	ring.encode(mxy, vals, nx, logp + ring.logQ);
-	return Plaintext(mxy, logp, logq, ring.Nx, ring.Ny, nx, ny, true);
+	return Plaintext(mxy, logp, logq, ring.Nx, ring.Ny, nx, ring.Ny, true);
 }
 
 Plaintext Scheme::encodeSingle(complex<double> val, long logp, long logq) {

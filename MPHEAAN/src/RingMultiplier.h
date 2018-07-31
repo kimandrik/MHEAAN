@@ -63,14 +63,17 @@ public:
 
 	void divByN(uint64_t& a, uint64_t& p, uint64_t& pInv, uint64_t& NScaleInv);
 
-	void NTTX(uint64_t* a, long ix);
-	void INTTX(uint64_t* a, long ix);
+	void NTTX(uint64_t* a, long index);
+	void INTTX(uint64_t* a, long index);
 
-	void NTTPO2Y(uint64_t* a, long iy);
-	void INTTPO2Y(uint64_t* a, long iy);
+	void NTTPO2Y(uint64_t* a, long index);
+	void INTTPO2Y(uint64_t* a, long index);
 
-	void NTTY(uint64_t* a, long iy);
-	void INTTY(uint64_t* a, long iy);
+	void NTTY(uint64_t* a, long index);
+	void INTTY(uint64_t* a, long index);
+
+	void NTTXY(uint64_t* a, long index);
+	void INTTXY(uint64_t* a, long index);
 
 	long MaxBits(const ZZ* f, long n);
 

@@ -31,37 +31,6 @@ using namespace NTL;
 //----------------------------------------------------------------------------------
 
 
-void TestScheme::testEncode(long logNx, long logQ, long logp, long lognx) {
-	long Ny = 256;
-	Ring2XY ring(logNx, logQ);
-	uint64_t* mx1 = new uint64_t[Ny]();
-	uint64_t* mx2 = new uint64_t[Ny]();
-	for (long i = 0; i < Ny; ++i) {
-		mx1[i] = 1;
-		mx2[i] = 1;
-	}
-	ring.multiplier.NTTY(mx1, 0);
-	ring.multiplier.NTTY(mx2, 0);
-
-	uint64_t p = ring.multiplier.pVec[0];
-	for (long i = 0; i < Ny; ++i) {
-		mulMod(mx1[i], mx1[i], mx2[i], p);
-	}
-	ring.multiplier.INTTY(mx1, 0);
-	ring.multiplier.INTTY(mx2, 0);
-
-	for (long i = 0; i < Ny; ++i) {
-		cout << mx1[i] << " ";
-	}
-	cout << endl;
-
-	for (long i = 0; i < Ny; ++i) {
-		cout << mx2[i] << " ";
-	}
-	cout << endl;
-
-}
-
 void TestScheme::testEncrypt(long logNx, long logNy, long logQ, long logp, long lognx, long logny) {
 	cout << "!!! START TEST ENCRYPT !!!" << endl;
 
@@ -129,17 +98,17 @@ void TestScheme::testEncryptSingle(long logNx, long logNy, long logQ, long logp)
 void TestScheme::testStandard(long logNx, long logNy, long logQ, long logp, long lognx, long logny) {
 	cout << "!!! START TEST STANDARD !!!" << endl;
 
-	srand(time(NULL));
-	SetNumThreads(8);
+//	srand(time(NULL));
+	SetNumThreads(1);
 
 	TimeUtils timeutils;
-	Ring2XY ring(logNx, logNy , logQ);
+	Ring2XY ring(logNx, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 
 	long nx = (1 << lognx);
-	long ny = (1 << logny);
-	long n = nx * ny;
+	long ny = (1 << ring.logNy);
+	long n = nx * ring.Ny;
 
 	complex<double>* mmat1 = EvaluatorUtils::randomComplexArray(n);
 	complex<double>* mmat2 = EvaluatorUtils::randomComplexArray(n);
@@ -940,39 +909,7 @@ void TestScheme::testCiphertextWriteAndRead(long logNx, long logNy, long logQ, l
 	cout << "!!! END TEST WRITE AND READ !!!" << endl;
 }
 
-void TestScheme::test(long logNx, long logNy, long logQ, long logp, long lognx, long logny) {
-	cout << "!!! START TEST ENCRYPT !!!" << endl;
-
-	srand(time(NULL));
-	SetNumThreads(8);
-
-	TimeUtils timeutils;
-	Ring2XY ring(logNx, logNy , logQ);
-	SecretKey secretKey(ring);
-	Scheme scheme(secretKey, ring);
-
-	long nx = (1 << lognx);
-	long ny = (1 << logny);
-	long n = nx * ny;
-
-	complex<double>* mmat = EvaluatorUtils::randomComplexArray(n);
-
-	timeutils.start("Encode matrix");
-	Plaintext msg = scheme.encode(mmat, nx, ny, logp, logQ);
-	timeutils.stop("Encode matrix");
-
-	timeutils.start("Encrypt msg");
-	Ciphertext cipher = scheme.encryptMsg(msg);
-	timeutils.stop("Encrypt msg");
-
-	scheme.modDownToAndEqual(cipher, 300);
-	timeutils.start("Decrypt matrix");
-	complex<double>* dmat = scheme.decrypt(secretKey, cipher);
-	timeutils.stop("Decrypt matrix");
-
-	StringUtils::compare(mmat, dmat, n, "val");
-
-	cout << "!!! END TEST ENCRYPT !!!" << endl;
+void TestScheme::test() {
 
 }
 
