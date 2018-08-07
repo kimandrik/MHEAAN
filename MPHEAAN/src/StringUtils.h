@@ -5,13 +5,13 @@
 * You should have received a copy of the license along with this
 * work.  If not, see <http://creativecommons.org/licenses/by-nc/3.0/>.
 */
+
 #ifndef MHEAAN_STRINGUTILS_H_
 #define MHEAAN_STRINGUTILS_H_
 
-#include "Common.h"
-
-#include <complex>
 #include <NTL/ZZ.h>
+#include <complex>
+#include <iostream>
 
 using namespace std;
 using namespace NTL;

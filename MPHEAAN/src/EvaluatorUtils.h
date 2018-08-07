@@ -5,6 +5,7 @@
 * You should have received a copy of the license along with this
 * work.  If not, see <http://creativecommons.org/licenses/by-nc/3.0/>.
 */
+
 #ifndef MPHEAAN_EVALUATORUTILS_H_
 #define MPHEAAN_EVALUATORUTILS_H_
 
@@ -57,6 +58,7 @@ public:
 	static void leftRotateAndEqual(complex<double>* vals, const long nx, const long ny, const long rx, const long ry);
 
 	static void rightRotateAndEqual(complex<double>* vals, const long nx, const long ny, const long rx, const long ry);
+
 
 	//----------------------------------------------------------------------------------
 	//   MATRIX

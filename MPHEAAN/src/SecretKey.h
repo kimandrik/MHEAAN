@@ -5,6 +5,7 @@
 * You should have received a copy of the license along with this
 * work.  If not, see <http://creativecommons.org/licenses/by-nc/3.0/>.
 */
+
 #ifndef MHEAAN_SECRETKEY_H_
 #define MHEAAN_SECRETKEY_H_
 

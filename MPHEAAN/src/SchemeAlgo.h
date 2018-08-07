@@ -5,6 +5,7 @@
 * You should have received a copy of the license along with this
 * work.  If not, see <http://creativecommons.org/licenses/by-nc/3.0/>.
 */
+
 #ifndef MHEAAN_SCHEMEALGO_H_
 #define MHEAAN_SCHEMEALGO_H_
 
@@ -12,7 +13,6 @@
 #include <NTL/ZZ.h>
 #include <complex>
 
-#include "Common.h"
 #include "EvaluatorUtils.h"
 #include "Plaintext.h"
 #include "SecretKey.h"

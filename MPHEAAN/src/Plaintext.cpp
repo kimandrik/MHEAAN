@@ -5,13 +5,14 @@
 * You should have received a copy of the license along with this
 * work.  If not, see <http://creativecommons.org/licenses/by-nc/3.0/>.
 */
+
 #include "Plaintext.h"
 
-Plaintext::Plaintext(ZZ* mxy, long logp, long logq, long Nx, long Ny, long nx, long ny, bool isComplex)
-		: mxy(mxy), logp(logp), logq(logq), Nx(Nx), Ny(Ny), nx(nx), ny(ny), isComplex(isComplex) {
+Plaintext::Plaintext(ZZ* mxy, long logp, long logq, long Nx, long Ny, long nx, long ny)
+		: mxy(mxy), logp(logp), logq(logq), Nx(Nx), Ny(Ny), nx(nx), ny(ny) {
 }
 
-Plaintext::Plaintext(const Plaintext& o) : mxy(o.mxy), logp(o.logp), logq(o.logq), Nx(o.Nx), Ny(o.Ny), nx(o.nx), ny(o.ny), isComplex(o.isComplex) {
+Plaintext::Plaintext(const Plaintext& o) : mxy(o.mxy), logp(o.logp), logq(o.logq), Nx(o.Nx), Ny(o.Ny), nx(o.nx), ny(o.ny) {
 	long N = Nx * Ny;
 	mxy = new ZZ[N];
 	for (long i = 0; i < N; ++i) {
@@ -26,7 +27,6 @@ Plaintext& Plaintext::operator=(const Plaintext& o) {
 	Ny = o.Ny;
 	nx = o.nx;
 	ny = o.ny;
-	isComplex = o.isComplex;
 	logp = o.logp;
 	logq = o.logq;
 	long N = Nx * Ny;

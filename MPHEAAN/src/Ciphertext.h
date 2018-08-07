@@ -5,6 +5,7 @@
 * You should have received a copy of the license along with this
 * work.  If not, see <http://creativecommons.org/licenses/by-nc/3.0/>.
 */
+
 #ifndef MPHEAAN_CIPHERTEXT_H_
 #define MPHEAAN_CIPHERTEXT_H_
 
@@ -13,6 +14,9 @@
 using namespace std;
 using namespace NTL;
 
+/**
+ * Ciphertext if MRLWE(RLWE) instanc
+ */
 class Ciphertext {
 public:
 
@@ -28,11 +32,7 @@ public:
 	long nx;
 	long ny;
 
-	bool isComplex;
-
-	//-----------------------------------------
-
-	Ciphertext(ZZ* axy = NULL, ZZ* bxy = NULL, long logp = 0, long logq = 0, long Nx = 1, long Ny = 1, long nx = 1, long ny = 1, bool isComplex = true);
+	Ciphertext(ZZ* axy = NULL, ZZ* bxy = NULL, long logp = 0, long logq = 0, long Nx = 0, long Ny = 0, long nx = 0, long ny = 0);
 
 	Ciphertext(const Ciphertext& o);
 

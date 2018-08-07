@@ -5,6 +5,7 @@
 * You should have received a copy of the license along with this
 * work.  If not, see <http://creativecommons.org/licenses/by-nc/3.0/>.
 */
+
 #include "Scheme.h"
 
 #include "NTL/BasicThreadPool.h"
@@ -131,26 +132,6 @@ void Scheme::addConjKey(SecretKey& secretKey) {
 	keyMap.insert(pair<long, Key>(CONJUGATION, Key(axy, bxy)));
 }
 
-void Scheme::addTranspKey(SecretKey& secretKey) {
-	ZZ* exy = new ZZ[ring.N];
-	ZZ* axy = new ZZ[ring.N];
-	ZZ* bxy = new ZZ[ring.N];
-	ZZ* trsxy = new ZZ[ring.N];
-
-	ring.transpose(trsxy, secretKey.sxy);
-	ring.leftShiftAndEqual(trsxy, ring.logQ, ring.QQ);
-	ring.sampleUniform(axy, ring.logQQ);
-	ring.sampleGauss(exy);
-	ring.addAndEqual(exy, trsxy, ring.QQ);
-	ring.mult(bxy, secretKey.sxy, axy, ring.QQ);
-	ring.sub(bxy, exy, bxy, ring.QQ);
-
-	delete[] exy;
-	delete[] trsxy;
-
-	keyMap.insert(pair<long, Key>(TRANSPOSITION, Key(axy, bxy)));
-}
-
 void Scheme::addSquareMatrixKeys(SecretKey& secretKey, long lognx) {
 	ring.addMatrixContext(lognx);
 	long nx = 1 << lognx;
@@ -172,13 +153,13 @@ void Scheme::addSquareMatrixKeys(SecretKey& secretKey, long lognx) {
 Plaintext Scheme::encode(complex<double>* vals, long nx, long ny, long logp, long logq) {
 	ZZ* mx = new ZZ[ring.N];
 	ring.encode(mx, vals, nx, logp + ring.logQ);
-	return Plaintext(mx, logp, logq, ring.Nx, ring.Ny, nx, ring.Ny, true);
+	return Plaintext(mx, logp, logq, ring.Nx, ring.Ny, nx, ring.Ny);
 }
 
 Plaintext Scheme::encode(double* vals, long nx, long ny, long logp, long logq) {
 	ZZ* mxy = new ZZ[ring.N];
 	ring.encode(mxy, vals, nx, logp + ring.logQ);
-	return Plaintext(mxy, logp, logq, ring.Nx, ring.Ny, nx, ring.Ny, true);
+	return Plaintext(mxy, logp, logq, ring.Nx, ring.Ny, nx, ring.Ny);
 }
 
 Plaintext Scheme::encodeSingle(complex<double> val, long logp, long logq) {
@@ -187,7 +168,7 @@ Plaintext Scheme::encodeSingle(complex<double> val, long logp, long logq) {
 	mxy[0] = EvaluatorUtils::scaleUpToZZ(val.real(), logp + ring.logQ);
 	mxy[ring.Nh] = EvaluatorUtils::scaleUpToZZ(val.imag(), logp + ring.logQ);
 
-	return Plaintext(mxy, logp, logq, ring.Nx, ring.Ny, 1, 1, true);
+	return Plaintext(mxy, logp, logq, ring.Nx, ring.Ny, 1, 1);
 }
 
 Plaintext Scheme::encodeSingle(double val, long logp, long logq) {
@@ -195,7 +176,7 @@ Plaintext Scheme::encodeSingle(double val, long logp, long logq) {
 
 	mx[0] = EvaluatorUtils::scaleUpToZZ(val, logp + ring.logQ);
 
-	return Plaintext(mx, logp, logq, ring.Nx, ring.Ny, 1, 1, false);
+	return Plaintext(mx, logp, logq, ring.Nx, ring.Ny, 1, 1);
 }
 
 complex<double>* Scheme::decode(Plaintext& msg) {
@@ -214,12 +195,10 @@ complex<double> Scheme::decodeSingle(Plaintext& msg) {
 	while(tmp > qh) tmp -= q;
 	res.real(EvaluatorUtils::scaleDownToReal(tmp, msg.logp));
 
-	if(msg.isComplex) {
-		AddMod(tmp, msg.mxy[ring.Nh], msg.mxy[ring.Nxh], q);
-		while(tmp < 0) tmp += q;
-		while(tmp > qh) tmp -= q;
-		res.imag(EvaluatorUtils::scaleDownToReal(tmp, msg.logp));
-	}
+	AddMod(tmp, msg.mxy[ring.Nh], msg.mxy[ring.Nxh], q);
+	while(tmp < 0) tmp += q;
+	while(tmp > qh) tmp -= q;
+	res.imag(EvaluatorUtils::scaleDownToReal(tmp, msg.logp));
 	return res;
 }
 
@@ -256,7 +235,7 @@ Ciphertext Scheme::encryptMsg(Plaintext& msg) {
 	delete[] exy;
 	delete[] vxy;
 
-	return Ciphertext(axy, bxy, msg.logp, msg.logq, msg.Nx, msg.Ny, msg.nx, msg.ny, msg.isComplex);
+	return Ciphertext(axy, bxy, msg.logp, msg.logq, msg.Nx, msg.Ny, msg.nx, msg.ny);
 }
 
 Ciphertext Scheme::encrypt(complex<double>* vals, long nx, long ny, long logp, long logq) {
@@ -281,7 +260,6 @@ Ciphertext Scheme::encryptSingle(double val, long logp, long logq) {
 
 Ciphertext Scheme::encryptZeros(long nx, long ny, long logp, long logq) {
 	Ciphertext czeros = encryptSingle(0.0, logp, logq);
-	czeros.isComplex = true;
 	czeros.nx = nx;
 	czeros.ny = ny;
 	return czeros;
@@ -292,7 +270,7 @@ Plaintext Scheme::decryptMsg(SecretKey& secretKey, Ciphertext& cipher) {
 	ZZ* mxy = new ZZ[ring.N];
 	ring.mult(mxy, cipher.axy, secretKey.sxy, q);
 	ring.addAndEqual(mxy, cipher.bxy, q);
-	return Plaintext(mxy, cipher.logp, cipher.logq, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny, cipher.isComplex);
+	return Plaintext(mxy, cipher.logp, cipher.logq, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny);
 }
 
 complex<double>* Scheme::decrypt(SecretKey& secretKey, Ciphertext& cipher) {
@@ -318,7 +296,7 @@ Ciphertext Scheme::negate(Ciphertext& cipher) {
 	ring.negate(axy, cipher.axy);
 	ring.negate(bxy, cipher.bxy);
 
-	return Ciphertext(axy, bxy, cipher.logp, cipher.logq, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny, cipher.isComplex);
+	return Ciphertext(axy, bxy, cipher.logp, cipher.logq, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny);
 }
 
 void Scheme::negateAndEqual(Ciphertext& cipher) {
@@ -335,7 +313,7 @@ Ciphertext Scheme::add(Ciphertext& cipher1, Ciphertext& cipher2) {
 	ring.add(axy, cipher1.axy, cipher2.axy, q);
 	ring.add(bxy, cipher1.bxy, cipher2.bxy, q);
 
-	return Ciphertext(axy, bxy, cipher1.logp, cipher1.logq, cipher1.Nx, cipher1.Ny, cipher1.nx, cipher1.ny, cipher1.isComplex);
+	return Ciphertext(axy, bxy, cipher1.logp, cipher1.logq, cipher1.Nx, cipher1.Ny, cipher1.nx, cipher1.ny);
 }
 
 void Scheme::addAndEqual(Ciphertext& cipher1, Ciphertext& cipher2) {
@@ -400,7 +378,7 @@ Ciphertext Scheme::sub(Ciphertext& cipher1, Ciphertext& cipher2) {
 	ring.sub(axy, cipher1.axy, cipher2.axy, q);
 	ring.sub(bxy, cipher1.bxy, cipher2.bxy, q);
 
-	return Ciphertext(axy, bxy, cipher1.logp, cipher1.logq, cipher1.Nx, cipher1.Ny, cipher1.nx, cipher1.ny, cipher1.isComplex);
+	return Ciphertext(axy, bxy, cipher1.logp, cipher1.logq, cipher1.Nx, cipher1.Ny, cipher1.nx, cipher1.ny);
 }
 
 void Scheme::subAndEqual(Ciphertext& cipher1, Ciphertext& cipher2) {
@@ -426,7 +404,7 @@ Ciphertext Scheme::imult(Ciphertext& cipher) {
 	ring.multByMonomial(axy, cipher.axy, ring.Nxh, 0);
 	ring.multByMonomial(bxy, cipher.bxy, ring.Nxh, 0);
 
-	return Ciphertext(axy, bxy, cipher.logp, cipher.logq, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny, cipher.isComplex);
+	return Ciphertext(axy, bxy, cipher.logp, cipher.logq, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny);
 }
 
 Ciphertext Scheme::idiv(Ciphertext& cipher) {
@@ -438,7 +416,7 @@ Ciphertext Scheme::idiv(Ciphertext& cipher) {
 	ring.multByMonomial(axy, cipher.axy, 3 * ring.Nxh, 0);
 	ring.multByMonomial(bxy, cipher.bxy, 3 * ring.Nxh, 0);
 
-	return Ciphertext(axy, bxy, cipher.logp, cipher.logq, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny, cipher.isComplex);
+	return Ciphertext(axy, bxy, cipher.logp, cipher.logq, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny);
 }
 
 void Scheme::imultAndEqual(Ciphertext& cipher) {
@@ -486,7 +464,7 @@ Ciphertext Scheme::mult(Ciphertext& cipher1, Ciphertext& cipher2) {
 	delete[] aaxy;
 	delete[] bbxy;
 
-	return Ciphertext(axy, bxy, cipher1.logp + cipher2.logp, cipher1.logq, cipher1.Nx, cipher1.Ny, cipher1.nx, cipher1.ny, cipher1.isComplex);
+	return Ciphertext(axy, bxy, cipher1.logp + cipher2.logp, cipher1.logq, cipher1.Nx, cipher1.Ny, cipher1.nx, cipher1.ny);
 }
 
 void Scheme::multAndEqual(Ciphertext& cipher1, Ciphertext& cipher2) {
@@ -557,7 +535,7 @@ Ciphertext Scheme::square(Ciphertext& cipher) {
 	delete[] bbxy;
 
 
-	return Ciphertext(axy, bxy, 2 * cipher.logp, cipher.logq, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny, cipher.isComplex);
+	return Ciphertext(axy, bxy, 2 * cipher.logp, cipher.logq, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny);
 }
 
 void Scheme::squareAndEqual(Ciphertext& cipher) {
@@ -601,7 +579,7 @@ Ciphertext Scheme::multByConst(Ciphertext& cipher, RR& cnst, long logp) {
 	ring.multByConst(axy, cipher.axy, cnstZZ, q);
 	ring.multByConst(bxy, cipher.bxy, cnstZZ, q);
 
-	return Ciphertext(axy, bxy, cipher.logp + logp, cipher.logq, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny, cipher.isComplex);
+	return Ciphertext(axy, bxy, cipher.logp + logp, cipher.logq, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny);
 }
 
 
@@ -616,7 +594,7 @@ Ciphertext Scheme::multByConst(Ciphertext& cipher, double cnst, long logp) {
 	ring.multByConst(axy, cipher.axy, cnstZZ, q);
 	ring.multByConst(bxy, cipher.bxy, cnstZZ, q);
 
-	return Ciphertext(axy, bxy, cipher.logp + logp, cipher.logq, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny, cipher.isComplex);
+	return Ciphertext(axy, bxy, cipher.logp + logp, cipher.logq, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny);
 }
 
 void Scheme::multByConstAndEqual(Ciphertext& cipher, RR& cnst, long logp) {
@@ -650,7 +628,7 @@ Ciphertext Scheme::multByXPoly(Ciphertext& cipher, ZZ* xpoly, long logp) {
 	ring.multXpoly(axy, cipher.axy, xpoly, q);
 	ring.multXpoly(bxy, cipher.bxy, xpoly, q);
 
-	return Ciphertext(axy, bxy, cipher.logp + logp, cipher.logq, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny, cipher.isComplex);
+	return Ciphertext(axy, bxy, cipher.logp + logp, cipher.logq, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny);
 }
 
 void Scheme::multByXPolyAndEqual(Ciphertext& cipher, ZZ* xpoly, long logp) {
@@ -671,7 +649,7 @@ Ciphertext Scheme::multByYPoly(Ciphertext& cipher, ZZ* ypoly, long logp) {
 	ring.multYpoly(axy, cipher.axy, ypoly, q);
 	ring.multYpoly(bxy, cipher.bxy, ypoly, q);
 
-	return Ciphertext(axy, bxy, cipher.logp + logp, cipher.logq, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny, cipher.isComplex);
+	return Ciphertext(axy, bxy, cipher.logp + logp, cipher.logq, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny);
 }
 
 void Scheme::multByYPolyAndEqual(Ciphertext& cipher, ZZ* ypoly, long logp) {
@@ -692,7 +670,7 @@ Ciphertext Scheme::multByPoly(Ciphertext& cipher, ZZ* poly, long logp) {
 	ring.mult(axy, cipher.axy, poly, q);
 	ring.mult(bxy, cipher.bxy, poly, q);
 
-	return Ciphertext(axy, bxy, cipher.logp + logp, cipher.logq, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny, cipher.isComplex);
+	return Ciphertext(axy, bxy, cipher.logp + logp, cipher.logq, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny);
 }
 
 void Scheme::multByPolyAndEqual(Ciphertext& cipher, ZZ* poly, long logp) {
@@ -711,7 +689,7 @@ Ciphertext Scheme::multByMonomial(Ciphertext& cipher, const long dx, const long 
 	ring.multByMonomial(axy, cipher.axy, dx, dy);
 	ring.multByMonomial(bxy, cipher.bxy, dx, dy);
 
-	return Ciphertext(axy, bxy, cipher.logp, cipher.logq, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny, cipher.isComplex);
+	return Ciphertext(axy, bxy, cipher.logp, cipher.logq, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny);
 }
 
 void Scheme::multByMonomialAndEqual(Ciphertext& cipher, const long dx, const long dy) {
@@ -728,7 +706,7 @@ Ciphertext Scheme::multByPo2(Ciphertext& cipher, long degree) {
 	ring.leftShift(axy, cipher.axy, degree, q);
 	ring.leftShift(bxy, cipher.bxy, degree, q);
 
-	return Ciphertext(axy, bxy, cipher.logp, cipher.logq, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny, cipher.isComplex);
+	return Ciphertext(axy, bxy, cipher.logp, cipher.logq, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny);
 }
 
 void Scheme::multByPo2AndEqual(Ciphertext& cipher, long degree) {
@@ -752,7 +730,7 @@ Ciphertext Scheme::divByPo2(Ciphertext& cipher, long logd) {
 	ring.rightShift(axy, cipher.axy, logd);
 	ring.rightShift(bxy, cipher.bxy, logd);
 
-	return Ciphertext(axy, bxy, cipher.logp, cipher.logq - logd, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny, cipher.isComplex);
+	return Ciphertext(axy, bxy, cipher.logp, cipher.logq - logd, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny);
 }
 
 void Scheme::divByPo2AndEqual(Ciphertext& cipher, long logd) {
@@ -774,7 +752,7 @@ Ciphertext Scheme::reScaleBy(Ciphertext& cipher, long dlogq) {
 	ring.rightShift(axy, cipher.axy, dlogq);
 	ring.rightShift(bxy, cipher.bxy, dlogq);
 
-	return Ciphertext(axy, bxy, cipher.logp - dlogq, cipher.logq - dlogq, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny, cipher.isComplex);
+	return Ciphertext(axy, bxy, cipher.logp - dlogq, cipher.logq - dlogq, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny);
 }
 
 Ciphertext Scheme::reScaleTo(Ciphertext& cipher, long logq) {
@@ -785,7 +763,7 @@ Ciphertext Scheme::reScaleTo(Ciphertext& cipher, long logq) {
 	ring.rightShift(axy, cipher.axy, dlogq);
 	ring.rightShift(bxy, cipher.bxy, dlogq);
 
-	return Ciphertext(axy, bxy, cipher.logp - dlogq, logq, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny, cipher.isComplex);
+	return Ciphertext(axy, bxy, cipher.logp - dlogq, logq, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny);
 }
 
 void Scheme::reScaleByAndEqual(Ciphertext& cipher, long dlogq) {
@@ -811,7 +789,7 @@ Ciphertext Scheme::modDownBy(Ciphertext& cipher, long dlogq) {
 
 	ring.mod(axy, cipher.axy, q);
 	ring.mod(bxy, cipher.bxy, q);
-	return Ciphertext(axy, bxy, cipher.logp, logq, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny, cipher.isComplex);
+	return Ciphertext(axy, bxy, cipher.logp, logq, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny);
 }
 
 void Scheme::modDownByAndEqual(Ciphertext& cipher, long dlogq) {
@@ -832,7 +810,7 @@ Ciphertext Scheme::modDownTo(Ciphertext& cipher, long logq) {
 	ring.mod(axy, cipher.axy, q);
 	ring.mod(bxy, cipher.bxy, q);
 
-	return Ciphertext(axy, bxy, cipher.logp, logq, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny, cipher.isComplex);
+	return Ciphertext(axy, bxy, cipher.logp, logq, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny);
 }
 
 void Scheme::modDownToAndEqual(Ciphertext& cipher, long newlogq) {
@@ -872,7 +850,7 @@ Ciphertext Scheme::leftRotateFast(Ciphertext& cipher, long rx, long ry) {
 	ring.addAndEqual(bxy, rxbxy, q);
 
 	delete[] rxbxy;
-	return Ciphertext(axy, bxy, cipher.logp, cipher.logq, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny, cipher.isComplex);
+	return Ciphertext(axy, bxy, cipher.logp, cipher.logq, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny);
 }
 
 Ciphertext Scheme::rightRotateFast(Ciphertext& cipher, long rx, long ry) {
@@ -986,7 +964,7 @@ Ciphertext Scheme::conjugate(Ciphertext& cipher) {
 
 	delete[] conjbxy;
 
-	return Ciphertext(axy, bxy, cipher.logp, cipher.logq, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny, cipher.isComplex);
+	return Ciphertext(axy, bxy, cipher.logp, cipher.logq, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny);
 }
 
 void Scheme::conjugateAndEqual(Ciphertext& cipher) {
@@ -1009,54 +987,4 @@ void Scheme::conjugateAndEqual(Ciphertext& cipher) {
 	ring.addAndEqual(cipher.bxy, conjbxy, q);
 
 	delete[] conjbxy;
-}
-
-Ciphertext Scheme::transpose(Ciphertext& cipher) {
-	ZZ q = ring.qvec[cipher.logq];
-	ZZ qQ = ring.qvec[cipher.logq + ring.logQ];
-
-	ZZ* axy = new ZZ[ring.N];
-	ZZ* bxy = new ZZ[ring.N];
-	ZZ* trbxy = new ZZ[ring.N];
-
-	ring.transpose(trbxy, cipher.bxy);
-	ring.transpose(bxy, cipher.axy);
-
-	Key key = keyMap.at(TRANSPOSITION);
-
-	ring.mult(axy, bxy, key.axy, qQ);
-	ring.multAndEqual(bxy, key.bxy, qQ);
-
-	ring.rightShiftAndEqual(axy, ring.logQ);
-	ring.rightShiftAndEqual(bxy, ring.logQ);
-
-	ring.addAndEqual(bxy, trbxy, q);
-
-	delete[] trbxy;
-
-	return Ciphertext(axy, bxy, cipher.logp, cipher.logq, cipher.Nx, cipher.Ny, cipher.ny, cipher.nx, cipher.isComplex);
-}
-
-void Scheme::transposeAndEqual(Ciphertext& cipher) {
-	ZZ q = ring.qvec[cipher.logq];
-	ZZ qQ = ring.qvec[cipher.logq + ring.logQ];
-
-	ZZ* trbxy = new ZZ[ring.N];
-
-	ring.transpose(trbxy, cipher.bxy);
-	ring.transpose(cipher.bxy, cipher.axy);
-
-	Key key = keyMap.at(TRANSPOSITION);
-
-	ring.mult(cipher.axy, cipher.bxy, key.axy, qQ);
-	ring.multAndEqual(cipher.bxy, key.bxy, qQ);
-
-	ring.rightShiftAndEqual(cipher.axy, ring.logQ);
-	ring.rightShiftAndEqual(cipher.bxy, ring.logQ);
-
-	ring.addAndEqual(cipher.bxy, trbxy, q);
-
-	swap(cipher.nx, cipher.ny);
-
-	delete[] trbxy;
 }

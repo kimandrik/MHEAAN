@@ -5,13 +5,13 @@
 * You should have received a copy of the license along with this
 * work.  If not, see <http://creativecommons.org/licenses/by-nc/3.0/>.
 */
+
 #ifndef MHEAAN_SCHEME_H_
 #define MHEAAN_SCHEME_H_
 
 #include <NTL/RR.h>
 #include <NTL/ZZ.h>
 
-#include "Common.h"
 #include "SecretKey.h"
 #include "Ciphertext.h"
 #include "Plaintext.h"
@@ -25,7 +25,6 @@ using namespace NTL;
 static long ENCRYPTION = 0;
 static long MULTIPLICATION  = 1;
 static long CONJUGATION = 2;
-static long TRANSPOSITION = 3;
 
 class Scheme {
 private:
@@ -59,8 +58,6 @@ public:
 	void addRightYRotKeys(SecretKey& secretKey);
 
 	void addConjKey(SecretKey& secretKey);
-
-	void addTranspKey(SecretKey& secretKey);
 
 	void addSquareMatrixKeys(SecretKey& secretKey, long nx);
 
@@ -205,12 +202,7 @@ public:
 	void rightRotateAndEqual(Ciphertext& cipher, long rx, long ry);
 
 	Ciphertext conjugate(Ciphertext& cipher);
-
 	void conjugateAndEqual(Ciphertext& cipher);
-
-	Ciphertext transpose(Ciphertext& cipher);
-
-	void transposeAndEqual(Ciphertext& cipher);
 
 };
 

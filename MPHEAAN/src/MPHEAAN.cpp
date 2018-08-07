@@ -5,6 +5,7 @@
 * You should have received a copy of the license along with this
 * work.  If not, see <http://creativecommons.org/licenses/by-nc/3.0/>.
 */
+
 #include "TestScheme.h"
 
 int main() {
@@ -16,8 +17,8 @@ int main() {
 
 //	TestScheme::testEncrypt(8, 8, 1200, 30, 2, 2);
 //	TestScheme::testEncryptSingle(7, 7, 300, 30);
-	TestScheme::testStandard(8, 8, 1200, 40, 5, 2);
-//	TestScheme::testimult(7, 7, 300, 30, 2, 2);
+//	TestScheme::testStandard(8, 8, 1200, 30, 5, 2);
+//	TestScheme::testimult(8, 8, 300, 30, 2, 2);
 
 
 //----------------------------------------------------------------------------------
@@ -26,9 +27,9 @@ int main() {
 
 
 //	TestScheme::testRotateFast(8, 8, 1200, 30, 4, 8, 1, 0);
-//	TestScheme::testRotate(7, 7, 300, 30, 2, 2, 1, 1);
-//	TestScheme::testConjugate(7, 7, 300, 30, 2, 2);
-//	TestScheme::testTranspose(7, 7, 300, 30, 2, 2);
+//	TestScheme::testRotate(8, 8, 300, 30, 2, 2, 1, 1);
+//	TestScheme::testConjugate(8, 8, 300, 30, 2, 2);
+//	TestScheme::testTranspose(8, 8, 300, 30, 2, 2);
 
 
 //----------------------------------------------------------------------------------
@@ -36,10 +37,10 @@ int main() {
 //----------------------------------------------------------------------------------
 
 
-//	TestScheme::testPowerOf2(7, 7, 300, 30, 2, 2, 4);
-//	TestScheme::testPower(7, 7, 300, 30, 2, 2, 13);
-//	TestScheme::testProdOfPo2(7, 7, 300, 30, 2, 2, 4);
-//	TestScheme::testProd(7, 7, 300, 30, 2, 2, 13);
+//	TestScheme::testPowerOf2(8, 8, 300, 30, 2, 2, 4);
+//	TestScheme::testPower(8, 8, 300, 30, 2, 2, 13);
+//	TestScheme::testProdOfPo2(8, 8, 300, 30, 2, 2, 4);
+//	TestScheme::testProd(8, 8, 300, 30, 2, 2, 13);
 
 
 //----------------------------------------------------------------------------------
@@ -47,11 +48,11 @@ int main() {
 //----------------------------------------------------------------------------------
 
 
-//	TestScheme::testInverse(7, 7, 300, 25, 2, 2, 5);
-//	TestScheme::testLogarithm(7, 7, 300, 30, 2, 2, 7);
-//	TestScheme::testExponent(7, 7, 300, 30, 2, 2, 7);
-//	TestScheme::testSigmoid(7, 7, 300, 30, 2, 2, 7);
-//	TestScheme::testSigmoidLazy(7, 7, 300, 30, 2, 2, 7);
+//	TestScheme::testInverse(8, 8, 300, 25, 2, 2, 5);
+//	TestScheme::testLogarithm(8, 8, 300, 30, 2, 2, 7);
+//	TestScheme::testExponent(8, 8, 300, 30, 2, 2, 7);
+//	TestScheme::testSigmoid(8, 8, 300, 30, 2, 2, 7);
+//	TestScheme::testSigmoidLazy(8, 8, 300, 30, 2, 2, 7);
 
 
 //----------------------------------------------------------------------------------
@@ -59,20 +60,10 @@ int main() {
 //----------------------------------------------------------------------------------
 
 
-//	TestScheme::testSquareMatMult(7, 7, 100, 30, 2);
-//	TestScheme::testSquareMatPow(7, 7, 300, 30, 2, 4);
-//	TestScheme::testSquareMatInv(7, 7, 300, 25, 2, 4);
-//	TestScheme::testMatMult(7, 7, 300, 30, 2, 3, 4);
-
-
-//----------------------------------------------------------------------------------
-//   FFT TESTS
-//----------------------------------------------------------------------------------
-
-
-//	TestScheme::testFFTBatch(7, 7, 300, 30, 2, 2, 2, 2);
-//	TestScheme::testFFTBatchLazy(7, 7, 300, 30, 2, 2, 2, 2);
-//	TestScheme::testFFTBatchLazyMultipleHadamard(7, 7, 300, 30, 2, 2, 2, 2, 2);
+//	TestScheme::testSquareMatMult(8, 8, 100, 30, 2);
+//	TestScheme::testSquareMatPow(8, 8, 300, 30, 2, 4);
+//	TestScheme::testSquareMatInv(8, 8, 300, 25, 2, 4);
+//	TestScheme::testMatMult(8, 8, 300, 30, 2, 3, 4);
 
 
 //----------------------------------------------------------------------------------

@@ -5,6 +5,7 @@
 * You should have received a copy of the license along with this
 * work.  If not, see <http://creativecommons.org/licenses/by-nc/3.0/>.
 */
+
 #include <NTL/BasicThreadPool.h>
 #include "Ring2XY.h"
 #include "EvaluatorUtils.h"
@@ -32,10 +33,8 @@ Ring2XY::Ring2XY(long logNx, long logQ, double sigma, long h) :
 	Q = power2_ZZ(logQ);
 	QQ = power2_ZZ(logQQ);
 
-	long gx = 5;
-	long gy = 3;
-
 	gxPows = new long[Nxh + 1];
+	long gx = 5;
 	long gxPow = 1;
 	for (long i = 0; i < Nxh; ++i) {
 		gxPows[i] = gxPow;
@@ -47,6 +46,7 @@ Ring2XY::Ring2XY(long logNx, long logQ, double sigma, long h) :
 	gyPows = new long[Ny + 1];
 	dftomegaPows = new complex<double>[Ny]();
 	omegaPows = new complex<double>[Ny]();
+	long gy = 3;
 	long gyPow = 1;
 	for (long i = 0; i < Ny; ++i) {
 		double angle = 2.0 * M_PI * gyPow / My;
@@ -605,14 +605,6 @@ void Ring2XY::conjugate(ZZ* res, ZZ* p) {
 	for(long ix = 1; ix < Nx; ++ix) {
 		for (long iy = 1; iy < Ny; ++iy) {
 			res[ix + iy * Nx] = p[Nx - ix + (Ny - iy) * Nx];
-		}
-	}
-}
-
-void Ring2XY::transpose(ZZ* res, ZZ* p) {
-	for (long iy = 0; iy < Ny; ++iy) {
-		for (long ix = 0; ix < Nx; ++ix) {
-			res[iy + ix * Ny] = p[ix + iy * Nx];
 		}
 	}
 }

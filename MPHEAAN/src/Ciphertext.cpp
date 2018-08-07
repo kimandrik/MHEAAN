@@ -5,13 +5,14 @@
 * You should have received a copy of the license along with this
 * work.  If not, see <http://creativecommons.org/licenses/by-nc/3.0/>.
 */
+
 #include "Ciphertext.h"
 
-Ciphertext::Ciphertext(ZZ* axy, ZZ* bxy, long logp, long logq, long Nx, long Ny, long nx, long ny, bool isComplex) :
-		axy(axy), bxy(bxy), logp(logp), logq(logq), Nx(Nx), Ny(Ny), nx(nx), ny(ny), isComplex(isComplex) {
+Ciphertext::Ciphertext(ZZ* axy, ZZ* bxy, long logp, long logq, long Nx, long Ny, long nx, long ny) :
+		axy(axy), bxy(bxy), logp(logp), logq(logq), Nx(Nx), Ny(Ny), nx(nx), ny(ny) {
 }
 
-Ciphertext::Ciphertext(const Ciphertext& o) : logp(o.logp), logq(o.logq), Nx(o.Nx), Ny(o.Ny), nx(o.nx), ny(o.ny), isComplex(o.isComplex) {
+Ciphertext::Ciphertext(const Ciphertext& o) : logp(o.logp), logq(o.logq), Nx(o.Nx), Ny(o.Ny), nx(o.nx), ny(o.ny) {
 	long N = Nx * Ny;
 	axy = new ZZ[N];
 	bxy = new ZZ[N];
@@ -29,7 +30,6 @@ Ciphertext& Ciphertext::operator=(const Ciphertext& o) {
 	Ny = o.Ny;
 	nx = o.nx;
 	ny = o.ny;
-	isComplex = o.isComplex;
 	logp = o.logp;
 	logq = o.logq;
 	long N = Nx * Ny;

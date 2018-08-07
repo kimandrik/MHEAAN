@@ -5,6 +5,7 @@
 * You should have received a copy of the license along with this
 * work.  If not, see <http://creativecommons.org/licenses/by-nc/3.0/>.
 */
+
 #include "SchemeAlgo.h"
 
 Ciphertext* SchemeAlgo::encryptSingleArray(complex<double>* vals, long size, long logp) {

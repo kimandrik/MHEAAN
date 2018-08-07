@@ -5,6 +5,7 @@
 * You should have received a copy of the license along with this
 * work.  If not, see <http://creativecommons.org/licenses/by-nc/3.0/>.
 */
+
 #ifndef MHEAAN_Ring2XY_H_
 #define MHEAAN_Ring2XY_H_
 
@@ -159,7 +160,6 @@ public:
 
 	void leftRotate(ZZ* res, ZZ* p, const long rx, const long ry);
 	void conjugate(ZZ* res, ZZ* p);
-	void transpose(ZZ* res, ZZ* p);
 
 
 	//----------------------------------------------------------------------------------

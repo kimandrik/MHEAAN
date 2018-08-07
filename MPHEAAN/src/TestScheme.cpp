@@ -5,13 +5,13 @@
 * You should have received a copy of the license along with this
 * work.  If not, see <http://creativecommons.org/licenses/by-nc/3.0/>.
 */
+
 #include "TestScheme.h"
 
 #include <NTL/BasicThreadPool.h>
 #include <NTL/RR.h>
 #include <NTL/ZZ.h>
 
-#include "Common.h"
 #include "Ciphertext.h"
 #include "EvaluatorUtils.h"
 #include "Ring2XY.h"
@@ -20,7 +20,6 @@
 #include "SecretKey.h"
 #include "StringUtils.h"
 #include "TimeUtils.h"
-#include "Numb.h"
 
 using namespace std;
 using namespace NTL;
@@ -98,7 +97,7 @@ void TestScheme::testEncryptSingle(long logNx, long logNy, long logQ, long logp)
 void TestScheme::testStandard(long logNx, long logNy, long logQ, long logp, long lognx, long logny) {
 	cout << "!!! START TEST STANDARD !!!" << endl;
 
-//	srand(time(NULL));
+	srand(time(NULL));
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
@@ -146,13 +145,13 @@ void TestScheme::testimult(long logNx, long logNy, long logQ, long logp, long lo
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring2XY ring(logNx, logNy, logQ);
+	Ring2XY ring(logNx, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 
 	long nx = (1 << lognx);
-	long ny = (1 << logny);
-	long n = nx * ny;
+	long ny = (1 << ring.logNy);
+	long n = nx * ring.Ny;
 
 	complex<double>* mmat = EvaluatorUtils::randomComplexArray(n);
 	complex<double>* mmatimult = new complex<double>[n];
@@ -218,7 +217,7 @@ void TestScheme::testRotate(long logNx, long logNy, long logQ, long logp, long l
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring2XY ring(logNx, logNy, logQ);
+	Ring2XY ring(logNx, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 
@@ -250,7 +249,7 @@ void TestScheme::testConjugate(long logNx, long logNy, long logQ, long logp, lon
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring2XY ring(logNx, logNy, logQ);
+	Ring2XY ring(logNx, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 
@@ -278,43 +277,6 @@ void TestScheme::testConjugate(long logNx, long logNy, long logQ, long logp, lon
 	cout << "!!! END TEST CONJUGATE !!!" << endl;
 }
 
-void TestScheme::testTranspose(long logNx, long logNy, long logQ, long logp, long lognx, long logny) {
-	cout << "!!! START TEST TRANSPOSE !!!" << endl;
-
-	srand(time(NULL));
-	SetNumThreads(8);
-
-	TimeUtils timeutils;
-	Ring2XY ring(logNx, logNy, logQ);
-	SecretKey secretKey(ring);
-	Scheme scheme(secretKey, ring);
-
-	scheme.addTranspKey(secretKey);
-
-	long nx = (1 << lognx);
-	long ny = (1 << logny);
-	long n = nx * ny;
-
-	complex<double>* mmat = EvaluatorUtils::randomComplexArray(n);
-	complex<double>* mmattr = new complex<double>[n];
-	for (long j = 0; j < nx; ++j) {
-		for (long i = 0; i < ny; ++i) {
-			mmattr[i + j * ny] = mmat[j + i * nx];
-		}
-	}
-
-	Ciphertext cipher = scheme.encrypt(mmat, nx, ny, logp, logQ);
-
-	timeutils.start("Transpose");
-	Ciphertext ctr = scheme.transpose(cipher);
-	timeutils.stop("Transpose");
-
-	complex<double>* dvectr = scheme.decrypt(secretKey, ctr);
-	StringUtils::compare(mmattr, dvectr, n, "tr");
-
-	cout << "!!! END TEST TRANSPOSE !!!" << endl;
-}
-
 
 //----------------------------------------------------------------------------------
 //   POWER & PRODUCT TESTS
@@ -328,7 +290,7 @@ void TestScheme::testPowerOf2(long logNx, long logNy, long logQ, long logp, long
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring2XY ring(logNx, logNy, logQ);
+	Ring2XY ring(logNx, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 	SchemeAlgo algo(scheme);
@@ -363,7 +325,7 @@ void TestScheme::testPower(long logNx, long logNy, long logQ, long logp, long lo
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring2XY ring(logNx, logNy, logQ);
+	Ring2XY ring(logNx, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 	SchemeAlgo algo(scheme);
@@ -399,7 +361,7 @@ void TestScheme::testProdOfPo2(long logNx, long logNy, long logQ, long logp, lon
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring2XY ring(logNx, logNy, logQ);
+	Ring2XY ring(logNx, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 	SchemeAlgo algo(scheme);
@@ -444,7 +406,7 @@ void TestScheme::testProd(long logNx, long logNy, long logQ, long logp, long log
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring2XY ring(logNx, logNy, logQ);
+	Ring2XY ring(logNx, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 	SchemeAlgo algo(scheme);
@@ -494,7 +456,7 @@ void TestScheme::testInverse(long logNx, long logNy, long logQ, long logp, long 
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring2XY ring(logNx, logNy, logQ);
+	Ring2XY ring(logNx, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 	SchemeAlgo algo(scheme);
@@ -530,7 +492,7 @@ void TestScheme::testLogarithm(long logNx, long logNy, long logQ, long logp, lon
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring2XY ring(logNx, logNy, logQ);
+	Ring2XY ring(logNx, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 	SchemeAlgo algo(scheme);
@@ -564,7 +526,7 @@ void TestScheme::testExponent(long logNx, long logNy, long logQ, long logp, long
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring2XY ring(logNx, logNy, logQ);
+	Ring2XY ring(logNx, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 	SchemeAlgo algo(scheme);
@@ -598,7 +560,7 @@ void TestScheme::testExponentLazy(long logNx, long logNy, long logQ, long logp, 
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring2XY ring(logNx, logNy, logQ);
+	Ring2XY ring(logNx, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 	SchemeAlgo algo(scheme);
@@ -632,7 +594,7 @@ void TestScheme::testSigmoid(long logNx, long logNy, long logQ, long logp, long 
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring2XY ring(logNx, logNy, logQ);
+	Ring2XY ring(logNx, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 	SchemeAlgo algo(scheme);
@@ -666,7 +628,7 @@ void TestScheme::testSigmoidLazy(long logNx, long logNy, long logQ, long logp, l
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring2XY ring(logNx, logNy, logQ);
+	Ring2XY ring(logNx, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 	SchemeAlgo algo(scheme);
@@ -706,7 +668,7 @@ void TestScheme::testSquareMatMult(long logNx, long logNy, long logQ, long logp,
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring2XY ring(logNx, logNy, logQ);
+	Ring2XY ring(logNx, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 	SchemeAlgo algo(scheme);
@@ -741,7 +703,7 @@ void TestScheme::testSquareMatPow(long logNx, long logNy, long logQ, long logp, 
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring2XY ring(logNx, logNy, logQ);
+	Ring2XY ring(logNx, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 	SchemeAlgo algo(scheme);
@@ -776,7 +738,7 @@ void TestScheme::testSquareMatInv(long logNx, long logNy, long logQ, long logp, 
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring2XY ring(logNx, logNy, logQ);
+	Ring2XY ring(logNx, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 	SchemeAlgo algo(scheme);
@@ -805,97 +767,6 @@ void TestScheme::testSquareMatInv(long logNx, long logNy, long logQ, long logp, 
 }
 
 void TestScheme::testMatMult(long logNx, long logNy, long logQ, long logp, long lognx, long logny, long lognz) {
-
-	//TODO implement the right method
-
-	//	long logNx = 7;
-	//	long logNy = 7;
-	//	long logQ = 200;
-	//	long logp = 30;
-	//	long logSlotx = 2;
-	//	long logSloty = 3;
-	//	cout << "!!! START TEST NMN MATRIX !!!" << endl;
-	//	//-----------------------------------------
-	//	TimeUtils timeutils;
-	//	Ring2XY ring(logNx, logNy , logQ);
-	//	SecretKey secretKey(ring);
-	//	Scheme scheme(secretKey, ring);
-	//	SchemeAlgo algo(scheme);
-	//	//-----------------------------------------
-	//	srand(time(NULL));
-	//	//-----------------------------------------
-	//	long slotx = (1 << logSlotx);
-	//	long sloty = (1 << logSloty);
-	//	long slots = slotx * sloty;
-	//	scheme.addSquareMatrixKeys(secretKey, slotx);
-	//	scheme.addSquareMatrixKeys(secretKey, sloty);
-	//
-	//	complex<double>* mvec1 = EvaluatorUtils::randomComplexArray(slots);
-	//	complex<double>* mvec2 = EvaluatorUtils::randomComplexArray(slots);
-	//
-	//	complex<double>* mvecM = new complex<double>[slots];
-	//	for (long i = 0; i < slotx; ++i) {
-	//		for (long j = 0; j < sloty; ++j) {
-	//			for (long k = 0; k < slotx; ++k) {
-	//				mvecM[i + j * slotx] += mvec1[k + j * slotx] * mvec2[i + k * sloty];
-	//			}
-	//		}
-	//	}
-	//
-	//	Ciphertext cipher1 = scheme.encrypt(mvec1, slotx, sloty, logp, logQ);
-	//	Ciphertext cipher2 = scheme.encrypt(mvec2, sloty, slotx, logp, logQ);
-	//
-	//	ZZ** ptmpm = new ZZ*[slotx];
-	//
-	//	for (long i = 0; i < slotx; ++i) {
-	//		complex<double>* tmp = new complex<double>[slots];
-	//		for (long j = 0; j < i; ++j) {
-	//			tmp[j + (j - i + slotx) * slotx] = 1;
-	//		}
-	//		for (long j = i; j < sloty; ++j) {
-	//			tmp[j + (j - i) * slotx] = 1;
-	//		}
-	//		ring.encode(ptmpm[i], tmp, slotx, slotx, logp);
-	//		delete[] tmp;
-	//	}
-	//
-	//	timeutils.start("NMN Matrix Mult");
-	//	Ciphertext* cipherP = new Ciphertext[slotx];
-	//	Ciphertext* cipherR = new Ciphertext[slotx];
-	//
-	//	cipherR[0] = cipher1;
-	//	scheme.modDownByAndEqual(cipherR[0], logp);
-	//
-	//	cipherP[0] = scheme.multByPoly(cipher2, ptmpm[0], logp);
-	//	scheme.reScaleByAndEqual(cipherP[0], logp);
-	//	for (long j = 0; j < logSlotx; ++j) {
-	//		Ciphertext rot = scheme.leftYRotateByPo2(cipherP[0], j);
-	//		scheme.addAndEqual(cipherP[0], rot);
-	//	}
-	//	scheme.multAndEqual(cipherR[0], cipherP[0]);
-	//
-	//	for (long i = 1; i < slotx; ++i) {
-	//		cipherR[i] = scheme.rightXRotateFast(cipher1, i);
-	//		scheme.modDownByAndEqual(cipherR[i], logp);
-	//
-	//		cipherP[i] = scheme.multByPoly(cipher2, ptmpm[i], logp);
-	//		scheme.reScaleByAndEqual(cipherP[i], logp);
-	//		for (long j = 0; j < logSlotx; ++j) {
-	//			Ciphertext rot = scheme.leftYRotateByPo2(cipherP[i], j);
-	//			scheme.addAndEqual(cipherP[i], rot);
-	//		}
-	//		scheme.multAndEqual(cipherR[i], cipherP[i]);
-	//		scheme.addAndEqual(cipherR[0], cipherR[i]);
-	//	}
-	//
-	//	scheme.reScaleByAndEqual(cipherR[0], logp);
-	//	timeutils.stop("NMN Matrix Mult");
-	//
-	//	complex<double>* dvecM = scheme.decrypt(secretKey, cipherR[0]);
-	//
-	//	StringUtils::compare(mvecM, dvecM, slots, "matrix");
-	//
-	//	cout << "!!! END TEST NMN MATRIX !!!" << endl;
 }
 
 
@@ -910,6 +781,5 @@ void TestScheme::testCiphertextWriteAndRead(long logNx, long logNy, long logQ, l
 }
 
 void TestScheme::test() {
-
 }
 

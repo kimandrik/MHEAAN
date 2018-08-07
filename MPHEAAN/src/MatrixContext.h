@@ -5,6 +5,7 @@
 * You should have received a copy of the license along with this
 * work.  If not, see <http://creativecommons.org/licenses/by-nc/3.0/>.
 */
+
 #ifndef MPHEAAN_MATRIXCONTEXT_H_
 #define MPHEAAN_MATRIXCONTEXT_H_
 

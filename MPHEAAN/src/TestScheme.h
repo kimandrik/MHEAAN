@@ -5,6 +5,7 @@
 * You should have received a copy of the license along with this
 * work.  If not, see <http://creativecommons.org/licenses/by-nc/3.0/>.
 */
+
 #ifndef MHEAAN_TESTSCHEME_H_
 #define MHEAAN_TESTSCHEME_H_
 
@@ -36,8 +37,6 @@ public:
 	static void testRotate(long logNx, long logNy, long logQ, long logp, long lognx, long logny, long rx, long ry);
 
 	static void testConjugate(long logNx, long logNy, long logQ, long logp, long lognx, long logny);
-
-	static void testTranspose(long logNx, long logNy, long logQ, long logp, long lognx, long logny);
 
 
 	//----------------------------------------------------------------------------------
