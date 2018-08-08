@@ -179,11 +179,11 @@ void Ring2XY::addBootContext(long lognx, long logny, long logp) {
 			for (long pos = kyi; pos < kyi + ky; ++pos) {
 				for (long i = 0; i < ny - pos; ++i) {
 					deg = ((My - gyPows[i + pos]) * i) % My;
-					pyvals[i] = ksiyPows[deg];
+					pyvals[i] = (ksiyPows[deg] - ksiyPows[gyPows[i + pos]]) * (double)Ny / (double)My;
 				}
 				for (long i = ny - pos; i < ny; ++i) {
 					deg = ((My - gyPows[i + pos - ny]) * i) % My;
-					pyvals[i] = ksiyPows[deg];
+					pyvals[i] = (ksiyPows[deg] - ksiyPows[gyPows[i + pos - ny]]) * (double)Ny / (double)My;
 				}
 
 				EvaluatorUtils::rightRotateAndEqual(pyvals, 1, ny, 0, kyi);

@@ -89,7 +89,7 @@ public:
 	//   OTHER TESTS
 	//----------------------------------------------------------------------------------
 
-	static void testBootstrap(long logNx, long logNy, long logq, long logQ, long logp, long lognx, long logny, long logT, long logI = 4);
+	static void testBootstrap(long logNx, long logNy, long logq, long logQ, long logp, long lognx, long logny, long logT, long logI);
 
 	static void testCiphertextWriteAndRead(long logNx, long logNy, long logQ, long logp, long lognx, long logny);
 

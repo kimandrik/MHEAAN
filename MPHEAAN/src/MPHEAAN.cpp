@@ -70,7 +70,7 @@ int main() {
 //----------------------------------------------------------------------------------
 
 
-	TestScheme::testBootstrap(8, 8, 50, 1200, 35, 7, 8, 4, 6);
+	TestScheme::testBootstrap(8, 8, 50, 1500, 35, 7, 8, 3, 8);
 
 //	TestScheme::testCiphertextWriteAndRead(10, 65, 30, 2);
 

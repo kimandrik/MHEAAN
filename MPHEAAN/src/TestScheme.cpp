@@ -822,9 +822,16 @@ void TestScheme::testBootstrap(long logNx, long logNy, long logq, long logQ, lon
 	scheme.coeffToSlotAndEqual(cipher);
 	timeutils.stop("Coeff to Slot");
 
+	Plaintext ptxt = scheme.decryptMsg(secretKey, cipher);
+	complex<double>* d1mat = scheme.decrypt(secretKey, cipher);
+	StringUtils::showVec(d1mat, 10);
+
 	timeutils.start("Eval Exp");
 	scheme.evalExpAndEqual(cipher, logT, logI);
 	timeutils.stop("Eval Exp");
+
+	complex<double>* d2mat = scheme.decrypt(secretKey, cipher);
+	StringUtils::showVec(d2mat, 10);
 
 	timeutils.start("Slot to Coeff");
 	scheme.slotToCoeffAndEqual(cipher);
@@ -834,7 +841,7 @@ void TestScheme::testBootstrap(long logNx, long logNy, long logq, long logQ, lon
 	cout << "cipher logq after: " << cipher.logq << endl;
 
 	complex<double>* dmat = scheme.decrypt(secretKey, cipher);
-	StringUtils::compare(mmat, dmat, n, "boot");
+	StringUtils::compare(mmat, dmat, 10, "boot");
 
 	cout << "!!! END TEST BOOTSRTAP !!!" << endl;
 }
