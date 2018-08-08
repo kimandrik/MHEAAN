@@ -193,8 +193,8 @@ void TestScheme::testRotateFast(long logNx, long logNy, long logQ, long logp, lo
 	scheme.addLeftRotKey(secretKey, rx, ry);
 
 	long nx = (1 << lognx);
-	long ny = (1 << logny);
-	long n = nx * ny;
+	long ny = (1 << ring.logNy);
+	long n = nx * ring.Ny;
 
 	complex<double>* mmat = EvaluatorUtils::randomComplexArray(n);
 	Ciphertext cipher = scheme.encrypt(mmat, nx, ny, logp, logQ);
@@ -225,8 +225,8 @@ void TestScheme::testRotate(long logNx, long logNy, long logQ, long logp, long l
 	scheme.addLeftYRotKeys(secretKey);
 
 	long nx = (1 << lognx);
-	long ny = (1 << logny);
-	long n = nx * ny;
+	long ny = (1 << ring.logNy);
+	long n = nx * ring.Ny;
 
 	complex<double>* mmat = EvaluatorUtils::randomComplexArray(n);
 	Ciphertext cipher = scheme.encrypt(mmat, nx, ny, logp, logQ);
@@ -256,8 +256,8 @@ void TestScheme::testConjugate(long logNx, long logNy, long logQ, long logp, lon
 	scheme.addConjKey(secretKey);
 
 	long nx = (1 << lognx);
-	long ny = (1 << logny);
-	long n = nx * ny;
+	long ny = (1 << ring.logNy);
+	long n = nx * ring.Ny;
 
 	complex<double>* mmat = EvaluatorUtils::randomComplexArray(n);
 	complex<double>* mmatconj = new complex<double>[n];
@@ -295,9 +295,9 @@ void TestScheme::testPowerOf2(long logNx, long logNy, long logQ, long logp, long
 	Scheme scheme(secretKey, ring);
 	SchemeAlgo algo(scheme);
 
-	long nx = 1 << lognx;
-	long ny = 1 << logny;
-	long n = nx * ny;
+	long nx = (1 << lognx);
+	long ny = (1 << ring.logNy);
+	long n = nx * ring.Ny;
 	long degree = 1 << logDegree;
 
 	complex<double>* mmat = EvaluatorUtils::randomCircleArray(n);
@@ -331,8 +331,8 @@ void TestScheme::testPower(long logNx, long logNy, long logQ, long logp, long lo
 	SchemeAlgo algo(scheme);
 
 	long nx = (1 << lognx);
-	long ny = (1 << logny);
-	long n = nx * ny;
+	long ny = (1 << ring.logNy);
+	long n = nx * ring.Ny;
 
 	complex<double>* mmat = EvaluatorUtils::randomCircleArray(n);
 	complex<double>* mpow = new complex<double>[n];
@@ -367,8 +367,8 @@ void TestScheme::testProdOfPo2(long logNx, long logNy, long logQ, long logp, lon
 	SchemeAlgo algo(scheme);
 
 	long nx = (1 << lognx);
-	long ny = (1 << logny);
-	long n = nx * ny;
+	long ny = (1 << ring.logNy);
+	long n = nx * ring.Ny;
 	long degree = 1 << logDegree;
 
 	complex<double>** mmatvec = new complex<double>*[degree];
@@ -412,8 +412,8 @@ void TestScheme::testProd(long logNx, long logNy, long logQ, long logp, long log
 	SchemeAlgo algo(scheme);
 
 	long nx = (1 << lognx);
-	long ny = (1 << logny);
-	long n = nx * ny;
+	long ny = (1 << ring.logNy);
+	long n = nx * ring.Ny;
 
 	complex<double>** mmatvec = new complex<double>*[degree];
 	for (long i = 0; i < degree; ++i) {
@@ -462,8 +462,8 @@ void TestScheme::testInverse(long logNx, long logNy, long logQ, long logp, long 
 	SchemeAlgo algo(scheme);
 
 	long nx = (1 << lognx);
-	long ny = (1 << logny);
-	long n = nx * ny;
+	long ny = (1 << ring.logNy);
+	long n = nx * ring.Ny;
 
 	complex<double>* mmat = EvaluatorUtils::randomCircleArray(n, 0.1);
 	complex<double>* minv = new complex<double>[n];
@@ -498,8 +498,8 @@ void TestScheme::testLogarithm(long logNx, long logNy, long logQ, long logp, lon
 	SchemeAlgo algo(scheme);
 
 	long nx = (1 << lognx);
-	long ny = (1 << logny);
-	long n = nx * ny;
+	long ny = (1 << ring.logNy);
+	long n = nx * ring.Ny;
 
 	complex<double>* mmat = EvaluatorUtils::randomComplexArray(n, 0.1);
 	complex<double>* mlog = new complex<double>[n];
@@ -532,8 +532,8 @@ void TestScheme::testExponent(long logNx, long logNy, long logQ, long logp, long
 	SchemeAlgo algo(scheme);
 
 	long nx = (1 << lognx);
-	long ny = (1 << logny);
-	long n = nx * ny;
+	long ny = (1 << ring.logNy);
+	long n = nx * ring.Ny;
 
 	complex<double>* mmat = EvaluatorUtils::randomComplexArray(n);
 	complex<double>* mexp = new complex<double>[n];
@@ -566,8 +566,8 @@ void TestScheme::testExponentLazy(long logNx, long logNy, long logQ, long logp, 
 	SchemeAlgo algo(scheme);
 
 	long nx = (1 << lognx);
-	long ny = (1 << logny);
-	long n = nx * ny;
+	long ny = (1 << ring.logNy);
+	long n = nx * ring.Ny;
 
 	complex<double>* mmat = EvaluatorUtils::randomComplexArray(n);
 	complex<double>* mexp = new complex<double>[n];
@@ -600,8 +600,8 @@ void TestScheme::testSigmoid(long logNx, long logNy, long logQ, long logp, long 
 	SchemeAlgo algo(scheme);
 
 	long nx = (1 << lognx);
-	long ny = (1 << logny);
-	long n = nx * ny;
+	long ny = (1 << ring.logNy);
+	long n = nx * ring.Ny;
 
 	complex<double>* mmat = EvaluatorUtils::randomComplexArray(n);
 	complex<double>* msig = new complex<double>[n];
@@ -634,8 +634,8 @@ void TestScheme::testSigmoidLazy(long logNx, long logNy, long logQ, long logp, l
 	SchemeAlgo algo(scheme);
 
 	long nx = (1 << lognx);
-	long ny = (1 << logny);
-	long n = nx * ny;
+	long ny = (1 << ring.logNy);
+	long n = nx * ring.Ny;
 
 	complex<double>* mmat = EvaluatorUtils::randomComplexArray(n);
 	complex<double>* msig = new complex<double>[n];

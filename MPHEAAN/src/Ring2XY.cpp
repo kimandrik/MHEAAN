@@ -579,15 +579,21 @@ void Ring2XY::leftRotate(ZZ* res, ZZ* p, const long rx, const long ry) {
 		}
 	}
 
+	for (long i = 0; i < N; ++i) {
+		res[i] = ZZ::zero();
+	}
+
 	long degy = gyPows[ry];
 	for (long ix = 0; ix < Nx; ++ix) {
 		for (long iy = 0; iy < Ny; ++iy) {
 			long ipow = iy * degy;
 			long shift = ipow % My;
 			if (shift < Ny) {
-				res[ix + (shift << logNx)] = xxx[ix + (iy << logNx)];
+				res[ix + (shift << logNx)] += xxx[ix + (iy << logNx)];
 			} else {
-				res[ix - N + (shift << logNx)] = -xxx[ix + (iy << logNx)];
+				for (long t = 0; t < Ny; ++t) {
+					res[ix + (t << logNx)] -= xxx[ix + (iy << logNx)];
+				}
 			}
 		}
 	}
