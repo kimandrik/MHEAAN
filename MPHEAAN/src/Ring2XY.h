@@ -16,6 +16,7 @@
 #include <math.h>
 
 #include "MatrixContext.h"
+#include "BootContext.h"
 #include "RingMultiplier.h"
 
 using namespace std;
@@ -61,6 +62,8 @@ public:
 	complex<double>* dftomegaPows;
 	complex<double>* omegaPows;
 
+	map<pair<long, long>, BootContext> bootContextMap;
+
 	map<pair<long, long>, MatrixContext> matrixContext;
 
 	Ring2XY(long logNx, long logQ, double sigma = 3.2, long h = 64);
@@ -70,6 +73,8 @@ public:
 	//   AUXILIARY CONTEXT
 	//----------------------------------------------------------------------------------
 
+
+	void addBootContext(long lognx, long logny, long logp);
 
 	void addMatrixContext(long lognx);
 

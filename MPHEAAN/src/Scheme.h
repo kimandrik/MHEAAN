@@ -59,6 +59,8 @@ public:
 
 	void addConjKey(SecretKey& secretKey);
 
+	void addBootKey(SecretKey& secretKey, long lognx, long logny, long logp);
+
 	void addSquareMatrixKeys(SecretKey& secretKey, long nx);
 
 
@@ -152,8 +154,8 @@ public:
 	Ciphertext multByXPoly(Ciphertext& cipher, ZZ* xpoly, long logp);
 	void multByXPolyAndEqual(Ciphertext& cipher, ZZ* xpoly, long logp);
 
-	Ciphertext multByYPoly(Ciphertext& cipher, ZZ* ypoly, long logp);
-	void multByYPolyAndEqual(Ciphertext& cipher, ZZ* ypoly, long logp);
+	Ciphertext multByYPoly(Ciphertext& cipher, ZZ* yrpoly, ZZ* yipoly, long logp);
+	void multByYPolyAndEqual(Ciphertext& cipher, ZZ* yrpoly, ZZ* yipoly, long logp);
 
 	Ciphertext multByPoly(Ciphertext& cipher, ZZ* poly, long logp);
 	void multByPolyAndEqual(Ciphertext& cipher, ZZ* poly, long logp);
@@ -186,7 +188,7 @@ public:
 
 
 	//----------------------------------------------------------------------------------
-	//   ROTATIONS & CONJUGATIONS & TRANSPOSITION
+	//   ROTATIONS & CONJUGATIONS
 	//----------------------------------------------------------------------------------
 
 	Ciphertext leftRotateFast(Ciphertext& cipher, long rx, long ry);
@@ -203,6 +205,30 @@ public:
 
 	Ciphertext conjugate(Ciphertext& cipher);
 	void conjugateAndEqual(Ciphertext& cipher);
+
+
+	//----------------------------------------------------------------------------------
+	//   BOOTSTRAPPING
+	//----------------------------------------------------------------------------------
+
+
+	void normalizeAndEqual(Ciphertext& cipher);
+
+	void coeffToSlotXAndEqual(Ciphertext& cipher);
+	void coeffToSlotYAndEqual(Ciphertext& cipher);
+	void coeffToSlotAndEqual(Ciphertext& cipher);
+
+	void slotToCoeffXAndEqual(Ciphertext& cipher);
+	void slotToCoeffYAndEqual(Ciphertext& cipher);
+	void slotToCoeffAndEqual(Ciphertext& cipher);
+
+	void exp2piAndEqual(Ciphertext& cipher, long logp);
+
+	void evalExpAndEqual(Ciphertext& cipher, long logT, long logI = 4);
+
+	void bootstrapXAndEqual(Ciphertext& cipher, long logq, long logQ, long logT, long logI = 4);
+	void bootstrapYAndEqual(Ciphertext& cipher, long logq, long logQ, long logT, long logI = 4);
+	void bootstrapAndEqual(Ciphertext& cipher, long logq, long logQ, long logT, long logI = 4);
 
 };
 

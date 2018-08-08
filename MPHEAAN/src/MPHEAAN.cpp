@@ -26,7 +26,7 @@ int main() {
 //----------------------------------------------------------------------------------
 
 
-//	TestScheme::testRotateFast(8, 8, 1200, 30, 4, 8, 3, 5);
+//	TestScheme::testRotateFast(8, 8, 1200, 30, 7, 8, 0, 5);
 //	TestScheme::testRotate(8, 8, 300, 30, 2, 2, 1, 1);
 //	TestScheme::testConjugate(8, 8, 300, 30, 2, 2);
 
@@ -69,6 +69,8 @@ int main() {
 //   OTHER TESTS
 //----------------------------------------------------------------------------------
 
+
+	TestScheme::testBootstrap(8, 8, 50, 1200, 35, 7, 8, 4, 6);
 
 //	TestScheme::testCiphertextWriteAndRead(10, 65, 30, 2);
 

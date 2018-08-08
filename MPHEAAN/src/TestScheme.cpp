@@ -775,6 +775,70 @@ void TestScheme::testMatMult(long logNx, long logNy, long logQ, long logp, long 
 //----------------------------------------------------------------------------------
 
 
+void TestScheme::testBootstrap(long logNx, long logNy, long logq, long logQ, long logp, long lognx, long logny, long logT, long logI) {
+	cout << "!!! START TEST BOOTSTRAP !!!" << endl;
+
+	srand(time(NULL));
+	SetNumThreads(8);
+
+	TimeUtils timeutils;
+	Ring2XY ring(logNx, logQ);
+	SecretKey secretKey(ring);
+	Scheme scheme(secretKey, ring);
+
+	timeutils.start("Key generating");
+	scheme.addBootKey(secretKey, lognx, ring.logNy, logq + logI);
+	timeutils.stop("Key generated");
+
+	long nx = (1 << lognx);
+	long ny = (1 << ring.logNy);
+	long n = nx * ny;
+
+	complex<double>* mmat = EvaluatorUtils::randomComplexArray(n);
+
+	Ciphertext cipher = scheme.encrypt(mmat, nx, ny, logp, logq);
+
+	cout << "cipher logq before: " << cipher.logq << endl;
+
+//	scheme.modDownToAndEqual(cipher, logq);
+	scheme.normalizeAndEqual(cipher);
+
+	cipher.logq = logQ;
+	cipher.logp = logq + logI;
+
+	timeutils.start("Sub Sum");
+	for (long i = lognx; i < ring.logNxh; ++i) {
+		Ciphertext rot = scheme.leftRotateFast(cipher, (1 << i), 0);
+		scheme.addAndEqual(cipher, rot);
+	}
+
+	for (long i = logny; i < ring.logNy; ++i) {
+		Ciphertext rot = scheme.leftRotateFast(cipher, 0, (1 << i));
+		scheme.addAndEqual(cipher, rot);
+	}
+	timeutils.stop("Sub Sum");
+
+	timeutils.start("Coeff to Slot");
+	scheme.coeffToSlotAndEqual(cipher);
+	timeutils.stop("Coeff to Slot");
+
+	timeutils.start("Eval Exp");
+	scheme.evalExpAndEqual(cipher, logT, logI);
+	timeutils.stop("Eval Exp");
+
+	timeutils.start("Slot to Coeff");
+	scheme.slotToCoeffAndEqual(cipher);
+	timeutils.stop("Slot to Coeff");
+
+	cipher.logp = logp;
+	cout << "cipher logq after: " << cipher.logq << endl;
+
+	complex<double>* dmat = scheme.decrypt(secretKey, cipher);
+	StringUtils::compare(mmat, dmat, n, "boot");
+
+	cout << "!!! END TEST BOOTSRTAP !!!" << endl;
+}
+
 void TestScheme::testCiphertextWriteAndRead(long logNx, long logNy, long logQ, long logp, long logSlotx, long logSloty) {
 	cout << "!!! START TEST WRITE AND READ !!!" << endl;
 	cout << "!!! END TEST WRITE AND READ !!!" << endl;

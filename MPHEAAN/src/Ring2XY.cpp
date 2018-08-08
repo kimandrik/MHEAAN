@@ -99,6 +99,131 @@ Ring2XY::Ring2XY(long logNx, long logQ, double sigma, long h) :
 	}
 }
 
+void Ring2XY::addBootContext(long lognx, long logny, long logp) {
+	if (bootContextMap.find({lognx, logny}) == bootContextMap.end()) {
+		long nx = 1 << lognx;
+		long ny = 1 << logny;
+
+		long logkx = lognx >> 1;
+		long logky = logny >> 1;
+
+		long kx = 1 << logkx;
+		long ky = 1 << logky;
+
+		ZZ** pxVec = new ZZ*[nx];
+		ZZ** pyrVec = new ZZ*[ny];
+		ZZ** pyiVec = new ZZ*[ny];
+
+		ZZ** pxInvVec = new ZZ*[nx];
+		ZZ** pyrInvVec = new ZZ*[ny];
+		ZZ** pyiInvVec = new ZZ*[ny];
+
+		for (long ix = 0; ix < nx; ++ix) {
+			pxVec[ix] = new ZZ[Nx];
+			pxInvVec[ix] = new ZZ[Nx];
+		}
+		for (long iy = 0; iy < ny; ++iy) {
+			pyrVec[iy] = new ZZ[Ny];
+			pyiVec[iy] = new ZZ[Ny];
+			pyrInvVec[iy] = new ZZ[Ny];
+			pyiInvVec[iy] = new ZZ[Ny];
+		}
+
+		complex<double>* pxvals = new complex<double>[nx];
+		complex<double>* pyvals = new complex<double>[ny];
+
+		ZZ* p1 = new ZZ[N];
+		ZZ* p2 = new ZZ[N];
+
+		long gapx = Nxh >> lognx;
+		long deg;
+		for (long kxi = 0; kxi < nx; kxi += kx) {
+			for (long pos = kxi; pos < kxi + kx; ++pos) {
+				for (long i = 0; i < nx - pos; ++i) {
+					deg = ((Mx - gxPows[i + pos]) * i * gapx) % Mx;
+					pxvals[i] = ksixPows[deg];
+				}
+				for (long i = nx - pos; i < nx; ++i) {
+					deg = ((Mx - gxPows[i + pos - nx]) * i * gapx) % Mx;
+					pxvals[i] = ksixPows[deg];
+				}
+				EvaluatorUtils::rightRotateAndEqual(pxvals, nx, 1, kxi, 0);
+				IEMBX(pxvals, nx);
+				for (long ix = 0, jdx = Nxh, idx = 0; ix < nx; ++ix, jdx += gapx, idx += gapx) {
+					pxVec[pos][idx] = EvaluatorUtils::scaleUpToZZ(pxvals[ix].real(), logp);
+					pxVec[pos][jdx] = EvaluatorUtils::scaleUpToZZ(pxvals[ix].imag(), logp);
+				}
+			}
+		}
+
+		for (long kxi = 0; kxi < nx; kxi += kx) {
+			for (long pos = kxi; pos < kxi + kx; ++pos) {
+				for (long i = 0; i < nx - pos; ++i) {
+					deg = (gxPows[i] * (i + pos) * gapx) % Mx;
+					pxvals[i] = ksixPows[deg];
+				}
+				for (long i = nx - pos; i < nx; ++i) {
+					deg = (gxPows[i] * (i + pos - nx) * gapx) % Mx;
+					pxvals[i] = ksixPows[deg];
+				}
+				EvaluatorUtils::rightRotateAndEqual(pxvals, nx, 1, kxi, 0);
+				IEMBX(pxvals, nx);
+				for (long ix = 0, jdx = Nxh, idx = 0; ix < nx; ++ix, jdx += gapx, idx += gapx) {
+					pxInvVec[pos][idx] = EvaluatorUtils::scaleUpToZZ(pxvals[ix].real(), logp);
+					pxInvVec[pos][jdx] = EvaluatorUtils::scaleUpToZZ(pxvals[ix].imag(), logp);
+				}
+			}
+		}
+
+		for (long kyi = 0; kyi < ny; kyi += ky) {
+			for (long pos = kyi; pos < kyi + ky; ++pos) {
+				for (long i = 0; i < ny - pos; ++i) {
+					deg = ((My - gyPows[i + pos]) * i) % My;
+					pyvals[i] = ksiyPows[deg];
+				}
+				for (long i = ny - pos; i < ny; ++i) {
+					deg = ((My - gyPows[i + pos - ny]) * i) % My;
+					pyvals[i] = ksiyPows[deg];
+				}
+
+				EvaluatorUtils::rightRotateAndEqual(pyvals, 1, ny, 0, kyi);
+
+				IEMBY(pyvals);
+				for (long iy = 0; iy < ny; ++iy) {
+					pyrVec[pos][iy] = EvaluatorUtils::scaleUpToZZ(pyvals[iy].real(), logp);
+					pyiVec[pos][iy] = EvaluatorUtils::scaleUpToZZ(pyvals[iy].imag(), logp);
+				}
+			}
+		}
+
+		for (long kyi = 0; kyi < ny; kyi += ky) {
+			for (long pos = kyi; pos < kyi + ky; ++pos) {
+				for (long iy = 0; iy < ny - pos; ++iy) {
+					deg = (gyPows[iy] * (iy + pos)) % My;
+					pyvals[iy] = ksiyPows[deg];
+				}
+				for (long iy = ny - pos; iy < ny; ++iy) {
+					deg = (gyPows[iy] * (iy + pos - ny)) % My;
+					pyvals[iy] = ksiyPows[deg];
+				}
+
+				EvaluatorUtils::rightRotateAndEqual(pyvals, 1, ny, 0, kyi);
+
+				IEMBY(pyvals);
+				for (long iy = 0; iy < ny; ++iy) {
+					pyrInvVec[pos][iy] = EvaluatorUtils::scaleUpToZZ(pyvals[iy].real(), logp);
+					pyiInvVec[pos][iy] = EvaluatorUtils::scaleUpToZZ(pyvals[iy].imag(), logp);
+				}
+			}
+		}
+
+		delete[] pxvals;
+		delete[] pyvals;
+
+		bootContextMap.insert(pair<pair<long, long>, BootContext>({lognx, logny}, BootContext(pxVec, pyrVec, pyiVec, pxInvVec, pyrInvVec, pyiInvVec, p1, p2, logp)));
+	}
+}
+
 void Ring2XY::addMatrixContext(long lognx) {
 	if (matrixContext.find({lognx, lognx}) == matrixContext.end()) {
 		long nx = 1 << lognx;
@@ -601,18 +726,29 @@ void Ring2XY::leftRotate(ZZ* res, ZZ* p, const long rx, const long ry) {
 }
 
 void Ring2XY::conjugate(ZZ* res, ZZ* p) {
-	res[0] = p[0];
-	for (long ix = 1; ix < Nx; ++ix) {
-		res[ix] = -p[Nx - ix];
-	}
-	for (long iy = 1; iy < Ny; ++iy) {
-		res[iy * Nx] = -p[(Ny - iy) * Nx];
-	}
-	for(long ix = 1; ix < Nx; ++ix) {
-		for (long iy = 1; iy < Ny; ++iy) {
-			res[ix + iy * Nx] = p[Nx - ix + (Ny - iy) * Nx];
+	ZZ* xxx = new ZZ[N];
+
+	for (long j = 0; j < N; j += Nx) {
+		xxx[j] = p[j];
+		for (long ix = 1; ix < Nx; ++ix) {
+			xxx[Nx - ix + j] = -p[ix + j];
 		}
 	}
+	for (long i = 0; i < N; ++i) {
+		res[i] = ZZ::zero();
+	}
+
+	for (long ix = 0; ix < Nx; ++ix) {
+		res[ix] += xxx[ix];
+		for (long j = 2 * Nx; j < N; j += Nx) {
+			res[ix + (N - j + Nx)] += xxx[ix + j];
+		}
+		for (long j = 0; j < N; j += Nx) {
+			res[ix + j] -= xxx[ix + Nx];
+		}
+	}
+
+	delete[] xxx;
 }
 
 

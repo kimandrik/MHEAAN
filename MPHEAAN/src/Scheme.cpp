@@ -132,6 +132,48 @@ void Scheme::addConjKey(SecretKey& secretKey) {
 	keyMap.insert(pair<long, Key>(CONJUGATION, Key(axy, bxy)));
 }
 
+void Scheme::addBootKey(SecretKey& secretKey, long lognx, long logny, long logp) {
+	ring.addBootContext(lognx, logny, logp);
+
+	addConjKey(secretKey);
+	addLeftXRotKeys(secretKey);
+	addLeftYRotKeys(secretKey);
+
+	long lognxh = lognx / 2;
+	long kx = 1 << lognxh;
+	long mx = 1 << (lognx - lognxh);
+
+	for (long i = 1; i < kx; ++i) {
+		if(leftRotKeyMap.find({i,0}) == leftRotKeyMap.end()) {
+			addLeftRotKey(secretKey, i, 0);
+		}
+	}
+
+	for (long i = 1; i < mx; ++i) {
+		long idx = i * kx;
+		if(leftRotKeyMap.find({idx, 0}) == leftRotKeyMap.end()) {
+			addLeftRotKey(secretKey, idx, 0);
+		}
+	}
+
+	long lognyh = logny / 2;
+	long ky = 1 << lognyh;
+	long my = 1 << (logny - lognyh);
+
+	for (long i = 1; i < ky; ++i) {
+		if(leftRotKeyMap.find({0,i}) == leftRotKeyMap.end()) {
+			addLeftRotKey(secretKey, 0, i);
+		}
+	}
+
+	for (long i = 1; i < my; ++i) {
+		long idx = i * ky;
+		if(leftRotKeyMap.find({0, idx}) == leftRotKeyMap.end()) {
+			addLeftRotKey(secretKey, 0, idx);
+		}
+	}
+}
+
 void Scheme::addSquareMatrixKeys(SecretKey& secretKey, long lognx) {
 	ring.addMatrixContext(lognx);
 	long nx = 1 << lognx;
@@ -640,23 +682,52 @@ void Scheme::multByXPolyAndEqual(Ciphertext& cipher, ZZ* xpoly, long logp) {
 	cipher.logp += logp;
 }
 
-Ciphertext Scheme::multByYPoly(Ciphertext& cipher, ZZ* ypoly, long logp) {
+Ciphertext Scheme::multByYPoly(Ciphertext& cipher, ZZ* yrpoly, ZZ* yipoly, long logp) {
 	ZZ q = ring.qvec[cipher.logq];
 
-	ZZ* axy = new ZZ[ring.N];
-	ZZ* bxy = new ZZ[ring.N];
+	ZZ* axyr = new ZZ[ring.N];
+	ZZ* bxyr = new ZZ[ring.N];
+	ZZ* axyi = new ZZ[ring.N];
+	ZZ* bxyi = new ZZ[ring.N];
 
-	ring.multYpoly(axy, cipher.axy, ypoly, q);
-	ring.multYpoly(bxy, cipher.bxy, ypoly, q);
+	ring.multByMonomial(axyi, cipher.axy, ring.Nxh, 0);
+	ring.multByMonomial(bxyi, cipher.bxy, ring.Nxh, 0);
 
-	return Ciphertext(axy, bxy, cipher.logp + logp, cipher.logq, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny);
+	ring.multYpolyAndEqual(axyi, yipoly, q);
+	ring.multYpolyAndEqual(bxyi, yipoly, q);
+
+	ring.multYpoly(axyr, cipher.axy, yrpoly, q);
+	ring.multYpoly(bxyr, cipher.bxy, yrpoly, q);
+
+	ring.addAndEqual(axyr, axyi, q);
+	ring.addAndEqual(bxyr, bxyi, q);
+
+	delete[] axyi;
+	delete[] bxyi;
+
+	return Ciphertext(axyr, bxyr, cipher.logp + logp, cipher.logq, cipher.Nx, cipher.Ny, cipher.nx, cipher.ny);
 }
 
-void Scheme::multByYPolyAndEqual(Ciphertext& cipher, ZZ* ypoly, long logp) {
+void Scheme::multByYPolyAndEqual(Ciphertext& cipher, ZZ* yrpoly, ZZ* yipoly, long logp) {
 	ZZ q = ring.qvec[cipher.logq];
 
-	ring.multYpolyAndEqual(cipher.axy, ypoly, q);
-	ring.multYpolyAndEqual(cipher.bxy, ypoly, q);
+	ZZ* axyi = new ZZ[ring.N];
+	ZZ* bxyi = new ZZ[ring.N];
+
+	ring.multByMonomial(axyi, cipher.axy, ring.Nxh, 0);
+	ring.multByMonomial(bxyi, cipher.bxy, ring.Nxh, 0);
+
+	ring.multYpolyAndEqual(cipher.axy, yrpoly, q);
+	ring.multYpolyAndEqual(cipher.bxy, yrpoly, q);
+
+	ring.multYpolyAndEqual(axyi, yipoly, q);
+	ring.multYpolyAndEqual(bxyi, yipoly, q);
+
+	ring.addAndEqual(cipher.axy, axyi, q);
+	ring.addAndEqual(cipher.bxy, bxyi, q);
+
+	delete[] axyi;
+	delete[] bxyi;
 
 	cipher.logp += logp;
 }
@@ -824,7 +895,7 @@ void Scheme::modDownToAndEqual(Ciphertext& cipher, long newlogq) {
 
 
 //----------------------------------------------------------------------------------
-//   ROTATIONS & CONJUGATIONS & TRANSPOSITION
+//   ROTATIONS & CONJUGATIONS
 //----------------------------------------------------------------------------------
 
 
@@ -987,4 +1058,396 @@ void Scheme::conjugateAndEqual(Ciphertext& cipher) {
 	ring.addAndEqual(cipher.bxy, conjbxy, q);
 
 	delete[] conjbxy;
+}
+
+
+//----------------------------------------------------------------------------------
+//   BOOTSTRAPPING
+//----------------------------------------------------------------------------------
+
+
+void Scheme::normalizeAndEqual(Ciphertext& cipher) {
+	ZZ q = ring.qvec[cipher.logq];
+
+	for (long i = 0; i < ring.N; ++i) {
+		if(NumBits(cipher.axy[i]) == cipher.logq) cipher.axy[i] -= q;
+		if(NumBits(cipher.bxy[i]) == cipher.logq) cipher.bxy[i] -= q;
+	}
+}
+
+void Scheme::coeffToSlotXAndEqual(Ciphertext& cipher) {
+	long nx = cipher.nx;
+	long ny = cipher.ny;
+
+	long lognx = log2(nx);
+	long logny = log2(ny);
+
+	long logkx = lognx / 2;
+	long kx = 1 << logkx;
+
+	Ciphertext* rotvec = new Ciphertext[kx];
+
+	NTL_EXEC_RANGE(kx, first, last);
+	for (long j = first; j < last; ++j) {
+		rotvec[j] = (j == 0) ? cipher : leftRotateFast(cipher, j, 0);
+	}
+	NTL_EXEC_RANGE_END;
+
+	BootContext bootContext = ring.bootContextMap.at({lognx, logny});
+
+	Ciphertext* tmpvec = new Ciphertext[kx];
+
+	NTL_EXEC_RANGE(kx, first, last);
+	for (long j = first; j < last; ++j) {
+		tmpvec[j] = multByXPoly(rotvec[j], bootContext.pxVec[j], bootContext.logp);
+	}
+	NTL_EXEC_RANGE_END;
+
+	for (long j = 1; j < kx; ++j) {
+		addAndEqual(tmpvec[0], tmpvec[j]);
+	}
+	cipher = tmpvec[0];
+
+	for (long ki = kx; ki < nx; ki += kx) {
+		NTL_EXEC_RANGE(kx, first, last);
+		for (long j = first; j < last; ++j) {
+			tmpvec[j] = multByXPoly(rotvec[j], bootContext.pxVec[j + ki], bootContext.logp);
+		}
+		NTL_EXEC_RANGE_END;
+		for (long j = 1; j < kx; ++j) {
+			addAndEqual(tmpvec[0], tmpvec[j]);
+		}
+		leftRotateFastAndEqual(tmpvec[0], ki, 0);
+		addAndEqual(cipher, tmpvec[0]);
+	}
+	reScaleByAndEqual(cipher, bootContext.logp);
+	delete[] rotvec;
+	delete[] tmpvec;
+}
+
+void Scheme::coeffToSlotYAndEqual(Ciphertext& cipher) {
+	long nx = cipher.nx;
+	long ny = cipher.ny;
+	long lognx = log2(nx);
+	long logny = log2(ny);
+
+	long logky = logny / 2;
+	long ky = 1 << logky;
+
+	Ciphertext* rotvec = new Ciphertext[ky];
+
+	NTL_EXEC_RANGE(ky, first, last);
+	for (long j = first; j < last; ++j) {
+		rotvec[j] = (j == 0) ? cipher : leftRotateFast(cipher, 0, j);
+	}
+	NTL_EXEC_RANGE_END;
+
+	BootContext bootContext = ring.bootContextMap.at({lognx, logny});
+
+	Ciphertext* tmpvec = new Ciphertext[ky];
+
+	NTL_EXEC_RANGE(ky, first, last);
+	for (long j = first; j < last; ++j) {
+		tmpvec[j] = multByYPoly(rotvec[j], bootContext.pyrVec[j], bootContext.pyiVec[j], bootContext.logp);
+	}
+	NTL_EXEC_RANGE_END;
+
+	for (long j = 1; j < ky; ++j) {
+		addAndEqual(tmpvec[0], tmpvec[j]);
+	}
+	cipher = tmpvec[0];
+
+	for (long ki = ky; ki < ny; ki += ky) {
+		NTL_EXEC_RANGE(ky, first, last);
+		for (long j = first; j < last; ++j) {
+			tmpvec[j] = multByYPoly(rotvec[j], bootContext.pyrVec[j + ki], bootContext.pyiVec[j + ki], bootContext.logp);
+		}
+		NTL_EXEC_RANGE_END;
+		for (long j = 1; j < ky; ++j) {
+			addAndEqual(tmpvec[0], tmpvec[j]);
+		}
+		leftRotateFastAndEqual(tmpvec[0], 0, ki);
+		addAndEqual(cipher, tmpvec[0]);
+	}
+	reScaleByAndEqual(cipher, bootContext.logp);
+	delete[] rotvec;
+	delete[] tmpvec;
+}
+
+void Scheme::coeffToSlotAndEqual(Ciphertext& cipher) {
+	coeffToSlotXAndEqual(cipher);
+	coeffToSlotYAndEqual(cipher);
+}
+
+void Scheme::slotToCoeffXAndEqual(Ciphertext& cipher) {
+	long nx = cipher.nx;
+	long ny = cipher.ny;
+	long lognx = log2(nx);
+	long logny = log2(ny);
+
+	long logk = lognx / 2;
+	long k = 1 << logk;
+
+	Ciphertext* rotvec = new Ciphertext[k];
+
+	NTL_EXEC_RANGE(k, first, last);
+	for (long j = first; j < last; ++j) {
+		rotvec[j] = (j == 0) ? cipher : leftRotateFast(cipher, j, 0);
+	}
+	NTL_EXEC_RANGE_END;
+
+	BootContext bootContext = ring.bootContextMap.at({lognx, logny});
+
+	Ciphertext* tmpvec = new Ciphertext[k];
+
+	NTL_EXEC_RANGE(k, first, last);
+	for (long j = first; j < last; ++j) {
+		tmpvec[j] = multByXPoly(rotvec[j], bootContext.pxInvVec[j], bootContext.logp);
+	}
+	NTL_EXEC_RANGE_END;
+
+	for (long j = 1; j < k; ++j) {
+		addAndEqual(tmpvec[0], tmpvec[j]);
+	}
+	cipher = tmpvec[0];
+
+	for (long ki = k; ki < nx; ki+=k) {
+		NTL_EXEC_RANGE(k, first, last);
+		for (long j = first; j < last; ++j) {
+			tmpvec[j] = multByXPoly(rotvec[j], bootContext.pxInvVec[j + ki], bootContext.logp);
+		}
+		NTL_EXEC_RANGE_END;
+
+		for (long j = 1; j < k; ++j) {
+			addAndEqual(tmpvec[0], tmpvec[j]);
+		}
+
+		leftRotateFastAndEqual(tmpvec[0], ki, 0);
+		addAndEqual(cipher, tmpvec[0]);
+	}
+	reScaleByAndEqual(cipher, bootContext.logp);
+	delete[] rotvec;
+	delete[] tmpvec;
+}
+
+void Scheme::slotToCoeffYAndEqual(Ciphertext& cipher) {
+	long nx = cipher.nx;
+	long ny = cipher.ny;
+	long lognx = log2(nx);
+	long logny = log2(ny);
+
+	long logk = logny / 2;
+	long k = 1 << logk;
+
+	Ciphertext* rotvec = new Ciphertext[k];
+
+	NTL_EXEC_RANGE(k, first, last);
+	for (long j = first; j < last; ++j) {
+		rotvec[j] = (j == 0) ? cipher : leftRotateFast(cipher, 0, j);
+	}
+	NTL_EXEC_RANGE_END;
+
+	BootContext bootContext = ring.bootContextMap.at({lognx, logny});
+
+	Ciphertext* tmpvec = new Ciphertext[k];
+
+	NTL_EXEC_RANGE(k, first, last);
+	for (long j = first; j < last; ++j) {
+		tmpvec[j] = multByYPoly(rotvec[j], bootContext.pyrInvVec[j], bootContext.pyiInvVec[j], bootContext.logp);
+	}
+	NTL_EXEC_RANGE_END;
+
+	for (long j = 1; j < k; ++j) {
+		addAndEqual(tmpvec[0], tmpvec[j]);
+	}
+	cipher = tmpvec[0];
+
+	for (long ki = k; ki < ny; ki+=k) {
+		NTL_EXEC_RANGE(k, first, last);
+		for (long j = first; j < last; ++j) {
+			tmpvec[j] = multByYPoly(rotvec[j], bootContext.pyrInvVec[j + ki], bootContext.pyiInvVec[j + ki], bootContext.logp);
+		}
+		NTL_EXEC_RANGE_END;
+
+		for (long j = 1; j < k; ++j) {
+			addAndEqual(tmpvec[0], tmpvec[j]);
+		}
+
+		leftRotateFastAndEqual(tmpvec[0], 0, ki);
+		addAndEqual(cipher, tmpvec[0]);
+	}
+	reScaleByAndEqual(cipher, bootContext.logp);
+	delete[] rotvec;
+	delete[] tmpvec;
+}
+
+void Scheme::slotToCoeffAndEqual(Ciphertext& cipher) {
+	slotToCoeffXAndEqual(cipher);
+	slotToCoeffYAndEqual(cipher);
+}
+
+void Scheme::exp2piAndEqual(Ciphertext& cipher, long logp) {
+	Ciphertext cipher2 = square(cipher);
+	reScaleByAndEqual(cipher2, logp);
+
+	Ciphertext cipher4 = square(cipher2);
+	reScaleByAndEqual(cipher4, logp);
+
+	RR c = 1/(2*Pi);
+	Ciphertext cipher01 = addConst(cipher, c, logp);
+
+	c = 2*Pi;
+	multByConstAndEqual(cipher01, c, logp);
+	reScaleByAndEqual(cipher01, logp);
+
+	c = 3/(2*Pi);
+	Ciphertext cipher23 = addConst(cipher, c, logp);
+
+	c = 4*Pi*Pi*Pi/3;
+	multByConstAndEqual(cipher23, c, logp);
+	reScaleByAndEqual(cipher23, logp);
+
+	multAndEqual(cipher23, cipher2);
+	reScaleByAndEqual(cipher23, logp);
+
+	addAndEqual(cipher23, cipher01);
+
+	c = 5/(2*Pi);
+	Ciphertext cipher45 = addConst(cipher, c, logp);
+
+	c = 4*Pi*Pi*Pi*Pi*Pi/15;
+	multByConstAndEqual(cipher45, c, logp);
+	reScaleByAndEqual(cipher45, logp);
+
+	c = 7/(2*Pi);
+	addConstAndEqual(cipher, c, logp);
+
+	c = 8*Pi*Pi*Pi*Pi*Pi*Pi*Pi/315;
+	multByConstAndEqual(cipher, c, logp);
+	reScaleByAndEqual(cipher, logp);
+
+	multAndEqual(cipher, cipher2);
+	reScaleByAndEqual(cipher, logp);
+
+	modDownByAndEqual(cipher45, logp);
+	addAndEqual(cipher, cipher45);
+
+	multAndEqual(cipher, cipher4);
+	reScaleByAndEqual(cipher, logp);
+
+	modDownByAndEqual(cipher23, logp);
+	addAndEqual(cipher, cipher23);
+}
+
+void Scheme::evalExpAndEqual(Ciphertext& cipher, long logT, long logI) {
+	//TODO change method for different cases
+	long lognx = log2(cipher.nx);
+	long logny = log2(cipher.ny);
+
+	BootContext bootContext = ring.bootContextMap.at({lognx, logny});
+
+	Ciphertext tmp = conjugate(cipher);
+	Ciphertext cimag = sub(cipher, tmp);
+	addAndEqual(cipher, tmp);
+	imultAndEqual(cipher);
+
+	NTL_EXEC_INDEX(2, index);
+	if(index == 0) {
+		divByPo2AndEqual(cipher, logT + 1 + ring.logNxh + ring.logNy);
+		exp2piAndEqual(cipher, bootContext.logp);
+		for (long i = 0; i < logI + logT; ++i) {
+			squareAndEqual(cipher);
+			reScaleByAndEqual(cipher, bootContext.logp);
+		}
+	} else {
+		divByPo2AndEqual(cimag, logT + 1 + ring.logNxh + ring.logNy);
+		exp2piAndEqual(cimag, bootContext.logp);
+		for (long i = 0; i < logI + logT; ++i) {
+			squareAndEqual(cimag);
+			reScaleByAndEqual(cimag, bootContext.logp);
+		}
+	}
+	NTL_EXEC_INDEX_END;
+
+	tmp = conjugate(cimag);
+	subAndEqual(cimag, tmp);
+	tmp = conjugate(cipher);
+	subAndEqual(cipher, tmp);
+	imultAndEqual(cipher);
+	subAndEqual2(cimag, cipher);
+
+	RR c = 0.25/Pi;
+	multByConstAndEqual(cipher, c, bootContext.logp);
+	reScaleByAndEqual(cipher, bootContext.logp + logI);
+}
+
+void Scheme::bootstrapXAndEqual(Ciphertext& cipher, long logq, long logQ, long logT, long logI) {
+	long lognx = log2(cipher.nx);
+
+	long logp = cipher.logp;
+
+	modDownToAndEqual(cipher, logq);
+	normalizeAndEqual(cipher);
+
+	cipher.logq = logQ;
+	cipher.logp = logq + logI;
+
+	for (long i = lognx; i < ring.logNxh; ++i) {
+		Ciphertext rot = leftRotateFast(cipher, (1 << i), 0);
+		addAndEqual(cipher, rot);
+	}
+	coeffToSlotXAndEqual(cipher);
+	divByPo2AndEqual(cipher, ring.logNxh);
+	evalExpAndEqual(cipher, logT, logI);
+	slotToCoeffXAndEqual(cipher);
+	cipher.logp = logp;
+}
+
+void Scheme::bootstrapYAndEqual(Ciphertext& cipher, long logq, long logQ, long logT, long logI) {
+	long logny = log2(cipher.ny);
+
+	long logp = cipher.logp;
+
+	modDownToAndEqual(cipher, logq);
+	normalizeAndEqual(cipher);
+
+	cipher.logq = logQ;
+	cipher.logp = logq + logI;
+
+	for (long i = logny; i < ring.logNy; ++i) {
+		Ciphertext rot = leftRotateFast(cipher, 0, (1 << i));
+		addAndEqual(cipher, rot);
+	}
+	coeffToSlotYAndEqual(cipher);
+	divByPo2AndEqual(cipher, ring.logNy);
+	evalExpAndEqual(cipher, logT, logI);
+	slotToCoeffYAndEqual(cipher);
+	cipher.logp = logp;
+}
+
+void Scheme::bootstrapAndEqual(Ciphertext& cipher, long logq, long logQ, long logT, long logI) {
+	long lognx = log2(cipher.nx);
+	long logny = log2(cipher.ny);
+
+	long logp = cipher.logp;
+
+	modDownToAndEqual(cipher, logq);
+	normalizeAndEqual(cipher);
+
+	cipher.logq = logQ;
+	cipher.logp = logq + logI;
+
+	for (long i = lognx; i < ring.logNxh; ++i) {
+		Ciphertext rot = leftRotateFast(cipher, (1 << i), 0);
+		addAndEqual(cipher, rot);
+	}
+	for (long i = logny; i < ring.logNy; ++i) {
+		Ciphertext rot = leftRotateFast(cipher, 0, (1 << i));
+		addAndEqual(cipher, rot);
+	}
+	coeffToSlotAndEqual(cipher);
+	divByPo2AndEqual(cipher, ring.logNxh + ring.logNy);
+	evalExpAndEqual(cipher, logT, logI);
+	slotToCoeffAndEqual(cipher);
+	cipher.logp = logp;
 }
