@@ -43,7 +43,7 @@ Ring2XY::Ring2XY(long logNx, long logQ, double sigma, long h) :
 	}
 	gxPows[Nxh] = gxPows[0];
 
-	gyPows = new long[Ny + 1];
+	gyPows = new long[My];
 	dftomegaPows = new complex<double>[Ny]();
 	omegaPows = new complex<double>[Ny]();
 	long gy = 3;
@@ -179,11 +179,11 @@ void Ring2XY::addBootContext(long lognx, long logny, long logp) {
 			for (long pos = kyi; pos < kyi + ky; ++pos) {
 				for (long i = 0; i < ny - pos; ++i) {
 					deg = ((My - gyPows[i + pos]) * i) % My;
-					pyvals[i] = (ksiyPows[deg] - ksiyPows[gyPows[i + pos]]) * (double)Ny / (double)My;
+					pyvals[i] = (ksiyPows[deg] - ksiyPows[gyPows[i + pos + 1]]) * (double)Ny / (double)My;
 				}
 				for (long i = ny - pos; i < ny; ++i) {
 					deg = ((My - gyPows[i + pos - ny]) * i) % My;
-					pyvals[i] = (ksiyPows[deg] - ksiyPows[gyPows[i + pos - ny]]) * (double)Ny / (double)My;
+					pyvals[i] = (ksiyPows[deg] - ksiyPows[gyPows[i + pos + 1 - ny]]) * (double)Ny / (double)My;
 				}
 
 				EvaluatorUtils::rightRotateAndEqual(pyvals, 1, ny, 0, kyi);
@@ -415,12 +415,14 @@ void Ring2XY::IEMBXY(complex<double>* vals, const long nx) {
 	delete[] tmp;
 }
 
-void Ring2XY::encode(ZZ* mx, complex<double>* vals, long nx, long logp) {
-	long n = nx * Ny;
-	complex<double>* uvals = new complex<double>[n];
-	copy(vals, vals + n, uvals);
-
+void Ring2XY::encode(ZZ* mx, complex<double>* vals, long nx, long ny, long logp) {
 	long gapx = Nxh / nx;
+	long gapy = Ny / ny;
+
+	complex<double>* uvals = new complex<double>[nx * Ny];
+	for (long j = 0; j < gapy; ++j) {
+		copy(vals, vals + nx * ny, uvals + j * nx * ny);
+	}
 
 	IEMBXY(uvals, nx);
 	for (long ix = 0, iix = Nxh, irx = 0; ix < nx; ++ix, iix += gapx, irx += gapx) {
@@ -432,14 +434,16 @@ void Ring2XY::encode(ZZ* mx, complex<double>* vals, long nx, long logp) {
 	delete[] uvals;
 }
 
-void Ring2XY::encode(ZZ* mx, double* vals, long nx, long logp) {
-	long n = nx * Ny;
-	complex<double>* uvals = new complex<double>[n];
-	for (long i = 0; i < n; ++i) {
-		uvals[i].real(vals[i]);
-	}
-
+void Ring2XY::encode(ZZ* mx, double* vals, long nx, long ny, long logp) {
 	long gapx = Nxh / nx;
+	long gapy = Ny / ny;
+
+	complex<double>* uvals = new complex<double>[nx * Ny];
+	for (long i = 0; i < nx * ny; ++i) {
+		for (long j = 0; j < gapy; ++j) {
+			uvals[i + j * nx * ny].real(vals[i]);
+		}
+	}
 
 	IEMBXY(uvals, nx);
 	for (long ix = 0, iix = Nxh, irx = 0; ix < nx; ++ix, iix += gapx, irx += gapx) {
@@ -451,27 +455,30 @@ void Ring2XY::encode(ZZ* mx, double* vals, long nx, long logp) {
 	delete[] uvals;
 }
 
-void Ring2XY::decode(ZZ* mxy, complex<double>* vals, long nx, long logp, long logq) {
+void Ring2XY::decode(ZZ* mxy, complex<double>* vals, long nx, long ny, long logp, long logq) {
 	ZZ q = qvec[logq];
 	ZZ qh = qvec[logq - 1];
 	long gapx = Nxh / nx;
 	ZZ tmp;
 
+	complex<double>* fvals = new complex<double>[nx * Ny];
 	for (long ix = 0, iix = Nxh, irx = 0; ix < nx; ++ix, iix += gapx, irx += gapx) {
 		for (long iy = 0; iy < Ny; ++iy) {
 			rem(tmp, mxy[irx + Nx * iy], q);
 			while (tmp < 0) tmp += q;
 			while (tmp > qh) tmp -= q;
-			vals[ix + nx * iy].real(EvaluatorUtils::scaleDownToReal(tmp, logp));
+			fvals[ix + nx * iy].real(EvaluatorUtils::scaleDownToReal(tmp, logp));
 
 			rem(tmp, mxy[iix + Nx * iy], q);
 			while(tmp < 0) tmp += q;
 			while (tmp > qh) tmp -= q;
-			vals[ix + nx * iy].imag(EvaluatorUtils::scaleDownToReal(tmp, logp));
+			fvals[ix + nx * iy].imag(EvaluatorUtils::scaleDownToReal(tmp, logp));
 		}
 	}
 
-	EMBXY(vals, nx);
+	EMBXY(fvals, nx);
+	copy(fvals, fvals + nx * ny, vals);
+	delete[] fvals;
 }
 
 

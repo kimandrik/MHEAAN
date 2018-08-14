@@ -16,8 +16,8 @@ int main() {
 //----------------------------------------------------------------------------------
 
 //	TestScheme::testEncrypt(8, 8, 1200, 30, 2, 2);
-//	TestScheme::testEncryptSingle(7, 7, 300, 30);
-//	TestScheme::testStandard(8, 8, 1200, 30, 5, 2);
+//	TestScheme::testEncryptSingle(8, 8, 300, 30);
+//	TestScheme::testStandard(8, 8, 1200, 30, 1, 3);
 //	TestScheme::testimult(8, 8, 300, 30, 2, 2);
 
 
@@ -26,7 +26,7 @@ int main() {
 //----------------------------------------------------------------------------------
 
 
-//	TestScheme::testRotateFast(8, 8, 1200, 30, 7, 8, 0, 5);
+//	TestScheme::testRotateFast(8, 8, 1200, 30, 2, 3, 1, 2);
 //	TestScheme::testRotate(8, 8, 300, 30, 2, 2, 1, 1);
 //	TestScheme::testConjugate(8, 8, 300, 30, 2, 2);
 
@@ -70,7 +70,7 @@ int main() {
 //----------------------------------------------------------------------------------
 
 
-	TestScheme::testBootstrap(8, 8, 50, 1500, 35, 7, 8, 3, 8);
+//	TestScheme::testBootstrap(8, 8, 55, 1200, 40, 7, 8, 5, 4);
 
 //	TestScheme::testCiphertextWriteAndRead(10, 65, 30, 2);
 

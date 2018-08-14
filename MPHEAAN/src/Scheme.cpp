@@ -194,13 +194,13 @@ void Scheme::addSquareMatrixKeys(SecretKey& secretKey, long lognx) {
 
 Plaintext Scheme::encode(complex<double>* vals, long nx, long ny, long logp, long logq) {
 	ZZ* mx = new ZZ[ring.N];
-	ring.encode(mx, vals, nx, logp + ring.logQ);
-	return Plaintext(mx, logp, logq, ring.Nx, ring.Ny, nx, ring.Ny);
+	ring.encode(mx, vals, nx, ny, logp + ring.logQ);
+	return Plaintext(mx, logp, logq, ring.Nx, ring.Ny, nx, ny);
 }
 
 Plaintext Scheme::encode(double* vals, long nx, long ny, long logp, long logq) {
 	ZZ* mxy = new ZZ[ring.N];
-	ring.encode(mxy, vals, nx, logp + ring.logQ);
+	ring.encode(mxy, vals, nx, ny, logp + ring.logQ);
 	return Plaintext(mxy, logp, logq, ring.Nx, ring.Ny, nx, ring.Ny);
 }
 
@@ -222,8 +222,8 @@ Plaintext Scheme::encodeSingle(double val, long logp, long logq) {
 }
 
 complex<double>* Scheme::decode(Plaintext& msg) {
-	complex<double>* vals = new complex<double>[msg.nx * ring.Ny];
-	ring.decode(msg.mxy, vals, msg.nx, msg.logp, msg.logq);
+	complex<double>* vals = new complex<double>[msg.nx * msg.ny];
+	ring.decode(msg.mxy, vals, msg.nx, msg.ny, msg.logp, msg.logq);
 	return vals;
 }
 
@@ -232,12 +232,12 @@ complex<double> Scheme::decodeSingle(Plaintext& msg) {
 	ZZ tmp;
 	ZZ q = ring.qvec[msg.logq];
 	ZZ qh = ring.qvec[msg.logq - 1];
-	AddMod(tmp, msg.mxy[0], -msg.mxy[ring.Nxh + ring.Nh], q);
+	tmp = msg.mxy[0];
 	while(tmp < 0) tmp += q;
 	while(tmp > qh) tmp -= q;
 	res.real(EvaluatorUtils::scaleDownToReal(tmp, msg.logp));
 
-	AddMod(tmp, msg.mxy[ring.Nh], msg.mxy[ring.Nxh], q);
+	tmp = msg.mxy[ring.Nh];
 	while(tmp < 0) tmp += q;
 	while(tmp > qh) tmp -= q;
 	res.imag(EvaluatorUtils::scaleDownToReal(tmp, msg.logp));
@@ -1175,8 +1175,8 @@ void Scheme::coeffToSlotYAndEqual(Ciphertext& cipher) {
 }
 
 void Scheme::coeffToSlotAndEqual(Ciphertext& cipher) {
-	coeffToSlotXAndEqual(cipher);
 	coeffToSlotYAndEqual(cipher);
+	coeffToSlotXAndEqual(cipher);
 }
 
 void Scheme::slotToCoeffXAndEqual(Ciphertext& cipher) {
@@ -1351,23 +1351,18 @@ void Scheme::evalExpAndEqual(Ciphertext& cipher, long logT, long logI) {
 	addAndEqual(cipher, tmp);
 	imultAndEqual(cipher);
 
-	NTL_EXEC_INDEX(2, index);
-	if(index == 0) {
-		divByPo2AndEqual(cipher, logT + 1 + ring.logNxh + ring.logNy);
-		exp2piAndEqual(cipher, bootContext.logp);
-		for (long i = 0; i < logI + logT; ++i) {
-			squareAndEqual(cipher);
-			reScaleByAndEqual(cipher, bootContext.logp);
-		}
-	} else {
-		divByPo2AndEqual(cimag, logT + 1 + ring.logNxh + ring.logNy);
-		exp2piAndEqual(cimag, bootContext.logp);
-		for (long i = 0; i < logI + logT; ++i) {
-			squareAndEqual(cimag);
-			reScaleByAndEqual(cimag, bootContext.logp);
-		}
+	divByPo2AndEqual(cipher, logT + ring.logN);
+	divByPo2AndEqual(cimag, logT + ring.logN);
+
+	exp2piAndEqual(cipher, bootContext.logp);
+	exp2piAndEqual(cimag, bootContext.logp);
+
+	for (long i = 0; i < logI + logT; ++i) {
+		squareAndEqual(cipher);
+		squareAndEqual(cimag);
+		reScaleByAndEqual(cipher, bootContext.logp);
+		reScaleByAndEqual(cimag, bootContext.logp);
 	}
-	NTL_EXEC_INDEX_END;
 
 	tmp = conjugate(cimag);
 	subAndEqual(cimag, tmp);

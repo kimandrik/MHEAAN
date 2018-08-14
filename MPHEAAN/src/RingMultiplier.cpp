@@ -476,7 +476,7 @@ long RingMultiplier::MaxBits(const ZZ* f, long n) {
 }
 
 void RingMultiplier::multXpoly(ZZ* x, const ZZ* a, const ZZ* b, const ZZ& q) {
-	long bound = logNx + MaxBits(a, N) + MaxBits(b, Nx) + 2;
+	long bound = 2 * logN + MaxBits(a, N) + MaxBits(b, Nx) + 2;
 	long np = ceil(bound / 59.0);
 
 	uint64_t* ra = new uint64_t[np << logN];
@@ -544,7 +544,7 @@ void RingMultiplier::multXpoly(ZZ* x, const ZZ* a, const ZZ* b, const ZZ& q) {
 }
 
 void RingMultiplier::multXpolyAndEqual(ZZ* a, const ZZ* b, const ZZ& q) {
-	long bound = logNx + MaxBits(a, N) + MaxBits(b, Nx) + 2;
+	long bound = 2 * logN + MaxBits(a, N) + MaxBits(b, Nx) + 2;
 	long np = ceil(bound / 59.0);
 
 	uint64_t* ra = new uint64_t[np << logN];
@@ -613,7 +613,7 @@ void RingMultiplier::multXpolyAndEqual(ZZ* a, const ZZ* b, const ZZ& q) {
 }
 
 void RingMultiplier::multYpoly(ZZ* x, const ZZ* a, const ZZ* b, const ZZ& q) {
-	long bound = logNy + MaxBits(a, N) + MaxBits(b, Ny) + 2;
+	long bound = 2 * logN + MaxBits(a, N) + MaxBits(b, Ny) + 2;
 	long np = ceil(bound / 59.0);
 
 	uint64_t* ra = new uint64_t[np << logN];
@@ -698,7 +698,7 @@ void RingMultiplier::multYpoly(ZZ* x, const ZZ* a, const ZZ* b, const ZZ& q) {
 }
 
 void RingMultiplier::multYpolyAndEqual(ZZ* a, const ZZ* b, const ZZ& q) {
-	long bound = logNy + MaxBits(a, N) + MaxBits(b, Ny) + 2;
+	long bound = 2 * logN + MaxBits(a, N) + MaxBits(b, Ny) + 2;
 	long np = ceil(bound / 59.0);
 
 	uint64_t* ra = new uint64_t[np << logN];

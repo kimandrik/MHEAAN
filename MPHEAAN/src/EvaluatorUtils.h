@@ -27,13 +27,21 @@ public:
 
 	static double randomReal(double bound = 1.0);
 
+	static double randomRealSigned(double bound = 1.0);
+
 	static complex<double> randomComplex(double bound = 1.0);
+
+	static complex<double> randomComplexSigned(double bound = 1.0);
 
 	static complex<double> randomCircle(double anglebound = 1.0);
 
 	static double* randomRealArray(long n, double bound = 1.0);
 
+	static double* randomRealSignedArray(long n, double bound = 1.0);
+
 	static complex<double>* randomComplexArray(long n, double bound = 1.0);
+
+	static complex<double>* randomComplexSignedArray(long n, double bound = 1.0);
 
 	static complex<double>* randomCircleArray(long n, double bound = 1.0);
 

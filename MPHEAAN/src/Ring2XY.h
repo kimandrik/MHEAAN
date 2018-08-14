@@ -97,9 +97,9 @@ public:
 	void EMBXY(complex<double>* vals, const long nx);
 	void IEMBXY(complex<double>* vals, const long nx);
 
-	void encode(ZZ* mxy, complex<double>* vals, long nx, long logp);
-	void encode(ZZ* mxy, double* vals, long nx, long logp);
-	void decode(ZZ* mxy, complex<double>*vals, long nx, long logp, long logq);
+	void encode(ZZ* mxy, complex<double>* vals, long nx, long ny, long logp);
+	void encode(ZZ* mxy, double* vals, long nx, long ny, long logp);
+	void decode(ZZ* mxy, complex<double>*vals, long nx, long ny, long logp, long logq);
 
 
 	//----------------------------------------------------------------------------------

@@ -18,10 +18,21 @@ double EvaluatorUtils::randomReal(double bound)  {
 	return (double) rand()/(RAND_MAX) * bound;
 }
 
+double EvaluatorUtils::randomRealSigned(double bound)  {
+	return ((double)rand()/(RAND_MAX) * 2.0 - 1.0) * bound;
+}
+
 complex<double> EvaluatorUtils::randomComplex(double bound) {
 	complex<double> res;
 	res.real(randomReal(bound));
 	res.imag(randomReal(bound));
+	return res;
+}
+
+complex<double> EvaluatorUtils::randomComplexSigned(double bound) {
+	complex<double> res;
+	res.real(randomRealSigned(bound));
+	res.imag(randomRealSigned(bound));
 	return res;
 }
 
@@ -41,10 +52,26 @@ double* EvaluatorUtils::randomRealArray(long n, double bound) {
 	return res;
 }
 
+double* EvaluatorUtils::randomRealSignedArray(long n, double bound) {
+	double* res = new double[n];
+	for (long i = 0; i < n; ++i) {
+		res[i] = randomRealSigned(bound);
+	}
+	return res;
+}
+
 complex<double>* EvaluatorUtils::randomComplexArray(long n, double bound) {
 	complex<double>* res = new complex<double>[n];
 	for (long i = 0; i < n; ++i) {
 		res[i] = randomComplex(bound);
+	}
+	return res;
+}
+
+complex<double>* EvaluatorUtils::randomComplexSignedArray(long n, double bound) {
+	complex<double>* res = new complex<double>[n];
+	for (long i = 0; i < n; ++i) {
+		res[i] = randomComplexSigned(bound);
 	}
 	return res;
 }
