@@ -851,26 +851,246 @@ void TestScheme::testCiphertextWriteAndRead(long logNx, long logNy, long logQ, l
 
 void TestScheme::test() {
 
-	srand(time(NULL));
+	srand(0);
 	SetNumThreads(8);
 
-	long logNx = 8;
+	long logNx = 7;
 	long logQ = 700;
-	long lognx = 7;
-	long logp = 40;
-	long logq = 55;
+	long lognx = logNx - 1;
+	long logp = 53;
+	long logq = 59;
 	TimeUtils timeutils;
 
 	long logI = 4;
-	long logT = 5;
+	long logT = 2;
 
 	timeutils.start("Scheme generating");
 	Ring2XY ring(logNx, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
-	timeutils.start("Scheme generating");
+	timeutils.stop("Scheme generating");
 
-	timeutils.stop("Key generating");
+	timeutils.start("Key generating");
+	scheme.addBootKey(secretKey, lognx, ring.logNy, logq + logI);
+	timeutils.stop("Key generated");
+
+	long nx = (1 << lognx);
+	long ny = (1 << ring.logNy);
+	long n = nx * ny;
+
+	complex<double>* mmat = EvaluatorUtils::randomComplexArray(n);
+
+	Ciphertext cipher = scheme.encrypt(mmat, nx, ny, logp, logQ);
+
+	cout << "cipher logq before: " << cipher.logq << endl;
+	scheme.normalizeAndEqual(cipher);
+//	cipher.logq = logQ;
+//	cipher.logp = logq + logI;
+
+	Plaintext ptxt = scheme.decryptMsg(secretKey, cipher);
+
+	ZZ q = ring.qvec[cipher.logq];
+	ZZ qh = ring.qvec[cipher.logq - 1];
+	long gapx = ring.Nxh / nx;
+	ZZ tmp;
+	complex<double>* vals = new complex<double>[n];
+	for (long ix = 0, iix = ring.Nxh, irx = 0; ix < nx; ++ix, iix += gapx, irx += gapx) {
+		for (long iy = 0; iy < ring.Ny; ++iy) {
+			tmp = ptxt.mxy[irx + ring.Nx * iy];
+			if (tmp > qh) {
+				tmp -= q;
+			} else if (tmp < -qh) {
+				tmp += q;
+			}
+			vals[ix + nx * iy].real(EvaluatorUtils::scaleDownToReal(tmp, cipher.logp));
+
+			tmp = ptxt.mxy[iix + ring.Nx * iy];
+			if (tmp > qh) {
+				tmp -= q;
+			} else if (tmp < -qh) {
+				tmp += q;
+			}
+			vals[ix + nx * iy].imag(EvaluatorUtils::scaleDownToReal(tmp, cipher.logp));
+		}
+	}
+
+	StringUtils::showMat(vals, nx, 5);
+
+	timeutils.start("Coeff to Slot");
+	scheme.coeffToSlotAndEqual(cipher);
+	timeutils.stop("Coeff to Slot");
+	scheme.divByPo2AndEqual(cipher, ring.logN - 1);
+
+	complex<double>* ccdec = scheme.decrypt(secretKey, cipher);
+	StringUtils::showMat(ccdec, nx, 5);
+
+	timeutils.start("Slot to Coeff");
+	scheme.slotToCoeffAndEqual(cipher);
+	timeutils.stop("Slot to Coeff");
+
+	complex<double>* dmat = scheme.decrypt(secretKey, cipher);
+	StringUtils::compare(mmat, dmat, 10, "boot");
+
+	cout << "!!! END TEST BOOTSRTAP !!!" << endl;
+}
+
+void TestScheme::test1() {
+
+	srand(0);
+	SetNumThreads(8);
+
+	long logNx = 7;
+	long logQ = 1200;
+	long lognx = logNx - 1;
+	long logp = 53;
+	long logq = 56;
+	TimeUtils timeutils;
+
+	long logI = 4;
+	long logT = 2;
+
+	timeutils.start("Scheme generating");
+	Ring2XY ring(logNx, logQ);
+	SecretKey secretKey(ring);
+	Scheme scheme(secretKey, ring);
+	timeutils.stop("Scheme generating");
+
+	timeutils.start("Key generating");
+	scheme.addBootKey(secretKey, lognx, ring.logNy, logq + logI);
+	timeutils.stop("Key generated");
+
+	long nx = (1 << lognx);
+	long ny = (1 << ring.logNy);
+	long n = nx * ny;
+
+	complex<double>* mmat = EvaluatorUtils::randomComplexArray(n);
+
+	Ciphertext cipher = scheme.encrypt(mmat, nx, ny, logp, logq);
+
+	cout << "cipher logq before: " << cipher.logq << endl;
+	cipher.logq = logQ;
+	cipher.logp = logq + logI;
+	scheme.normalizeAndEqual(cipher);
+
+	Plaintext ptxt = scheme.decryptMsg(secretKey, cipher);
+
+	ZZ q = ring.qvec[cipher.logq];
+	ZZ qh = ring.qvec[cipher.logq - 1];
+	long gapx = ring.Nxh / nx;
+	ZZ tmp;
+	complex<double>* vals = new complex<double>[n];
+	for (long ix = 0, iix = ring.Nxh, irx = 0; ix < nx; ++ix, iix += gapx, irx += gapx) {
+		for (long iy = 0; iy < ring.Ny; ++iy) {
+			tmp = ptxt.mxy[irx + ring.Nx * iy];
+			if (tmp > qh) {
+				tmp -= q;
+			} else if (tmp < -qh) {
+				tmp += q;
+			}
+			vals[ix + nx * iy].real(EvaluatorUtils::scaleDownToReal(tmp, logq));
+
+			tmp = ptxt.mxy[iix + ring.Nx * iy];
+			if (tmp > qh) {
+				tmp -= q;
+			} else if (tmp < -qh) {
+				tmp += q;
+			}
+			vals[ix + nx * iy].imag(EvaluatorUtils::scaleDownToReal(tmp, logq));
+		}
+	}
+
+	StringUtils::showMat(vals, nx, 5);
+
+	timeutils.start("Coeff to Slot");
+	scheme.coeffToSlotAndEqual(cipher);
+	timeutils.stop("Coeff to Slot");
+
+	long tmplogp = cipher.logp;
+	cipher.logp = tmplogp + 9;
+	complex<double>* ccdec = scheme.decrypt(secretKey, cipher);
+	StringUtils::showMat(ccdec, nx, 5);
+	cipher.logp = tmplogp;
+
+	BootContext bootContext = ring.bootContextMap.at({lognx, ring.logNy});
+
+	Ciphertext ctmp = scheme.conjugate(cipher);
+	Ciphertext cimag = scheme.sub(cipher, ctmp);
+	scheme.addAndEqual(cipher, ctmp);
+	scheme.imultAndEqual(cipher);
+
+	cout << cipher.logp << endl;
+	cout << cipher.logq << endl;
+	cipher.logp = tmplogp + 9;
+	complex<double>* x0 = scheme.decrypt(secretKey, cipher);
+	StringUtils::showMat(x0, nx, 5);
+	cipher.logp = tmplogp;
+
+	scheme.divByPo2AndEqual(cipher, logT + ring.logN);
+	scheme.divByPo2AndEqual(cimag, logT + ring.logN);
+
+	scheme.exp2piAndEqual(cipher, bootContext.logp);
+	scheme.exp2piAndEqual(cimag, bootContext.logp);
+
+	for (long i = 0; i < logI + logT; ++i) {
+		scheme.squareAndEqual(cipher);
+		scheme.squareAndEqual(cimag);
+		scheme.reScaleByAndEqual(cipher, bootContext.logp);
+		scheme.reScaleByAndEqual(cimag, bootContext.logp);
+	}
+
+	cout << cipher.logp << endl;
+	cout << cipher.logq << endl;
+	complex<double>* x3 = scheme.decrypt(secretKey, cipher);
+	StringUtils::showMat(x3, nx, 5);
+
+	ctmp = scheme.conjugate(cimag);
+	scheme.subAndEqual(cimag, ctmp);
+	ctmp = scheme.conjugate(cipher);
+	scheme.subAndEqual(cipher, ctmp);
+	scheme.imultAndEqual(cipher);
+	scheme.subAndEqual2(cimag, cipher);
+
+	RR c = 0.25/Pi;
+	scheme.multByConstAndEqual(cipher, c, bootContext.logp);
+	scheme.reScaleByAndEqual(cipher, bootContext.logp + logI);
+
+	cout << cipher.logp << endl;
+	cout << cipher.logq << endl;
+	cipher.logp = logp;
+	complex<double>* x4 = scheme.decrypt(secretKey, cipher);
+	StringUtils::showMat(x4, nx, 5);
+
+	timeutils.start("Slot to Coeff");
+	scheme.slotToCoeffAndEqual(cipher);
+	timeutils.stop("Slot to Coeff");
+	complex<double>* dmat = scheme.decrypt(secretKey, cipher);
+	StringUtils::compare(mmat, dmat, 10, "boot");
+
+	cout << "!!! END TEST BOOTSRTAP !!!" << endl;
+}
+
+void TestScheme::test2() {
+
+	srand(0);
+	SetNumThreads(8);
+
+	long logNx = 7;
+	long logQ = 700;
+	long lognx = logNx - 1;
+	long logp = 53;
+	long logq = 59;
+	TimeUtils timeutils;
+
+	long logI = 4;
+	long logT = 2;
+
+	timeutils.start("Scheme generating");
+	Ring2XY ring(logNx, logQ);
+	SecretKey secretKey(ring);
+	Scheme scheme(secretKey, ring);
+	timeutils.stop("Scheme generating");
+
+	timeutils.start("Key generating");
 	scheme.addBootKey(secretKey, lognx, ring.logNy, logq + logI);
 	timeutils.stop("Key generated");
 
@@ -889,88 +1109,47 @@ void TestScheme::test() {
 
 	Plaintext ptxt = scheme.decryptMsg(secretKey, cipher);
 
-	ZZ q = ring.qvec[logQ];
-	ZZ qh = ring.qvec[logQ - 1];
+	ZZ q = ring.qvec[cipher.logq];
+	ZZ qh = ring.qvec[cipher.logq - 1];
 	long gapx = ring.Nxh / nx;
 	ZZ tmp;
-
 	complex<double>* vals = new complex<double>[n];
 	for (long ix = 0, iix = ring.Nxh, irx = 0; ix < nx; ++ix, iix += gapx, irx += gapx) {
 		for (long iy = 0; iy < ring.Ny; ++iy) {
-			rem(tmp, ptxt.mxy[irx + ring.Nx * iy], q);
-			while (tmp < 0) tmp += q;
-			while (tmp > qh) tmp -= q;
-			vals[ix + nx * iy].real(EvaluatorUtils::scaleDownToReal(tmp, cipher.logp));
+			tmp = ptxt.mxy[irx + ring.Nx * iy];
+			if (tmp > qh) {
+				tmp -= q;
+			} else if (tmp < -qh) {
+				tmp += q;
+			}
+			vals[ix + nx * iy].real(EvaluatorUtils::scaleDownToReal(tmp, logq));
 
-			rem(tmp, ptxt.mxy[iix + ring.Nx * iy], q);
-			while(tmp < 0) tmp += q;
-			while (tmp > qh) tmp -= q;
-			vals[ix + nx * iy].imag(EvaluatorUtils::scaleDownToReal(tmp, cipher.logp));
+			tmp = ptxt.mxy[iix + ring.Nx * iy];
+			if (tmp > qh) {
+				tmp -= q;
+			} else if (tmp < -qh) {
+				tmp += q;
+			}
+			vals[ix + nx * iy].imag(EvaluatorUtils::scaleDownToReal(tmp, logq));
 		}
 	}
 
-	StringUtils::showVec(vals, n);
+	StringUtils::showMat(vals, nx, 5);
 
 	timeutils.start("Coeff to Slot");
 	scheme.coeffToSlotAndEqual(cipher);
 	timeutils.stop("Coeff to Slot");
+	scheme.divByPo2AndEqual(cipher, ring.logN - 1);
 
 	complex<double>* ccdec = scheme.decrypt(secretKey, cipher);
-	StringUtils::showVec(ccdec, n);
+	StringUtils::showMat(ccdec, nx, 5);
 
-//	BootContext bootContext = ring.bootContextMap.at({lognx, ring.logNy});
-//
-//	Ciphertext ctmp = scheme.conjugate(cipher);
-//	Ciphertext cimag = scheme.sub(cipher, ctmp);
-//	scheme.addAndEqual(cipher, ctmp);
-//	scheme.imultAndEqual(cipher);
-//
-//	scheme.divByPo2AndEqual(cipher, logT + ring.logN);
-//	scheme.divByPo2AndEqual(cimag, logT + ring.logN);
-//
-//	cout << cipher.logp << endl;
-//	cout << cipher.logq << endl;
-//	complex<double>* x1 = decrypt(secretKey, cipher);
-//	StringUtils::showVec(x1, 100);
-//
-//	scheme.exp2piAndEqual(cipher, bootContext.logp);
-//	scheme.exp2piAndEqual(cimag, bootContext.logp);
-//
-//	cout << cipher.logp << endl;
-//	cout << cipher.logq << endl;
-//	complex<double>* x2 = decrypt(secretKey, cipher);
-//	StringUtils::showVec(x2, 100);
-//
-//	for (long i = 0; i < logI + logT; ++i) {
-//		scheme.squareAndEqual(cipher);
-//		scheme.squareAndEqual(cimag);
-//		scheme.reScaleByAndEqual(cipher, bootContext.logp);
-//		scheme.reScaleByAndEqual(cimag, bootContext.logp);
-//	}
-//
-//	cout << cipher.logp << endl;
-//	cout << cipher.logq << endl;
-//	complex<double>* x3 = decrypt(secretKey, cipher);
-//	StringUtils::showVec(x3, 100);
-//
-//	ctmp = scheme.conjugate(cimag);
-//	scheme.subAndEqual(cimag, ctmp);
-//	ctmp = scheme.conjugate(cipher);
-//	scheme.subAndEqual(cipher, ctmp);
-//	scheme.imultAndEqual(cipher);
-//	scheme.subAndEqual2(cimag, cipher);
-//
-//	RR c = 0.25/Pi;
-//	scheme.multByConstAndEqual(cipher, c, bootContext.logp);
-//	scheme.reScaleByAndEqual(cipher, bootContext.logp + logI);
+	timeutils.start("Slot to Coeff");
+	scheme.slotToCoeffAndEqual(cipher);
+	timeutils.stop("Slot to Coeff");
 
-//	timeutils.start("Slot to Coeff");
-//	scheme.slotToCoeffAndEqual(cipher);
-//	timeutils.stop("Slot to Coeff");
-//	scheme.divByPo2AndEqual(cipher, 15);
-
-//	complex<double>* dmat = scheme.decrypt(secretKey, cipher);
-//	StringUtils::compare(mmat, dmat, 10, "boot");
+	complex<double>* dmat = scheme.decrypt(secretKey, cipher);
+	StringUtils::showMat(dmat, nx, 5);
 
 	cout << "!!! END TEST BOOTSRTAP !!!" << endl;
 }

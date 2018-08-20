@@ -94,6 +94,11 @@ public:
 	static void testCiphertextWriteAndRead(long logNx, long logNy, long logQ, long logp, long lognx, long logny);
 
 	static void test();
+
+	static void test1();
+
+	static void test2();
+
 };
 
 #endif

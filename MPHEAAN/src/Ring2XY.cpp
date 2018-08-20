@@ -68,13 +68,20 @@ Ring2XY::Ring2XY(long logNx, long logQ, double sigma, long h) :
 	}
 	ksixPows[Mx] = ksixPows[0];
 
-	ksiyPows = new complex<double>[Ny + 1]();
+	ksiyPows = new complex<double>[My]();
 	for (long j = 0; j < Ny; ++j) {
 		double angle = 2.0 * M_PI * j / Ny;
 		ksiyPows[j].real(cos(angle));
 		ksiyPows[j].imag(sin(angle));
 	}
 	ksiyPows[Ny] = ksiyPows[0];
+
+	ksiyPows2 = new complex<double>[My]();
+	for (long j = 0; j < My; ++j) {
+		double angle = 2.0 * M_PI * j / My;
+		ksiyPows2[j].real(cos(angle));
+		ksiyPows2[j].imag(sin(angle));
+	}
 
 	arrayBitReverse(dftomegaPows, Ny);
 	for (long len = 2; len <= Ny; len <<= 1) {
@@ -179,11 +186,13 @@ void Ring2XY::addBootContext(long lognx, long logny, long logp) {
 			for (long pos = kyi; pos < kyi + ky; ++pos) {
 				for (long i = 0; i < ny - pos; ++i) {
 					deg = ((My - gyPows[i + pos]) * i) % My;
-					pyvals[i] = (ksiyPows[deg] - ksiyPows[gyPows[i + pos + 1]]) * (double)Ny / (double)My;
+					pyvals[i] = (ksiyPows2[deg] - ksiyPows2[gyPows[i + pos]]) * (double)Ny / (double)My;
+//					pyvals[i] = (ksiyPows2[deg] - ksiyPows2[gyPows[i + pos]]);
 				}
 				for (long i = ny - pos; i < ny; ++i) {
 					deg = ((My - gyPows[i + pos - ny]) * i) % My;
-					pyvals[i] = (ksiyPows[deg] - ksiyPows[gyPows[i + pos + 1 - ny]]) * (double)Ny / (double)My;
+					pyvals[i] = (ksiyPows2[deg] - ksiyPows2[gyPows[i + pos - ny]]) * (double)Ny / (double)My;
+//					pyvals[i] = (ksiyPows2[deg] - ksiyPows2[gyPows[i + pos - ny]]);
 				}
 
 				EvaluatorUtils::rightRotateAndEqual(pyvals, 1, ny, 0, kyi);
@@ -200,11 +209,11 @@ void Ring2XY::addBootContext(long lognx, long logny, long logp) {
 			for (long pos = kyi; pos < kyi + ky; ++pos) {
 				for (long iy = 0; iy < ny - pos; ++iy) {
 					deg = (gyPows[iy] * (iy + pos)) % My;
-					pyvals[iy] = ksiyPows[deg];
+					pyvals[iy] = ksiyPows2[deg];
 				}
 				for (long iy = ny - pos; iy < ny; ++iy) {
 					deg = (gyPows[iy] * (iy + pos - ny)) % My;
-					pyvals[iy] = ksiyPows[deg];
+					pyvals[iy] = ksiyPows2[deg];
 				}
 
 				EvaluatorUtils::rightRotateAndEqual(pyvals, 1, ny, 0, kyi);

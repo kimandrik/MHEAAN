@@ -1068,10 +1068,18 @@ void Scheme::conjugateAndEqual(Ciphertext& cipher) {
 
 void Scheme::normalizeAndEqual(Ciphertext& cipher) {
 	ZZ q = ring.qvec[cipher.logq];
-
+	ZZ qh = ring.qvec[cipher.logq - 1];
 	for (long i = 0; i < ring.N; ++i) {
-		if(NumBits(cipher.axy[i]) == cipher.logq) cipher.axy[i] -= q;
-		if(NumBits(cipher.bxy[i]) == cipher.logq) cipher.bxy[i] -= q;
+		if (cipher.axy[i] > qh) {
+			cipher.axy[i] -= q;
+		} else if (cipher.axy[i] < -qh) {
+			cipher.axy[i] += q;
+		}
+		if (cipher.bxy[i] > qh) {
+			cipher.bxy[i] -= q;
+		} else if (cipher.bxy[i] < -qh) {
+			cipher.bxy[i] += q;
+		}
 	}
 }
 

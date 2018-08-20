@@ -58,6 +58,7 @@ public:
 
 	complex<double>* ksixPows; ///< storing ksi pows for fft calculation
 	complex<double>* ksiyPows; ///< storing ksi pows for fft calculation
+	complex<double>* ksiyPows2;
 
 	complex<double>* dftomegaPows;
 	complex<double>* omegaPows;
