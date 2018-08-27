@@ -58,7 +58,7 @@ Ring2XY::Ring2XY(long logNx, long logQ, double sigma, long h) :
 		gyPow *= gy;
 		gyPow %= My;
 	}
-	gyPows[Ny] = 1;
+	gyPows[Ny] = gyPows[0];
 
 	ksixPows = new complex<double>[Mx + 1]();
 	for (long j = 0; j < Mx; ++j) {
