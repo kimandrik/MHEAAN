@@ -245,7 +245,7 @@ void Ring2XY::addMatrixContext(long lognx) {
 			pvec[0][ix + (powsum - ix) * Nx] = ZZ(1);
 		}
 
-		multByMonomialAndEqual(pvec[0], Mx - powsum, 0);
+		multByMonomialAndEqual(pvec[0], Mx - powsum, 0, Q);
 
 		for (long ix = 1; ix < nx; ++ix) {
 			pvec[ix] = new ZZ[N];
@@ -588,59 +588,40 @@ void Ring2XY::subAndEqual2(ZZ* p1, ZZ* p2, ZZ& q) {
 	}
 }
 
-void Ring2XY::multByMonomial(ZZ* res, ZZ* p, const long degx, const long degy) {
-	long degxRem = degx % Mx;
-	long degyRem = degy % My;
+void Ring2XY::multByMonomial(ZZ* res, ZZ* p, const long degx, const long degy, ZZ& q) {
+	for (long i = 0; i < N; ++i) {
+		res[i] = ZZ::zero();
+	}
 
-	bool isdegxSmall = degxRem < Nx;
-	bool isdegySmall = degyRem < Ny;
+	for (long ix = 0; ix < Nx; ++ix) {
+		for (long iy = 0; iy < Ny; ++iy) {
+			long ixres = (degx + ix) % Mx;
+			long iyres = (degy + iy) % My;
 
-	degxRem %= Nx;
-	degyRem %= Ny;
-
-	long degxRembar = Nx - degxRem;
-	long degyRembar = Ny - degyRem;
-
-	if ((isdegxSmall && isdegySmall) || (!isdegxSmall && !isdegySmall)) {
-		for (long ix = 0; ix < degxRem; ++ix) {
-			for (long iy = 0; iy < degyRem; ++iy) {
-				res[ix + (iy << logNx)] = p[degxRembar + ix + ((degyRembar + iy) << logNx)];
-			}
-			for (long iy = degyRem; iy < Ny; ++iy) {
-				res[ix + (iy << logNx)] = -p[degxRembar + ix + ((iy - degyRem) << logNx)];
-			}
-		}
-		for (long ix = degxRem; ix < Nx; ++ix) {
-			for (long iy = 0; iy < degyRem; ++iy) {
-				res[ix + (iy << logNx)] = -p[(ix - degxRem) + ((degyRembar + iy) << logNx)];
-			}
-			for (long iy = degyRem; iy < Ny; ++iy) {
-				res[ix + (iy << logNx)] = p[(ix - degxRem) + ((iy - degyRem) << logNx)];
-			}
-		}
-	} else {
-		for (long ix = 0; ix < degxRem; ++ix) {
-			for (long iy = 0; iy < degyRem; ++iy) {
-				res[ix + (iy << logNx)] = -p[degxRembar + ix + ((degyRembar + iy) << logNx)];
-			}
-			for (long iy = degyRem; iy < Ny; ++iy) {
-				res[ix + (iy << logNx)] = p[degxRembar + ix + ((iy - degyRem) << logNx)];
-			}
-		}
-		for (long ix = degxRem; ix < Nx; ++ix) {
-			for (long iy = 0; iy < degyRem; ++iy) {
-				res[ix + (iy << logNx)] = p[(ix - degxRem) + ((degyRembar + iy) << logNx)];
-			}
-			for (long iy = degyRem; iy < Ny; ++iy) {
-				res[ix + (iy << logNx)] = -p[(ix - degxRem) + ((iy - degyRem) << logNx)];
+			if(ixres < Nx) {
+				if(iyres != Ny) {
+					AddMod(res[ixres + (iyres << logNx)], res[ixres + (iyres << logNx)], p[ix + (iy << logNx)], q);
+				} else {
+					for (long j = 0; j < Ny; ++j) {
+						AddMod(res[ixres + (j << logNx)], res[ixres + (j << logNx)], -p[ix + (iy << logNx)], q);
+					}
+				}
+			} else {
+				if(iyres != Ny) {
+					AddMod(res[(ixres - Nx) + (iyres << logNx)], res[(ixres - Nx) + (iyres << logNx)], -p[ix + (iy << logNx)], q);
+				} else {
+					for (long j = 0; j < Ny; ++j) {
+						AddMod(res[(ixres - Nx) + (j << logNx)], res[(ixres - Nx) + (j << logNx)], p[ix + (iy << logNx)], q);
+					}
+				}
 			}
 		}
 	}
 }
 
-void Ring2XY::multByMonomialAndEqual(ZZ* p, const long degx, const long degy) {
+void Ring2XY::multByMonomialAndEqual(ZZ* p, const long degx, const long degy, ZZ& q) {
 	ZZ* res = new ZZ[N];
-	multByMonomial(res, p, degx, degy);
+	multByMonomial(res, p, degx, degy, q);
 	for (long i = 0; i < N; ++i) {
 		p[i] = res[i];
 	}

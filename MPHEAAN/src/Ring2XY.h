@@ -139,8 +139,8 @@ public:
 	void subAndEqual(ZZ* p1, ZZ* p2, ZZ& q);
 	void subAndEqual2(ZZ* p1, ZZ* p2, ZZ& q);
 
-	void multByMonomial(ZZ* res, ZZ* p, const long degx, const long degy);
-	void multByMonomialAndEqual(ZZ* p, const long degx, const long degy);
+	void multByMonomial(ZZ* res, ZZ* p, const long degx, const long degy, ZZ& q);
+	void multByMonomialAndEqual(ZZ* p, const long degx, const long degy, ZZ& q);
 
 	void multByConst(ZZ* res, ZZ* p, const ZZ& cnst, ZZ& q);
 	void multByConstAndEqual(ZZ* p, const ZZ& cnst, ZZ& q);

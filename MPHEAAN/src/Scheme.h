@@ -144,9 +144,11 @@ public:
 
 	Ciphertext multByConst(Ciphertext& cipher, RR& cnst, long logp);
 	Ciphertext multByConst(Ciphertext& cipher, double cnst, long logp);
+	Ciphertext multByConst(Ciphertext& cipher, complex<double> cnst, long logp);
 
 	void multByConstAndEqual(Ciphertext& cipher, RR& cnst, long logp);
 	void multByConstAndEqual(Ciphertext& cipher, double cnst, long logp);
+	void multByConstAndEqual(Ciphertext& cipher, complex<double> cnst, long logp);
 
 	Ciphertext multByMonomial(Ciphertext& cipher, const long dx, const long dy);
 	void multByMonomialAndEqual(Ciphertext& cipher, const long dx, const long dy);
@@ -218,9 +220,13 @@ public:
 	void coeffToSlotYAndEqual(Ciphertext& cipher);
 	void coeffToSlotAndEqual(Ciphertext& cipher);
 
+	void coeffToSlotYAndEqualNew(Ciphertext& cipher);
+
 	void slotToCoeffXAndEqual(Ciphertext& cipher);
 	void slotToCoeffYAndEqual(Ciphertext& cipher);
 	void slotToCoeffAndEqual(Ciphertext& cipher);
+
+	void slotToCoeffYAndEqualNew(Ciphertext& cipher);
 
 	void exp2piAndEqual(Ciphertext& cipher, long logp);
 
