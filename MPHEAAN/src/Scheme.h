@@ -17,7 +17,7 @@
 #include "Plaintext.h"
 #include "Key.h"
 #include "EvaluatorUtils.h"
-#include "Ring2XY.h"
+#include "Ring.h"
 
 using namespace std;
 using namespace NTL;
@@ -29,13 +29,13 @@ static long CONJUGATION = 2;
 class Scheme {
 private:
 public:
-	Ring2XY& ring;
+	Ring& ring;
 
 	map<long, Key> keyMap; ///< contain Encryption, Multiplication and Conjugation keys, if generated
 
 	map<pair<long, long>, Key> leftRotKeyMap;
 
-	Scheme(SecretKey& secretKey, Ring2XY& ring);
+	Scheme(SecretKey& secretKey, Ring& ring);
 
 
 	//----------------------------------------------------------------------------------

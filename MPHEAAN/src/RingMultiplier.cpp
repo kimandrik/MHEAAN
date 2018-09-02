@@ -961,8 +961,6 @@ void RingMultiplier::multYpolyNTTD(ZZ* x, uint64_t* ra, long raBnd, uint64_t* rb
 		uint64_t pi = pVec[i];
 		uint64_t pri = prVec[i];
 		long pTwoki = pTwok[i];
-		_ntl_general_rem_one_struct* red_ss = red_ss_array[i];
-
 		uint64_t* rai = ra + (i << logN);
 		uint64_t* rbi = rb + (i << logNy);
 		uint64_t* rxi = rx + (i << logN);
@@ -1219,7 +1217,6 @@ void RingMultiplier::multNTTXYD(ZZ* x, uint64_t* ra, long raBnd, uint64_t* rb, l
 		uint64_t pri = prVec[i];
 		long pTwoki = pTwok[i];
 
-		_ntl_general_rem_one_struct* red_ss = red_ss_array[i];
 		uint64_t* rai = ra + (i << logN);
 		uint64_t* rbi = rb + (i << logN);
 		uint64_t* rxi = rx + (i << logN);
@@ -1313,7 +1310,6 @@ void RingMultiplier::squareNTT(ZZ* x, uint64_t* ra, long raBnd, ZZ& q) {
 		uint64_t pi = pVec[i];
 		uint64_t pri = prVec[i];
 		long pTwoki = pTwok[i];
-		_ntl_general_rem_one_struct* red_ss = red_ss_array[i];
 		uint64_t* rai = ra + (i << logN);
 		uint64_t* rxi = rx + (i << logN);
 		for (long n = 0; n < N; ++n) {

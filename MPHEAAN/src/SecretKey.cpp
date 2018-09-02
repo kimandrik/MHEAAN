@@ -8,7 +8,7 @@
 
 #include "SecretKey.h"
 
-SecretKey::SecretKey(Ring2XY& ring) {
+SecretKey::SecretKey(Ring& ring) {
 	Nx = ring.Nx;
 	Ny = ring.Ny;
 	sxy = new ZZ[ring.N];

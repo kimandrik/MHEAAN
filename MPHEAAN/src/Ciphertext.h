@@ -20,8 +20,8 @@ using namespace NTL;
 class Ciphertext {
 public:
 
-	ZZ* axy;
-	ZZ* bxy;
+	ZZ* ax;
+	ZZ* bx;
 
 	long logp;
 	long logq;
@@ -32,7 +32,7 @@ public:
 	long nx;
 	long ny;
 
-	Ciphertext(ZZ* axy = NULL, ZZ* bxy = NULL, long logp = 0, long logq = 0, long Nx = 0, long Ny = 0, long nx = 0, long ny = 0);
+	Ciphertext(ZZ* ax = NULL, ZZ* bx = NULL, long logp = 0, long logq = 0, long Nx = 0, long Ny = 0, long nx = 0, long ny = 0);
 
 	Ciphertext(const Ciphertext& o);
 

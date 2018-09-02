@@ -9,23 +9,23 @@
 #include "Ciphertext.h"
 
 Ciphertext::Ciphertext(ZZ* axy, ZZ* bxy, long logp, long logq, long Nx, long Ny, long nx, long ny) :
-		axy(axy), bxy(bxy), logp(logp), logq(logq), Nx(Nx), Ny(Ny), nx(nx), ny(ny) {
+		ax(axy), bx(bxy), logp(logp), logq(logq), Nx(Nx), Ny(Ny), nx(nx), ny(ny) {
 }
 
 Ciphertext::Ciphertext(const Ciphertext& o) : logp(o.logp), logq(o.logq), Nx(o.Nx), Ny(o.Ny), nx(o.nx), ny(o.ny) {
 	long N = Nx * Ny;
-	axy = new ZZ[N];
-	bxy = new ZZ[N];
+	ax = new ZZ[N];
+	bx = new ZZ[N];
 	for (long i = 0; i < N; ++i) {
-		axy[i] = o.axy[i];
-		bxy[i] = o.bxy[i];
+		ax[i] = o.ax[i];
+		bx[i] = o.bx[i];
 	}
 }
 
 Ciphertext& Ciphertext::operator=(const Ciphertext& o) {
 	if(this == &o) return *this;
-	delete[] axy;
-	delete[] bxy;
+	delete[] ax;
+	delete[] bx;
 	Nx = o.Nx;
 	Ny = o.Ny;
 	nx = o.nx;
@@ -33,16 +33,16 @@ Ciphertext& Ciphertext::operator=(const Ciphertext& o) {
 	logp = o.logp;
 	logq = o.logq;
 	long N = Nx * Ny;
-	axy = new ZZ[N];
-	bxy = new ZZ[N];
+	ax = new ZZ[N];
+	bx = new ZZ[N];
 	for (long i = 0; i < N; ++i) {
-		axy[i] = o.axy[i];
-		bxy[i] = o.bxy[i];
+		ax[i] = o.ax[i];
+		bx[i] = o.bx[i];
 	}
 	return *this;
 }
 
 Ciphertext::~Ciphertext() {
-	delete[] axy;
-	delete[] bxy;
+	delete[] ax;
+	delete[] bx;
 }

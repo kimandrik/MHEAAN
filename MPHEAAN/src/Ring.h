@@ -24,7 +24,7 @@ using namespace NTL;
 
 static RR Pi = ComputePi_RR();
 
-class Ring2XY {
+class Ring {
 public:
 
 	long logNx;
@@ -67,7 +67,7 @@ public:
 
 	map<pair<long, long>, MatrixContext> matrixContext;
 
-	Ring2XY(long logNx, long logQ, double sigma = 3.2, long h = 64);
+	Ring(long logNx, long logQ, double sigma = 3.2, long h = 64);
 
 
 	//----------------------------------------------------------------------------------
