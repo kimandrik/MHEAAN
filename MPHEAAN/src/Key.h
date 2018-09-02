@@ -16,10 +16,12 @@ using namespace NTL;
 class Key {
 public:
 
-	ZZ* axy;
-	ZZ* bxy;
+	uint64_t* rax;
+	uint64_t* rbx;
 
-	Key(ZZ* axy = NULL, ZZ* bxy = NULL);
+	long bnd;
+
+	Key(uint64_t* rax = NULL, uint64_t* rbx = NULL, long bnd = 0);
 
 };
 

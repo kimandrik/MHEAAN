@@ -34,9 +34,17 @@ void Scheme::addEncKey(SecretKey& secretKey) {
 	ring.mult(bx, secretKey.sxy, ax, ring.QQ);
 	ring.sub(bx, ex, bx, ring.QQ);
 
-	delete[] ex;
+	long maxBnd = 2 + ring.logN + 4 * ring.logQ;
+	long bnd = 2 * ring.logQ;
 
-	keyMap.insert(pair<long, Key>(ENCRYPTION, Key(ax, bx)));
+	uint64_t* rax = ring.toNTTXY(ax, maxBnd);
+	uint64_t* rbx = ring.toNTTXY(bx, maxBnd);
+
+	keyMap.insert(pair<long, Key>(ENCRYPTION, Key(rax, rbx, bnd)));
+
+	delete[] ex;
+	delete[] ax;
+	delete[] bx;
 }
 
 void Scheme::addMultKey(SecretKey& secretKey) {
@@ -53,10 +61,19 @@ void Scheme::addMultKey(SecretKey& secretKey) {
 	ring.mult(bx, secretKey.sxy, ax, ring.QQ);
 	ring.sub(bx, ex, bx, ring.QQ);
 
+	long maxBnd = 2 + ring.logN + 4 * ring.logQ;
+	long bnd = 2 * ring.logQ;
+
+	uint64_t* rax = ring.toNTTXY(ax, maxBnd);
+	uint64_t* rbx = ring.toNTTXY(bx, maxBnd);
+
+	keyMap.insert(pair<long, Key>(MULTIPLICATION, Key(rax, rbx, bnd)));
+
 	delete[] ex;
+	delete[] ax;
+	delete[] bx;
 	delete[] sxsx;
 
-	keyMap.insert(pair<long, Key>(MULTIPLICATION, Key(ax, bx)));
 }
 
 void Scheme::addLeftRotKey(SecretKey& secretKey, long rx, long ry) {
@@ -72,10 +89,18 @@ void Scheme::addLeftRotKey(SecretKey& secretKey, long rx, long ry) {
 	ring.mult(bxy, secretKey.sxy, axy, ring.QQ);
 	ring.sub(bxy, exy, bxy, ring.QQ);
 
-	delete[] exy;
-	delete[] rysxy;
+	long maxBnd = 2 + ring.logN + 4 * ring.logQ;
+	long bnd = 2 * ring.logQ;
 
-	leftRotKeyMap.insert(pair<pair<long, long>, Key>({rx, ry}, Key(axy, bxy)));
+	uint64_t* rax = ring.toNTTXY(axy, maxBnd);
+	uint64_t* rbx = ring.toNTTXY(bxy, maxBnd);
+
+	leftRotKeyMap.insert(pair<pair<long, long>, Key>({rx, ry}, Key(rax, rbx, bnd)));
+
+	delete[] exy;
+	delete[] axy;
+	delete[] bxy;
+	delete[] rysxy;
 }
 
 void Scheme::addLeftXRotKeys(SecretKey& secretKey) {
@@ -126,10 +151,18 @@ void Scheme::addConjKey(SecretKey& secretKey) {
 	ring.mult(bxy, secretKey.sxy, axy, ring.QQ);
 	ring.sub(bxy, exy, bxy, ring.QQ);
 
-	delete[] exy;
-	delete[] conjsxy;
+	long maxBnd = 2 + ring.logN + 4 * ring.logQ;
+	long bnd = 2 * ring.logQ;
 
-	keyMap.insert(pair<long, Key>(CONJUGATION, Key(axy, bxy)));
+	uint64_t* rax = ring.toNTTXY(axy, maxBnd);
+	uint64_t* rbx = ring.toNTTXY(bxy, maxBnd);
+
+	keyMap.insert(pair<long, Key>(CONJUGATION, Key(rax, rbx, bnd)));
+
+	delete[] exy;
+	delete[] axy;
+	delete[] bxy;
+	delete[] conjsxy;
 }
 
 void Scheme::addBootKey(SecretKey& secretKey, long lognx, long logny, long logp) {
@@ -262,11 +295,11 @@ Ciphertext Scheme::encryptMsg(Plaintext& msg) {
 
 	Key key = keyMap.at(ENCRYPTION);
 
-	ring.mult(axy, vxy, key.axy, qQ);
+	ring.multNTTXY(axy, vxy, key.rax, key.bnd, qQ);
 	ring.sampleGauss(exy);
 	ring.addAndEqual(axy, exy, qQ);
 
-	ring.mult(bxy, vxy, key.bxy, qQ);
+	ring.multNTTXY(bxy, vxy, key.rbx, key.bnd, qQ);
 	ring.sampleGauss(exy);
 	ring.addAndEqual(bxy, exy, qQ);
 
@@ -494,8 +527,8 @@ Ciphertext Scheme::mult(Ciphertext& cipher1, Ciphertext& cipher2) {
 
 	Key key = keyMap.at(MULTIPLICATION);
 
-	ring.mult(axy, aaxy, key.axy, qQ);
-	ring.mult(bxy, aaxy, key.bxy, qQ);
+	ring.multNTTXY(axy, aaxy, key.rax, key.bnd, qQ);
+	ring.multNTTXY(bxy, aaxy, key.rbx, key.bnd, qQ);
 
 	ring.rightShiftAndEqual(axy, ring.logQ);
 	ring.rightShiftAndEqual(bxy, ring.logQ);
@@ -531,8 +564,8 @@ void Scheme::multAndEqual(Ciphertext& cipher1, Ciphertext& cipher2) {
 
 	Key key = keyMap.at(MULTIPLICATION);
 
-	ring.mult(cipher1.axy, aaxy, key.axy, qQ);
-	ring.mult(cipher1.bxy, aaxy, key.bxy, qQ);
+	ring.multNTTXY(cipher1.axy, aaxy, key.rax, key.bnd, qQ);
+	ring.multNTTXY(cipher1.bxy, aaxy, key.rbx, key.bnd, qQ);
 
 	ring.rightShiftAndEqual(cipher1.axy, ring.logQ);
 	ring.rightShiftAndEqual(cipher1.bxy, ring.logQ);
@@ -567,8 +600,8 @@ Ciphertext Scheme::square(Ciphertext& cipher) {
 
 	Key key = keyMap.at(MULTIPLICATION);
 
-	ring.mult(axy, aaxy, key.axy, qQ);
-	ring.mult(bxy, aaxy, key.bxy, qQ);
+	ring.multNTTXY(axy, aaxy, key.rax, key.bnd, qQ);
+	ring.multNTTXY(bxy, aaxy, key.rbx, key.bnd, qQ);
 
 	ring.rightShiftAndEqual(axy, ring.logQ);
 	ring.rightShiftAndEqual(bxy, ring.logQ);
@@ -598,8 +631,8 @@ void Scheme::squareAndEqual(Ciphertext& cipher) {
 	ring.square(aaxy, cipher.axy, q);
 
 	Key key = keyMap.at(MULTIPLICATION);
-	ring.mult(cipher.axy, aaxy, key.axy, qQ);
-	ring.mult(cipher.bxy, aaxy, key.bxy, qQ);
+	ring.multNTTXY(cipher.axy, aaxy, key.rax, key.bnd, qQ);
+	ring.multNTTXY(cipher.bxy, aaxy, key.rbx, key.bnd, qQ);
 
 	ring.rightShiftAndEqual(cipher.axy, ring.logQ);
 	ring.rightShiftAndEqual(cipher.bxy, ring.logQ);
@@ -972,8 +1005,8 @@ Ciphertext Scheme::leftRotateFast(Ciphertext& cipher, long rx, long ry) {
 
 	Key key = leftRotKeyMap.at({rx, ry});
 
-	ring.mult(axy, bxy, key.axy, qQ);
-	ring.multAndEqual(bxy, key.bxy, qQ);
+	ring.multNTTXY(axy, bxy, key.rax, key.bnd, qQ);
+	ring.multNTTXYAndEqual(bxy, key.rbx, key.bnd, qQ);
 
 	ring.rightShiftAndEqual(axy, ring.logQ);
 	ring.rightShiftAndEqual(bxy, ring.logQ);
@@ -1001,8 +1034,8 @@ void Scheme::leftRotateFastAndEqual(Ciphertext& cipher, long rx, long ry) {
 
 	Key key = leftRotKeyMap.at({rx, ry});
 
-	ring.mult(cipher.axy, cipher.bxy, key.axy, qQ);
-	ring.multAndEqual(cipher.bxy, key.bxy, qQ);
+	ring.multNTTXY(cipher.axy, cipher.bxy, key.rax, key.bnd, qQ);
+	ring.multNTTXYAndEqual(cipher.bxy, key.rbx, key.bnd, qQ);
 
 	ring.rightShiftAndEqual(cipher.axy, ring.logQ);
 	ring.rightShiftAndEqual(cipher.bxy, ring.logQ);
@@ -1085,8 +1118,8 @@ Ciphertext Scheme::conjugate(Ciphertext& cipher) {
 
 	Key key = keyMap.at(CONJUGATION);
 
-	ring.mult(axy, bxy, key.axy, qQ);
-	ring.multAndEqual(bxy, key.bxy, qQ);
+	ring.multNTTXY(axy, bxy, key.rax, key.bnd, qQ);
+	ring.multNTTXYAndEqual(bxy, key.rbx, key.bnd, qQ);
 
 	ring.rightShiftAndEqual(axy, ring.logQ);
 	ring.rightShiftAndEqual(bxy, ring.logQ);
@@ -1109,8 +1142,8 @@ void Scheme::conjugateAndEqual(Ciphertext& cipher) {
 
 	Key key = keyMap.at(CONJUGATION);
 
-	ring.mult(cipher.axy, cipher.bxy, key.axy, qQ);
-	ring.multAndEqual(cipher.bxy, key.bxy, qQ);
+	ring.multNTTXY(cipher.axy, cipher.bxy, key.rax, key.bnd, qQ);
+	ring.multNTTXYAndEqual(cipher.bxy, key.rbx, key.bnd, qQ);
 
 	ring.rightShiftAndEqual(cipher.axy, ring.logQ);
 	ring.rightShiftAndEqual(cipher.bxy, ring.logQ);

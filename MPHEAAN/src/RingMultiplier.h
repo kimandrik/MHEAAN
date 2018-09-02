@@ -66,35 +66,52 @@ public:
 
 	void NTTX(uint64_t* a, long index);
 	void INTTX(uint64_t* a, long index);
-
 	void NTTPO2Y(uint64_t* a, long index);
 	void INTTPO2Y(uint64_t* a, long index);
-
 	void NTTY(uint64_t* a, long index);
 	void INTTY(uint64_t* a, long index);
-
 	void NTTY1(uint64_t* a, long index);
 	void INTTY1(uint64_t* a, long index);
-
 	void NTTXY(uint64_t* a, long index);
 	void INTTXY(uint64_t* a, long index);
-
 	void NTTXY1(uint64_t* a, long index);
 	void INTTXY1(uint64_t* a, long index);
 
+	uint64_t* toNTTX(ZZ* a, long maxBnd);
+
+	uint64_t* toNTTY(ZZ* a, long maxBnd);
+	uint64_t* toNTTY1(ZZ* a, long maxBnd);
+
+	uint64_t* toNTTXY(ZZ* a, long maxBnd);
+	uint64_t* toNTTXY1(ZZ* a, long maxBnd);
+
 	long MaxBits(const ZZ* f, long n);
 
-	void multXpoly(ZZ* x, const ZZ* a, const ZZ* b, const ZZ& q);
-	void multXpolyAndEqual(ZZ* a, const ZZ* b, const ZZ& q);
+	void reconstruct(ZZ* x, uint64_t* rx, long np, ZZ& q);
 
-	void multYpoly(ZZ* x, const ZZ* a, const ZZ* b, const ZZ& q);
-	void multYpolyAndEqual(ZZ* a, const ZZ* b, const ZZ& q);
+	void multXpoly(ZZ* x, ZZ* a, ZZ* b, ZZ& q);
+	void multXpolyAndEqual(ZZ* a, ZZ* b, ZZ& q);
+	void multXpolyNTT(ZZ* x, ZZ* a, uint64_t* rb, long rbBnd, ZZ& q);
+	void multXpolyNTTAndEqual(ZZ* a, uint64_t* rb, long rbBnd, ZZ& q);
+	void multXpolyNTT2(ZZ* x, uint64_t* ra, long raBnd, uint64_t* rb, long rbBnd, ZZ& q);
 
-	void mult(ZZ* x, const ZZ* a, const ZZ* b, const ZZ& q);
-	void multAndEqual(ZZ* a, const ZZ* b, const ZZ& q);
+	void multYpoly(ZZ* x, ZZ* a, ZZ* b, ZZ& q);
+	void multYpolyAndEqual(ZZ* a, ZZ* b, ZZ& q);
+	void multYpolyNTT(ZZ* x, ZZ* a, uint64_t* rb, long rbBnd, ZZ& q);
+	void multYpolyNTTAndEqual(ZZ* a, uint64_t* rb, long rbBnd, ZZ& q);
+	void multYpolyNTTD(ZZ* x, uint64_t* ra, long raBnd, uint64_t* rb, long rbBnd, ZZ& q);
 
-	void square(ZZ* x, const ZZ* a, const ZZ& q);
-	void squareAndEqual(ZZ* a, const ZZ& q);
+	void mult(ZZ* x, ZZ* a, ZZ* b, ZZ& q);
+	void multAndEqual(ZZ* a, ZZ* b, ZZ& q);
+	void multNTTXY(ZZ* x, ZZ* a, uint64_t* rb, long rbBnd, ZZ& q);
+	void multNTTXYAndEqual(ZZ* a, uint64_t* rb, long rbBnd, ZZ& q);
+	void multNTTXY1(ZZ* x, ZZ* a, uint64_t* rb, long rbBnd, ZZ& q);
+	void multNTTXY1AndEqual(ZZ* a, uint64_t* rb, long rbBnd, ZZ& q);
+	void multNTTXYD(ZZ* x, uint64_t* ra, long raBnd, uint64_t* rb, long rbBnd, ZZ& q);
+
+	void square(ZZ* x, ZZ* a, ZZ& q);
+	void squareAndEqual(ZZ* a, ZZ& q);
+	void squareNTT(ZZ* x, uint64_t* ra, long raBnd, ZZ& q);
 
 	void mulMod(uint64_t& r, uint64_t a, uint64_t b, uint64_t p);
 

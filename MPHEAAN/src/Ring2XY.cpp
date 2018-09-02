@@ -255,7 +255,7 @@ void Ring2XY::addMatrixContext(long lognx) {
 	}
 }
 
-void Ring2XY::arrayBitReverse(complex<double>* vals, const long n) {
+void Ring2XY::arrayBitReverse(complex<double>* vals, long n) {
 	for (long i = 1, j = 0; i < n; ++i) {
 		long bit = n >> 1;
 		for (; j >= bit; bit>>=1) {
@@ -307,7 +307,7 @@ void Ring2XY::IDFTY(complex<double>* vals) {
 	}
 }
 
-void Ring2XY::EMBX(complex<double>* vals, const long nx) {
+void Ring2XY::EMBX(complex<double>* vals, long nx) {
 	arrayBitReverse(vals, nx);
 	for (long len = 2; len <= nx; len <<= 1) {
 		for (long i = 0; i < nx; i += len) {
@@ -326,7 +326,7 @@ void Ring2XY::EMBX(complex<double>* vals, const long nx) {
 	}
 }
 
-void Ring2XY::IEMBX(complex<double>* vals, const long nx) {
+void Ring2XY::IEMBX(complex<double>* vals, long nx) {
 	for (long len = nx; len >= 1; len >>= 1) {
 		for (long i = 0; i < nx; i += len) {
 			long lenh = len >> 1;
@@ -388,7 +388,7 @@ void Ring2XY::IEMBY(complex<double>* vals) {
 	delete[] tmp;
 }
 
-void Ring2XY::EMBXY(complex<double>* vals, const long nx) {
+void Ring2XY::EMBXY(complex<double>* vals, long nx) {
 	complex<double>* tmp = new complex<double>[Ny]();
 	for (long iy = 0; iy < Ny; ++iy) {
 		EMBX(vals + (iy * nx), nx);
@@ -405,7 +405,7 @@ void Ring2XY::EMBXY(complex<double>* vals, const long nx) {
 	delete[] tmp;
 }
 
-void Ring2XY::IEMBXY(complex<double>* vals, const long nx) {
+void Ring2XY::IEMBXY(complex<double>* vals, long nx) {
 	complex<double>* tmp = new complex<double>[Ny]();
 
 	for (long iy = 0; iy < Ny; ++iy) {
@@ -495,36 +495,87 @@ void Ring2XY::decode(ZZ* mxy, complex<double>* vals, long nx, long ny, long logp
 //   MULTIPLICATION
 //----------------------------------------------------------------------------------
 
+uint64_t* Ring2XY::toNTTX(ZZ* a, long maxBnd) {
+	return multiplier.toNTTX(a, maxBnd);
+}
 
-void Ring2XY::multXpoly(ZZ* x, const ZZ* a, const ZZ* b, const ZZ& q) {
+uint64_t* Ring2XY::toNTTY(ZZ* a, long maxBnd) {
+	return multiplier.toNTTY(a, maxBnd);
+}
+
+uint64_t* Ring2XY::toNTTY1(ZZ* a, long maxBnd) {
+	return multiplier.toNTTY1(a, maxBnd);
+}
+
+uint64_t* Ring2XY::toNTTXY(ZZ* a, long maxBnd) {
+	return multiplier.toNTTXY(a, maxBnd);
+}
+
+uint64_t* Ring2XY::toNTTXY1(ZZ* a, long maxBnd) {
+	return multiplier.toNTTXY1(a, maxBnd);
+}
+
+void Ring2XY::multXpoly(ZZ* x, ZZ* a, ZZ* b, ZZ& q) {
 	multiplier.multXpoly(x, a, b, q);
 }
 
-void Ring2XY::multXpolyAndEqual(ZZ* a, const ZZ* b, const ZZ& q) {
+void Ring2XY::multXpolyAndEqual(ZZ* a, ZZ* b, ZZ& q) {
 	multiplier.multXpolyAndEqual(a, b, q);
 }
 
-void Ring2XY::multYpoly(ZZ* x, const ZZ* a, const ZZ* b, const ZZ& q) {
+void Ring2XY::multXpolyNTT(ZZ* x, ZZ* a, uint64_t* rb, long rbBnd, ZZ& q) {
+	multiplier.multXpolyNTT(x, a, rb, rbBnd, q);
+}
+
+void Ring2XY::multXpolyNTTAndEqual(ZZ* a, uint64_t* rb, long rbBnd, ZZ& q) {
+	multiplier.multXpolyNTTAndEqual(a, rb, rbBnd, q);
+}
+
+void Ring2XY::multXpolyNTT2(ZZ* x, uint64_t* ra, long raBnd, uint64_t* rb, long rbBnd, ZZ& q) {
+	multiplier.multXpolyNTT2(x, ra, raBnd, rb, rbBnd, q);
+}
+
+void Ring2XY::multYpoly(ZZ* x, ZZ* a, ZZ* b, ZZ& q) {
 	multiplier.multYpoly(x, a, b, q);
 }
 
-void Ring2XY::multYpolyAndEqual(ZZ* a, const ZZ* b, const ZZ& q) {
+void Ring2XY::multYpolyAndEqual(ZZ* a, ZZ* b, ZZ& q) {
 	multiplier.multYpolyAndEqual(a, b, q);
 }
 
-void Ring2XY::mult(ZZ* x, const ZZ* a, const ZZ* b, const ZZ& q) {
+void Ring2XY::mult(ZZ* x, ZZ* a, ZZ* b, ZZ& q) {
 	multiplier.mult(x, a, b, q);
 }
 
-void Ring2XY::multAndEqual(ZZ* a, const ZZ* b, const ZZ& q) {
+void Ring2XY::multAndEqual(ZZ* a, ZZ* b, ZZ& q) {
 	multiplier.multAndEqual(a, b, q);
 }
 
-void Ring2XY::square(ZZ* x, const ZZ* a, const ZZ& q) {
+void Ring2XY::multNTTXY(ZZ* x, ZZ* a, uint64_t* rb, long rbBnd, ZZ& q) {
+	multiplier.multNTTXY(x, a, rb, rbBnd, q);
+}
+
+void Ring2XY::multNTTXYAndEqual(ZZ* a, uint64_t* rb, long rbBnd, ZZ& q) {
+	multiplier.multNTTXYAndEqual(a, rb, rbBnd, q);
+}
+
+void Ring2XY::multNTTXY1(ZZ* x, ZZ* a, uint64_t* rb, long rbBnd, ZZ& q) {
+	multiplier.multNTTXY1(x, a, rb, rbBnd, q);
+}
+
+void Ring2XY::multNTTXY1AndEqual(ZZ* a, uint64_t* rb, long rbBnd, ZZ& q) {
+	multiplier.multNTTXY1AndEqual(a, rb, rbBnd, q);
+}
+
+void Ring2XY::multNTTXYD(ZZ* x, uint64_t* ra, long raBnd, uint64_t* rb, long rbBnd, ZZ& q) {
+	multiplier.multNTTXYD(x, ra, raBnd, rb, rbBnd, q);
+}
+
+void Ring2XY::square(ZZ* x, ZZ* a, ZZ& q) {
 	multiplier.square(x, a, q);
 }
 
-void Ring2XY::squareAndEqual(ZZ* a, const ZZ& q) {
+void Ring2XY::squareAndEqual(ZZ* a, ZZ& q) {
 	multiplier.squareAndEqual(a, q);
 }
 
@@ -588,7 +639,7 @@ void Ring2XY::subAndEqual2(ZZ* p1, ZZ* p2, ZZ& q) {
 	}
 }
 
-void Ring2XY::multByMonomial(ZZ* res, ZZ* p, const long degx, const long degy, ZZ& q) {
+void Ring2XY::multByMonomial(ZZ* res, ZZ* p, long degx, long degy, ZZ& q) {
 	for (long i = 0; i < N; ++i) {
 		res[i] = ZZ::zero();
 	}
@@ -619,7 +670,7 @@ void Ring2XY::multByMonomial(ZZ* res, ZZ* p, const long degx, const long degy, Z
 	}
 }
 
-void Ring2XY::multByMonomialAndEqual(ZZ* p, const long degx, const long degy, ZZ& q) {
+void Ring2XY::multByMonomialAndEqual(ZZ* p, long degx, long degy, ZZ& q) {
 	ZZ* res = new ZZ[N];
 	multByMonomial(res, p, degx, degy, q);
 	for (long i = 0; i < N; ++i) {
@@ -628,13 +679,13 @@ void Ring2XY::multByMonomialAndEqual(ZZ* p, const long degx, const long degy, ZZ
 	delete[] res;
 }
 
-void Ring2XY::multByConst(ZZ* res, ZZ* p, const ZZ& cnst, ZZ& q) {
+void Ring2XY::multByConst(ZZ* res, ZZ* p, ZZ& cnst, ZZ& q) {
 	for (long i = 0; i < N; ++i) {
 		MulMod(res[i], p[i], cnst, q);
 	}
 }
 
-void Ring2XY::multByConstAndEqual(ZZ* p, const ZZ& cnst, ZZ& q) {
+void Ring2XY::multByConstAndEqual(ZZ* p, ZZ& cnst, ZZ& q) {
 	for (long i = 0; i < N; ++i) {
 		MulMod(p[i], p[i], cnst, q);
 	}
@@ -646,14 +697,14 @@ void Ring2XY::multByConstAndEqual(ZZ* p, const ZZ& cnst, ZZ& q) {
 //----------------------------------------------------------------------------------
 
 
-void Ring2XY::leftShift(ZZ* res, ZZ* p, const long bits, ZZ& q) {
+void Ring2XY::leftShift(ZZ* res, ZZ* p, long bits, ZZ& q) {
 	for (long i = 0; i < N; ++i) {
 		res[i] = p[i] << bits;
 		res[i] %= q;
 	}
 }
 
-void Ring2XY::leftShiftAndEqual(ZZ* p, const long bits, ZZ& q) {
+void Ring2XY::leftShiftAndEqual(ZZ* p, long bits, ZZ& q) {
 	for (long i = 0; i < N; ++i) {
 		p[i] <<= bits;
 		p[i] %= q;
@@ -667,13 +718,13 @@ void Ring2XY::doubleAndEqual(ZZ* p, ZZ& q) {
 	}
 }
 
-void Ring2XY::rightShift(ZZ* res, ZZ* p, const long bits) {
+void Ring2XY::rightShift(ZZ* res, ZZ* p, long bits) {
 	for (long i = 0; i < N; ++i) {
 		res[i] = p[i] >> bits;
 	}
 }
 
-void Ring2XY::rightShiftAndEqual(ZZ* p, const long bits) {
+void Ring2XY::rightShiftAndEqual(ZZ* p, long bits) {
 	for (long i = 0; i < N; ++i) {
 		p[i] >>= bits;
 	}
@@ -685,7 +736,7 @@ void Ring2XY::rightShiftAndEqual(ZZ* p, const long bits) {
 //----------------------------------------------------------------------------------
 
 
-void Ring2XY::leftRotate(ZZ* res, ZZ* p, const long rx, const long ry) {
+void Ring2XY::leftRotate(ZZ* res, ZZ* p, long rx, long ry) {
 
 	ZZ* xxx = new ZZ[N];
 	long degx = gxPows[rx];
@@ -755,7 +806,7 @@ void Ring2XY::conjugate(ZZ* res, ZZ* p) {
 
 
 void Ring2XY::sampleGauss(ZZ* res) {
-	static double const Pi = 4.0 * atan(1.0);
+	static double Pi = 4.0 * atan(1.0);
 	static long const bignum = 0xfffffff;
 
 	for (long i = 0; i < N; i+=2) {

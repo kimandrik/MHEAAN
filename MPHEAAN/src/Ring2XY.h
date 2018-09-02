@@ -22,7 +22,7 @@
 using namespace std;
 using namespace NTL;
 
-static RR const Pi = ComputePi_RR();
+static RR Pi = ComputePi_RR();
 
 class Ring2XY {
 public:
@@ -85,18 +85,18 @@ public:
 	//----------------------------------------------------------------------------------
 
 
-	void arrayBitReverse(complex<double>* vals, const long n);
+	void arrayBitReverse(complex<double>* vals, long n);
 	void DFTY(complex<double>* vals);
 	void IDFTY(complex<double>* vals);
 
-	void EMBX(complex<double>* vals, const long nx);
-	void IEMBX(complex<double>* vals, const long nx);
+	void EMBX(complex<double>* vals, long nx);
+	void IEMBX(complex<double>* vals, long nx);
 
 	void EMBY(complex<double>* vals);
 	void IEMBY(complex<double>* vals);
 
-	void EMBXY(complex<double>* vals, const long nx);
-	void IEMBXY(complex<double>* vals, const long nx);
+	void EMBXY(complex<double>* vals, long nx);
+	void IEMBXY(complex<double>* vals, long nx);
 
 	void encode(ZZ* mxy, complex<double>* vals, long nx, long ny, long logp);
 	void encode(ZZ* mxy, double* vals, long nx, long ny, long logp);
@@ -107,18 +107,37 @@ public:
 	//   MULTIPLICATION
 	//----------------------------------------------------------------------------------
 
+	uint64_t* toNTTX(ZZ* a, long maxBnd);
 
-	void multXpoly(ZZ* x, const ZZ* a, const ZZ* b, const ZZ& q);
-	void multXpolyAndEqual(ZZ* a, const ZZ* b, const ZZ& q);
+	uint64_t* toNTTY(ZZ* a, long maxBnd);
+	uint64_t* toNTTY1(ZZ* a, long maxBnd);
 
-	void multYpoly(ZZ* x, const ZZ* a, const ZZ* b, const ZZ& q);
-	void multYpolyAndEqual(ZZ* a, const ZZ* b, const ZZ& q);
+	uint64_t* toNTTXY(ZZ* a, long maxBnd);
+	uint64_t* toNTTXY1(ZZ* a, long maxBnd);
 
-	void mult(ZZ* x, const ZZ* a, const ZZ* b, const ZZ& q);
-	void multAndEqual(ZZ* a, const ZZ* b, const ZZ& q);
+	void multXpoly(ZZ* x, ZZ* a, ZZ* b, ZZ& q);
+	void multXpolyAndEqual(ZZ* a, ZZ* b, ZZ& q);
+	void multXpolyNTT(ZZ* x, ZZ* a, uint64_t* rb, long rbBnd, ZZ& q);
+	void multXpolyNTTAndEqual(ZZ* a, uint64_t* rb, long rbBnd, ZZ& q);
+	void multXpolyNTT2(ZZ* x, uint64_t* ra, long raBnd, uint64_t* rb, long rbBnd, ZZ& q);
 
-	void square(ZZ* x, const ZZ* a, const ZZ& q);
-	void squareAndEqual(ZZ* a, const ZZ& q);
+	void multYpoly(ZZ* x, ZZ* a, ZZ* b, ZZ& q);
+	void multYpolyAndEqual(ZZ* a, ZZ* b, ZZ& q);
+	void multYpolyNTT(ZZ* x, ZZ* a, uint64_t* rb, long rbBnd, ZZ& q);
+	void multYpolyNTTAndEqual(ZZ* a, uint64_t* rb, long rbBnd, ZZ& q);
+	void multYpolyNTT2(ZZ* x, uint64_t* ra, long raBnd, uint64_t* rb, long rbBnd, ZZ& q);
+
+	void mult(ZZ* x, ZZ* a, ZZ* b, ZZ& q);
+	void multAndEqual(ZZ* a, ZZ* b, ZZ& q);
+	void multNTTXY(ZZ* x, ZZ* a, uint64_t* rb, long rbBnd, ZZ& q);
+	void multNTTXYAndEqual(ZZ* a, uint64_t* rb, long rbBnd, ZZ& q);
+	void multNTTXY1(ZZ* x, ZZ* a, uint64_t* rb, long rbBnd, ZZ& q);
+	void multNTTXY1AndEqual(ZZ* a, uint64_t* rb, long rbBnd, ZZ& q);
+	void multNTTXYD(ZZ* x, uint64_t* ra, long raBnd, uint64_t* rb, long rbBnd, ZZ& q);
+
+	void square(ZZ* x, ZZ* a, ZZ& q);
+	void squareAndEqual(ZZ* a, ZZ& q);
+	void squareNTT(ZZ* x, uint64_t* ra, long raBnd, ZZ& q);
 
 
 	//----------------------------------------------------------------------------------
@@ -139,11 +158,11 @@ public:
 	void subAndEqual(ZZ* p1, ZZ* p2, ZZ& q);
 	void subAndEqual2(ZZ* p1, ZZ* p2, ZZ& q);
 
-	void multByMonomial(ZZ* res, ZZ* p, const long degx, const long degy, ZZ& q);
-	void multByMonomialAndEqual(ZZ* p, const long degx, const long degy, ZZ& q);
+	void multByMonomial(ZZ* res, ZZ* p, long degx, long degy, ZZ& q);
+	void multByMonomialAndEqual(ZZ* p, long degx, long degy, ZZ& q);
 
-	void multByConst(ZZ* res, ZZ* p, const ZZ& cnst, ZZ& q);
-	void multByConstAndEqual(ZZ* p, const ZZ& cnst, ZZ& q);
+	void multByConst(ZZ* res, ZZ* p, ZZ& cnst, ZZ& q);
+	void multByConstAndEqual(ZZ* p, ZZ& cnst, ZZ& q);
 
 
 	//----------------------------------------------------------------------------------
@@ -151,12 +170,12 @@ public:
 	//----------------------------------------------------------------------------------
 
 
-	void leftShift(ZZ* res, ZZ* p, const long bits, ZZ& q);
-	void leftShiftAndEqual(ZZ* p, const long bits, ZZ& q);
+	void leftShift(ZZ* res, ZZ* p, long bits, ZZ& q);
+	void leftShiftAndEqual(ZZ* p, long bits, ZZ& q);
 	void doubleAndEqual(ZZ* p, ZZ& q);
 
-	void rightShift(ZZ* res, ZZ* p, const long bits);
-	void rightShiftAndEqual(ZZ* p, const long bits);
+	void rightShift(ZZ* res, ZZ* p, long bits);
+	void rightShiftAndEqual(ZZ* p, long bits);
 
 
 	//----------------------------------------------------------------------------------
@@ -164,7 +183,7 @@ public:
 	//----------------------------------------------------------------------------------
 
 
-	void leftRotate(ZZ* res, ZZ* p, const long rx, const long ry);
+	void leftRotate(ZZ* res, ZZ* p, long rx, long ry);
 	void conjugate(ZZ* res, ZZ* p);
 
 
@@ -176,7 +195,7 @@ public:
 	void sampleGauss(ZZ* res);
 	void sampleHWT(ZZ* res);
 	void sampleZO(ZZ* res);
-	void sampleUniform(ZZ* res, const long bits);
+	void sampleUniform(ZZ* res, long bits);
 
 };
 
