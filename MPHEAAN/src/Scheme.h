@@ -217,16 +217,12 @@ public:
 	void normalizeAndEqual(Ciphertext& cipher);
 
 	void coeffToSlotXAndEqual(Ciphertext& cipher);
-	void coeffToSlotYAndEqual(Ciphertext& cipher);
+	void coeffToSlotYAndEqualNew(Ciphertext& cipher);
 	void coeffToSlotAndEqual(Ciphertext& cipher);
 
-	void coeffToSlotYAndEqualNew(Ciphertext& cipher);
-
 	void slotToCoeffXAndEqual(Ciphertext& cipher);
-	void slotToCoeffYAndEqual(Ciphertext& cipher);
-	void slotToCoeffAndEqual(Ciphertext& cipher);
-
 	void slotToCoeffYAndEqualNew(Ciphertext& cipher);
+	void slotToCoeffAndEqual(Ciphertext& cipher);
 
 	void exp2piAndEqual(Ciphertext& cipher, long logp);
 

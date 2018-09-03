@@ -26,13 +26,13 @@ public:
 	long logp;
 	long logq;
 
-	long Nx;
-	long Ny;
+	long N0;
+	long N1;
 
-	long nx;
-	long ny;
+	long n0;
+	long n1;
 
-	Ciphertext(ZZ* ax = NULL, ZZ* bx = NULL, long logp = 0, long logq = 0, long Nx = 0, long Ny = 0, long nx = 0, long ny = 0);
+	Ciphertext(ZZ* ax = NULL, ZZ* bx = NULL, long logp = 0, long logq = 0, long N0 = 0, long N1 = 0, long n0 = 0, long n1 = 0);
 
 	Ciphertext(const Ciphertext& o);
 

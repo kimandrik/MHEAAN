@@ -17,19 +17,19 @@ using namespace NTL;
 class Plaintext {
 public:
 
-	ZZ* mxy;
+	ZZ* mx;
 
 	long logp;
 	long logq;
 
-	long Nx;
-	long Ny;
+	long N0;
+	long N1;
 
-	long nx;
-	long ny;
+	long n0;
+	long n1;
 
 
-	Plaintext(ZZ* mxy = NULL, long logp = 0, long logq = 0, long Nx = 0, long Ny = 0, long nx = 0, long ny = 0);
+	Plaintext(ZZ* mx = NULL, long logp = 0, long logq = 0, long N0 = 0, long N1 = 0, long n0 = 0, long n1 = 0);
 
 	Plaintext(const Plaintext& o);
 

@@ -27,19 +27,19 @@ static RR Pi = ComputePi_RR();
 class Ring {
 public:
 
-	long logNx;
-	long Nx;
-	long Mx;
-	long logNxh;
-	long Nxh;
+	long logN0;
+	long N0;
+	long M0;
+	long logN0h;
+	long N0h;
 
 	long logN;
 	long N;
 	long Nh;
 
-	long logNy;
-	long Ny;
-	long My;
+	long logN1;
+	long N1;
+	long M1;
 
 	long logQ; ///< log of Q
 	long logQQ; ///< log of PQ
@@ -53,12 +53,12 @@ public:
 
 	RingMultiplier multiplier;
 
-	long* gxPows; ///< auxiliary information about rotation group indexes for batch encoding
-	long* gyPows; ///< auxiliary information about rotation group indexes for batch encoding
+	long* gx0Pows; ///< auxiliary information about rotation group indexes for batch encoding
+	long* gx1Pows; ///< auxiliary information about rotation group indexes for batch encoding
 
-	complex<double>* ksixPows; ///< storing ksi pows for fft calculation
-	complex<double>* ksiyPows; ///< storing ksi pows for fft calculation
-	complex<double>* ksiyPows2;
+	complex<double>* ksix0Pows; ///< storing ksi pows for fft calculation
+	complex<double>* ksix1Pows; ///< storing ksi pows for fft calculation
+	complex<double>* ksix1Pows2;
 
 	complex<double>* dftomegaPows;
 	complex<double>* omegaPows;
@@ -67,7 +67,7 @@ public:
 
 	map<pair<long, long>, MatrixContext> matrixContext;
 
-	Ring(long logNx, long logQ, double sigma = 3.2, long h = 64);
+	Ring(long logN0, long logQ, double sigma = 3.2, long h = 64);
 
 
 	//----------------------------------------------------------------------------------
@@ -86,17 +86,17 @@ public:
 
 
 	void arrayBitReverse(complex<double>* vals, long n);
-	void DFTY(complex<double>* vals);
-	void IDFTY(complex<double>* vals);
+	void DFTX1(complex<double>* vals);
+	void IDFTX1(complex<double>* vals);
 
-	void EMBX(complex<double>* vals, long nx);
-	void IEMBX(complex<double>* vals, long nx);
+	void EMBX0(complex<double>* vals, long nx);
+	void IEMBX0(complex<double>* vals, long nx);
 
-	void EMBY(complex<double>* vals);
-	void IEMBY(complex<double>* vals);
+	void EMBX1(complex<double>* vals);
+	void IEMBX1(complex<double>* vals);
 
-	void EMBXY(complex<double>* vals, long nx);
-	void IEMBXY(complex<double>* vals, long nx);
+	void EMB(complex<double>* vals, long nx);
+	void IEMB(complex<double>* vals, long nx);
 
 	void encode(ZZ* mxy, complex<double>* vals, long nx, long ny, long logp);
 	void encode(ZZ* mxy, double* vals, long nx, long ny, long logp);
@@ -107,37 +107,41 @@ public:
 	//   MULTIPLICATION
 	//----------------------------------------------------------------------------------
 
-	uint64_t* toNTTX(ZZ* a, long maxBnd);
+	long MaxBits(const ZZ* f, long n);
 
-	uint64_t* toNTTY(ZZ* a, long maxBnd);
-	uint64_t* toNTTY1(ZZ* a, long maxBnd);
+	uint64_t* toNTTX0(ZZ* a, long np);
 
-	uint64_t* toNTTXY(ZZ* a, long maxBnd);
-	uint64_t* toNTTXY1(ZZ* a, long maxBnd);
+	uint64_t* toNTTX1(ZZ* a, long np);
+	uint64_t* toNTTX1Lazy(ZZ* a, long np);
 
-	void multXpoly(ZZ* x, ZZ* a, ZZ* b, ZZ& q);
-	void multXpolyAndEqual(ZZ* a, ZZ* b, ZZ& q);
-	void multXpolyNTT(ZZ* x, ZZ* a, uint64_t* rb, long rbBnd, ZZ& q);
-	void multXpolyNTTAndEqual(ZZ* a, uint64_t* rb, long rbBnd, ZZ& q);
-	void multXpolyNTT2(ZZ* x, uint64_t* ra, long raBnd, uint64_t* rb, long rbBnd, ZZ& q);
+	uint64_t* toNTT(ZZ* a, long np);
+	uint64_t* toNTTLazy(ZZ* a, long np);
 
-	void multYpoly(ZZ* x, ZZ* a, ZZ* b, ZZ& q);
-	void multYpolyAndEqual(ZZ* a, ZZ* b, ZZ& q);
-	void multYpolyNTT(ZZ* x, ZZ* a, uint64_t* rb, long rbBnd, ZZ& q);
-	void multYpolyNTTAndEqual(ZZ* a, uint64_t* rb, long rbBnd, ZZ& q);
-	void multYpolyNTT2(ZZ* x, uint64_t* ra, long raBnd, uint64_t* rb, long rbBnd, ZZ& q);
+	uint64_t* addNTT(uint64_t* ra, uint64_t* rb, long np);
 
-	void mult(ZZ* x, ZZ* a, ZZ* b, ZZ& q);
-	void multAndEqual(ZZ* a, ZZ* b, ZZ& q);
-	void multNTTXY(ZZ* x, ZZ* a, uint64_t* rb, long rbBnd, ZZ& q);
-	void multNTTXYAndEqual(ZZ* a, uint64_t* rb, long rbBnd, ZZ& q);
-	void multNTTXY1(ZZ* x, ZZ* a, uint64_t* rb, long rbBnd, ZZ& q);
-	void multNTTXY1AndEqual(ZZ* a, uint64_t* rb, long rbBnd, ZZ& q);
-	void multNTTXYD(ZZ* x, uint64_t* ra, long raBnd, uint64_t* rb, long rbBnd, ZZ& q);
+	void multX0(ZZ* x, ZZ* a, ZZ* b, long np, ZZ& q);
+	void multX0AndEqual(ZZ* a, ZZ* b, long np, ZZ& q);
+	void multNTTX0(ZZ* x, ZZ* a, uint64_t* rb, long np, ZZ& q);
+	void multNTTX0AndEqual(ZZ* a, uint64_t* rb, long np, ZZ& q);
+	void multNTTX0D(ZZ* x, uint64_t* ra, uint64_t* rb, long np, ZZ& q);
 
-	void square(ZZ* x, ZZ* a, ZZ& q);
-	void squareAndEqual(ZZ* a, ZZ& q);
-	void squareNTT(ZZ* x, uint64_t* ra, long raBnd, ZZ& q);
+	void multX1(ZZ* x, ZZ* a, ZZ* b, long np, ZZ& q);
+	void multX1AndEqual(ZZ* a, ZZ* b, long np, ZZ& q);
+	void multNTTX1(ZZ* x, ZZ* a, uint64_t* rb, long np, ZZ& q);
+	void multNTTX1AndEqual(ZZ* a, uint64_t* rb, long np, ZZ& q);
+	void multDNTTX1(ZZ* x, uint64_t* ra, uint64_t* rb, long np, ZZ& q);
+
+	void mult(ZZ* x, ZZ* a, ZZ* b, long np, ZZ& q);
+	void multAndEqual(ZZ* a, ZZ* b, long np, ZZ& q);
+	void multNTT(ZZ* x, ZZ* a, uint64_t* rb, long np, ZZ& q);
+	void multNTTAndEqual(ZZ* a, uint64_t* rb, long np, ZZ& q);
+	void multNTTLazy(ZZ* x, ZZ* a, uint64_t* rb, long np, ZZ& q);
+	void multNTTLazyAndEqual(ZZ* a, uint64_t* rb, long np, ZZ& q);
+	void multDNTT(ZZ* x, uint64_t* ra, uint64_t* rb, long np, ZZ& q);
+
+	void square(ZZ* x, ZZ* a, long np, ZZ& q);
+	void squareAndEqual(ZZ* a, long np, ZZ& q);
+	void squareNTT(ZZ* x, uint64_t* ra, long np, ZZ& q);
 
 
 	//----------------------------------------------------------------------------------

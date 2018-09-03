@@ -415,7 +415,7 @@ void SchemeAlgo::DFTX(Ciphertext* ciphers, const long nx) {
 	bitReverse(ciphers, nx);
 	for (long len = 2; len <= nx; len <<= 1) {
 		long lenh = len >> 1;
-		long shift = scheme.ring.Mx / len;
+		long shift = scheme.ring.M0 / len;
 		for (long i = 0; i < nx; i += len) {
 			NTL_EXEC_RANGE(lenh, first, last);
 			for (long j = first; j < last; ++j) {
@@ -433,7 +433,7 @@ void SchemeAlgo::IDFTXLazy(Ciphertext* ciphers, const long nx) {
 	bitReverse(ciphers, nx);
 	for (long len = 2; len <= nx; len <<= 1) {
 		long lenh = len >> 1;
-		long shift = scheme.ring.Mx - scheme.ring.Mx / len;
+		long shift = scheme.ring.M0 - scheme.ring.M0 / len;
 		for (long i = 0; i < nx; i += len) {
 			NTL_EXEC_RANGE(lenh, first, last);
 			for (long j = first; j < last; ++j) {
@@ -462,7 +462,7 @@ void SchemeAlgo::DFTY(Ciphertext* ciphers, const long ny) {
 	bitReverse(ciphers, ny);
 	for (long len = 2; len <= ny; len <<= 1) {
 		long lenh = len >> 1;
-		long shift = scheme.ring.My / len;
+		long shift = scheme.ring.M1 / len;
 		for (long i = 0; i < ny; i += len) {
 			NTL_EXEC_RANGE(lenh, first, last);
 			for (long j = first; j < last; ++j) {
@@ -480,7 +480,7 @@ void SchemeAlgo::IDFTYLazy(Ciphertext* ciphers, const long ny) {
 	bitReverse(ciphers, ny);
 	for (long len = 2; len <= ny; len <<= 1) {
 		long lenh = len >> 1;
-		long shift = scheme.ring.My - scheme.ring.My / len;
+		long shift = scheme.ring.M1 - scheme.ring.M1 / len;
 		for (long i = 0; i < ny; i += len) {
 			NTL_EXEC_RANGE(lenh, first, last);
 			for (long j = first; j < last; ++j) {

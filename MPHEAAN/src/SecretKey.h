@@ -19,10 +19,10 @@ using namespace NTL;
 class SecretKey {
 public:
 
-	long Nx;
-	long Ny;
+	long N0;
+	long N1;
 
-	ZZ* sxy; ///< secret key
+	ZZ* sx; ///< secret key
 
 	SecretKey(Ring& ring);
 
