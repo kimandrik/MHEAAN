@@ -8,6 +8,6 @@
 
 #include "BootContext.h"
 
-BootContext::BootContext(ZZ** pxVec, ZZ** pyrVec, ZZ** pyiVec, ZZ** pxInvVec, ZZ** pyrInvVec, ZZ** pyiInvVec, ZZ* p1, ZZ* p2, long logp)
-			: pxVec(pxVec), pyrVec(pyrVec), pyiVec(pyiVec), pxInvVec(pxInvVec), pyrInvVec(pyrInvVec), pyiInvVec(pyiInvVec), p1(p1), p2(p2), logp(logp) {
+BootContext::BootContext(uint64_t** rpxVec,  uint64_t** rpxInvVec, uint64_t* rp1, uint64_t* rp2, long logp)
+			: rpxVec(rpxVec), rpxInvVec(rpxInvVec), rp1(rp1), rp2(rp2), logp(logp) {
 }

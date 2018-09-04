@@ -53,12 +53,12 @@ public:
 
 	RingMultiplier multiplier;
 
-	long* gx0Pows; ///< auxiliary information about rotation group indexes for batch encoding
-	long* gx1Pows; ///< auxiliary information about rotation group indexes for batch encoding
+	long* gM0Pows; ///< auxiliary information about rotation group indexes for batch encoding
+	long* gM1Pows; ///< auxiliary information about rotation group indexes for batch encoding
 
-	complex<double>* ksix0Pows; ///< storing ksi pows for fft calculation
-	complex<double>* ksix1Pows; ///< storing ksi pows for fft calculation
-	complex<double>* ksix1Pows2;
+	complex<double>* ksiM0Pows; ///< storing ksi pows for fft calculation
+	complex<double>* ksiM1Pows;
+	complex<double>* ksiN1Pows; ///< storing ksi pows for fft calculation
 
 	complex<double>* dftomegaPows;
 	complex<double>* omegaPows;
@@ -162,7 +162,7 @@ public:
 	void subAndEqual(ZZ* p1, ZZ* p2, ZZ& q);
 	void subAndEqual2(ZZ* p1, ZZ* p2, ZZ& q);
 
-	void multByMonomial(ZZ* res, ZZ* p, long degx, long degy, ZZ& q);
+	ZZ* multByMonomial(ZZ* p, long degx, long degy, ZZ& q);
 	void multByMonomialAndEqual(ZZ* p, long degx, long degy, ZZ& q);
 
 	void multByConst(ZZ* res, ZZ* p, ZZ& cnst, ZZ& q);
@@ -187,8 +187,8 @@ public:
 	//----------------------------------------------------------------------------------
 
 
-	void leftRotate(ZZ* res, ZZ* p, long rx, long ry);
-	void conjugate(ZZ* res, ZZ* p);
+	ZZ* leftRotate(ZZ* p, long rx, long ry);
+	ZZ* conjugate(ZZ* p);
 
 
 	//----------------------------------------------------------------------------------

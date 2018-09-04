@@ -8,6 +8,6 @@
 
 #include "Key.h"
 
-Key::Key(uint64_t* rax, uint64_t* rbx, long bnd) : rax(rax), rbx(rbx), bnd(bnd) {
+Key::Key(uint64_t* rax, uint64_t* rbx) : rax(rax), rbx(rbx) {
 
 }

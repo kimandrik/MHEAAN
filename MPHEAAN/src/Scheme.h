@@ -142,33 +142,37 @@ public:
 	Ciphertext square(Ciphertext& cipher);
 	void squareAndEqual(Ciphertext& cipher);
 
-	Ciphertext multByConst(Ciphertext& cipher, RR& cnst, long logp);
-	Ciphertext multByConst(Ciphertext& cipher, double cnst, long logp);
-	Ciphertext multByConst(Ciphertext& cipher, complex<double> cnst, long logp);
+	Ciphertext multConst(Ciphertext& cipher, RR& cnst, long logp);
+	Ciphertext multConst(Ciphertext& cipher, double cnst, long logp);
+	Ciphertext multConst(Ciphertext& cipher, complex<double> cnst, long logp);
 
-	void multByConstAndEqual(Ciphertext& cipher, RR& cnst, long logp);
-	void multByConstAndEqual(Ciphertext& cipher, double cnst, long logp);
-	void multByConstAndEqual(Ciphertext& cipher, complex<double> cnst, long logp);
+	void multConstAndEqual(Ciphertext& cipher, RR& cnst, long logp);
+	void multConstAndEqual(Ciphertext& cipher, double cnst, long logp);
+	void multConstAndEqual(Ciphertext& cipher, complex<double> cnst, long logp);
+
+	Ciphertext multPolyX0(Ciphertext& cipher, ZZ* xpoly, long logp);
+	void multPolyX0AndEqual(Ciphertext& cipher, ZZ* xpoly, long logp);
+	Ciphertext multPolyNTTX0(Ciphertext& cipher, uint64_t* rxpoly, long logp);
+	void multPolyNTTX0AndEqual(Ciphertext& cipher, uint64_t* rxpoly, long logp);
+
+	Ciphertext multPolyX1(Ciphertext& cipher, ZZ* yrpoly, ZZ* yipoly, long logp);
+	void multPolyX1AndEqual(Ciphertext& cipher, ZZ* yrpoly, ZZ* yipoly, long logp);
+
+	Ciphertext multPoly(Ciphertext& cipher, ZZ* poly, long logp);
+	void multPolyAndEqual(Ciphertext& cipher, ZZ* poly, long logp);
+	Ciphertext multPolyNTT(Ciphertext& cipher, uint64_t* rpoly, long logp);
+	void multPolyNTTAndEqual(Ciphertext& cipher, uint64_t* rpoly, long logp);
 
 	Ciphertext multByMonomial(Ciphertext& cipher, const long dx, const long dy);
 	void multByMonomialAndEqual(Ciphertext& cipher, const long dx, const long dy);
 
-	Ciphertext multByXPoly(Ciphertext& cipher, ZZ* xpoly, long logp);
-	void multByXPolyAndEqual(Ciphertext& cipher, ZZ* xpoly, long logp);
-
-	Ciphertext multByYPoly(Ciphertext& cipher, ZZ* yrpoly, ZZ* yipoly, long logp);
-	void multByYPolyAndEqual(Ciphertext& cipher, ZZ* yrpoly, ZZ* yipoly, long logp);
-
-	Ciphertext multByPoly(Ciphertext& cipher, ZZ* poly, long logp);
-	void multByPolyAndEqual(Ciphertext& cipher, ZZ* poly, long logp);
-
-	Ciphertext multByPo2(Ciphertext& cipher, long bits);
-	void multByPo2AndEqual(Ciphertext& cipher, long bits);
+	Ciphertext multPo2(Ciphertext& cipher, long bits);
+	void multPo2AndEqual(Ciphertext& cipher, long bits);
 
 	void doubleAndEqual(Ciphertext& cipher);
 
-	Ciphertext divByPo2(Ciphertext& cipher, long logd);
-	void divByPo2AndEqual(Ciphertext& cipher, long logd);
+	Ciphertext divPo2(Ciphertext& cipher, long logd);
+	void divPo2AndEqual(Ciphertext& cipher, long logd);
 
 
 	//----------------------------------------------------------------------------------
@@ -216,12 +220,12 @@ public:
 
 	void normalizeAndEqual(Ciphertext& cipher);
 
-	void coeffToSlotXAndEqual(Ciphertext& cipher);
-	void coeffToSlotYAndEqualNew(Ciphertext& cipher);
+	void coeffToSlotX0AndEqual(Ciphertext& cipher);
+	void coeffToSlotX1AndEqual(Ciphertext& cipher);
 	void coeffToSlotAndEqual(Ciphertext& cipher);
 
-	void slotToCoeffXAndEqual(Ciphertext& cipher);
-	void slotToCoeffYAndEqualNew(Ciphertext& cipher);
+	void slotToCoeffX0AndEqual(Ciphertext& cipher);
+	void slotToCoeffX1AndEqual(Ciphertext& cipher);
 	void slotToCoeffAndEqual(Ciphertext& cipher);
 
 	void exp2piAndEqual(Ciphertext& cipher, long logp);

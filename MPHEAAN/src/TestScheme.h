@@ -18,13 +18,13 @@ public:
 	//----------------------------------------------------------------------------------
 
 
-	static void testEncrypt(long logNx, long logNy, long logQ, long logp, long lognx, long logny);
+	static void testEncrypt(long logN0, long logN1, long logQ, long logp, long logn0, long logn1);
 
-	static void testEncryptSingle(long logNx, long logNy, long logQ, long logp);
+	static void testEncryptSingle(long logN0, long logN1, long logQ, long logp);
 
-	static void testStandard(long logNx, long logNy, long logQ, long logp, long lognx, long logny);
+	static void testStandard(long logN0, long logN1, long logQ, long logp, long logn0, long logn1);
 
-	static void testimult(long logNx, long logNy, long logQ, long logp, long lognx, long logny);
+	static void testimult(long logN0, long logN1, long logQ, long logp, long logn0, long logn1);
 
 
 	//----------------------------------------------------------------------------------
@@ -32,11 +32,11 @@ public:
 	//----------------------------------------------------------------------------------
 
 
-	static void testRotateFast(long logNx, long logNy, long logQ, long logp, long lognx, long logny, long rx, long ry);
+	static void testRotateFast(long logN0, long logN1, long logQ, long logp, long logn0, long logn1, long r0, long r1);
 
-	static void testRotate(long logNx, long logNy, long logQ, long logp, long lognx, long logny, long rx, long ry);
+	static void testRotate(long logN0, long logN1, long logQ, long logp, long logn0, long logn1, long r0, long r1);
 
-	static void testConjugate(long logNx, long logNy, long logQ, long logp, long lognx, long logny);
+	static void testConjugate(long logN0, long logN1, long logQ, long logp, long logn0, long logn1);
 
 
 	//----------------------------------------------------------------------------------
@@ -44,13 +44,13 @@ public:
 	//----------------------------------------------------------------------------------
 
 
-	static void testPowerOf2(long logNx, long logNy, long logQ, long logp, long lognx, long logny, long logDegree);
+	static void testPowerOf2(long logN0, long logN1, long logQ, long logp, long logn0, long logn1, long logDegree);
 
-	static void testPower(long logNx, long logNy, long logQ, long logp, long lognx, long logny, long degree);
+	static void testPower(long logN0, long logN1, long logQ, long logp, long logn0, long logn1, long degree);
 
-	static void testProdOfPo2(long logNx, long logNy, long logQ, long logp, long lognx, long logny, long logDegree);
+	static void testProdOfPo2(long logN0, long logN1, long logQ, long logp, long logn0, long logn1, long logDegree);
 
-	static void testProd(long logNx, long logNy, long logQ, long logp, long lognx, long logny, long degree);
+	static void testProd(long logN0, long logN1, long logQ, long logp, long logn0, long logn1, long degree);
 
 
 	//----------------------------------------------------------------------------------
@@ -58,17 +58,17 @@ public:
 	//----------------------------------------------------------------------------------
 
 
-	static void testInverse(long logNx, long logNy, long logQ, long logp, long lognx, long logny, long invSteps);
+	static void testInverse(long logN0, long logN1, long logQ, long logp, long logn0, long logn1, long invSteps);
 
-	static void testLogarithm(long logNx, long logNy, long logQ, long logp, long lognx, long logny, long degree);
+	static void testLogarithm(long logN0, long logN1, long logQ, long logp, long logn0, long logn1, long degree);
 
-	static void testExponent(long logNx, long logNy, long logQ, long logp, long lognx, long logny, long degree);
+	static void testExponent(long logN0, long logN1, long logQ, long logp, long logn0, long logn1, long degree);
 
-	static void testExponentLazy(long logNx, long logNy, long logQ, long logp, long lognx, long logny, long degree);
+	static void testExponentLazy(long logN0, long logN1, long logQ, long logp, long logn0, long logn1, long degree);
 
-	static void testSigmoid(long logNx, long logNy, long logQ, long logp, long lognx, long logny, long degree);
+	static void testSigmoid(long logN0, long logN1, long logQ, long logp, long logn0, long logn1, long degree);
 
-	static void testSigmoidLazy(long logNx, long logNy, long logQ, long logp, long lognx, long logny, long degree);
+	static void testSigmoidLazy(long logN0, long logN1, long logQ, long logp, long logn0, long logn1, long degree);
 
 
 	//----------------------------------------------------------------------------------
@@ -76,22 +76,22 @@ public:
 	//----------------------------------------------------------------------------------
 
 
-	static void testSquareMatMult(long logNx, long logNy, long logQ, long logp, long lognx);
+	static void testSquareMatMult(long logN0, long logN1, long logQ, long logp, long logn0);
 
-	static void testSquareMatPow(long logNx, long logNy, long logQ, long logp, long lognx, long logDegree);
+	static void testSquareMatPow(long logN0, long logN1, long logQ, long logp, long logn0, long logDegree);
 
-	static void testSquareMatInv(long logNx, long logNy, long logQ, long logp, long lognx, long steps);
+	static void testSquareMatInv(long logN0, long logN1, long logQ, long logp, long logn0, long steps);
 
-	static void testMatMult(long logNx, long logNy, long logQ, long logp, long lognx, long logny, long lognz);
+	static void testMatMult(long logN0, long logN1, long logQ, long logp, long logn0, long logn1, long lognz);
 
 
 	//----------------------------------------------------------------------------------
 	//   OTHER TESTS
 	//----------------------------------------------------------------------------------
 
-	static void testBootstrap(long logNx, long logNy, long logq, long logQ, long logp, long lognx, long logny, long logT, long logI);
+	static void testBootstrap(long logN0, long logN1, long logq, long logQ, long logp, long logn0, long logn1, long logT, long logI);
 
-	static void testCiphertextWriteAndRead(long logNx, long logNy, long logQ, long logp, long lognx, long logny);
+	static void testCiphertextWriteAndRead(long logN0, long logN1, long logQ, long logp, long logn0, long logn1);
 
 	static void test();
 	static void test1();

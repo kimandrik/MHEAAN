@@ -37,17 +37,17 @@ Ring::Ring(long logN0, long logQ, double sigma, long h) :
 	Q = power2_ZZ(logQ);
 	QQ = power2_ZZ(logQQ);
 
-	gx0Pows = new long[N0h + 1];
+	gM0Pows = new long[N0h + 1];
 	long gx = 5;
 	long gxPow = 1;
 	for (long i = 0; i < N0h; ++i) {
-		gx0Pows[i] = gxPow;
+		gM0Pows[i] = gxPow;
 		gxPow *= gx;
 		gxPow %= M0;
 	}
-	gx0Pows[N0h] = gx0Pows[0];
+	gM0Pows[N0h] = gM0Pows[0];
 
-	gx1Pows = new long[M1];
+	gM1Pows = new long[M1];
 	dftomegaPows = new complex<double>[N1]();
 	omegaPows = new complex<double>[N1]();
 	long gy = 3;
@@ -58,33 +58,33 @@ Ring::Ring(long logN0, long logQ, double sigma, long h) :
 		omegaPows[i].imag(sin(angle));
 		dftomegaPows[i].real(cos(angle));
 		dftomegaPows[i].imag(sin(angle));
-		gx1Pows[i] = gyPow;
+		gM1Pows[i] = gyPow;
 		gyPow *= gy;
 		gyPow %= M1;
 	}
-	gx1Pows[N1] = gx1Pows[0];
+	gM1Pows[N1] = gM1Pows[0];
 
-	ksix0Pows = new complex<double>[M0 + 1]();
+	ksiM0Pows = new complex<double>[M0 + 1]();
 	for (long j = 0; j < M0; ++j) {
 		double angle = 2.0 * M_PI * j / M0;
-		ksix0Pows[j].real(cos(angle));
-		ksix0Pows[j].imag(sin(angle));
+		ksiM0Pows[j].real(cos(angle));
+		ksiM0Pows[j].imag(sin(angle));
 	}
-	ksix0Pows[M0] = ksix0Pows[0];
+	ksiM0Pows[M0] = ksiM0Pows[0];
 
-	ksix1Pows = new complex<double>[M1]();
+	ksiN1Pows = new complex<double>[M1]();
 	for (long j = 0; j < N1; ++j) {
 		double angle = 2.0 * M_PI * j / N1;
-		ksix1Pows[j].real(cos(angle));
-		ksix1Pows[j].imag(sin(angle));
+		ksiN1Pows[j].real(cos(angle));
+		ksiN1Pows[j].imag(sin(angle));
 	}
-	ksix1Pows[N1] = ksix1Pows[0];
+	ksiN1Pows[N1] = ksiN1Pows[0];
 
-	ksix1Pows2 = new complex<double>[M1]();
+	ksiM1Pows = new complex<double>[M1]();
 	for (long j = 0; j < M1; ++j) {
 		double angle = 2.0 * M_PI * j / M1;
-		ksix1Pows2[j].real(cos(angle));
-		ksix1Pows2[j].imag(sin(angle));
+		ksiM1Pows[j].real(cos(angle));
+		ksiM1Pows[j].imag(sin(angle));
 	}
 
 	arrayBitReverse(dftomegaPows, N1);
@@ -96,7 +96,7 @@ Ring::Ring(long logN0, long logQ, double sigma, long h) :
 				long idx = j * gap;
 				complex<double> u = dftomegaPows[i + j];
 				complex<double> v = dftomegaPows[i + j + lenh];
-				v *= ksix1Pows[idx];
+				v *= ksiN1Pows[idx];
 				dftomegaPows[i + j] = u + v;
 				dftomegaPows[i + j + lenh] = u - v;
 			}
@@ -113,127 +113,66 @@ Ring::Ring(long logN0, long logQ, double sigma, long h) :
 void Ring::addBootContext(long lognx, long logny, long logp) {
 	if (bootContextMap.find({lognx, logny}) == bootContextMap.end()) {
 		long nx = 1 << lognx;
-		long ny = 1 << logny;
-
 		long logkx = lognx >> 1;
-		long logky = logny >> 1;
-
 		long kx = 1 << logkx;
-		long ky = 1 << logky;
 
-		ZZ** pxVec = new ZZ*[nx];
-		ZZ** pyrVec = new ZZ*[ny];
-		ZZ** pyiVec = new ZZ*[ny];
-
-		ZZ** pxInvVec = new ZZ*[nx];
-		ZZ** pyrInvVec = new ZZ*[ny];
-		ZZ** pyiInvVec = new ZZ*[ny];
-
-		for (long ix = 0; ix < nx; ++ix) {
-			pxVec[ix] = new ZZ[N0];
-			pxInvVec[ix] = new ZZ[N0];
-		}
-		for (long iy = 0; iy < ny; ++iy) {
-			pyrVec[iy] = new ZZ[N1];
-			pyiVec[iy] = new ZZ[N1];
-			pyrInvVec[iy] = new ZZ[N1];
-			pyiInvVec[iy] = new ZZ[N1];
-		}
+		uint64_t** rpxVec = new uint64_t*[nx];
+		uint64_t** rpxInvVec = new uint64_t*[nx];
 
 		complex<double>* pxvals = new complex<double>[nx];
-		complex<double>* pyvals = new complex<double>[ny];
+		uint64_t* rp1 = NULL;
+		uint64_t* rp2 = NULL;
 
-		ZZ* p1 = new ZZ[N];
-		ZZ* p2 = new ZZ[N];
+		long np0 = ceil((logQ + logp + logN0 + 3)/59.0);
+
+		ZZ* pxVec = new ZZ[N0];
 
 		long gapx = N0h >> lognx;
 		long deg;
 		for (long kxi = 0; kxi < nx; kxi += kx) {
 			for (long pos = kxi; pos < kxi + kx; ++pos) {
 				for (long i = 0; i < nx - pos; ++i) {
-					deg = ((M0 - gx0Pows[i + pos]) * i * gapx) % M0;
-					pxvals[i] = ksix0Pows[deg];
+					deg = ((M0 - gM0Pows[i + pos]) * i * gapx) % M0;
+					pxvals[i] = ksiM0Pows[deg];
 				}
 				for (long i = nx - pos; i < nx; ++i) {
-					deg = ((M0 - gx0Pows[i + pos - nx]) * i * gapx) % M0;
-					pxvals[i] = ksix0Pows[deg];
+					deg = ((M0 - gM0Pows[i + pos - nx]) * i * gapx) % M0;
+					pxvals[i] = ksiM0Pows[deg];
 				}
 				EvaluatorUtils::rightRotateAndEqual(pxvals, nx, 1, kxi, 0);
 				IEMBX0(pxvals, nx);
 				for (long ix = 0, jdx = N0h, idx = 0; ix < nx; ++ix, jdx += gapx, idx += gapx) {
-					pxVec[pos][idx] = EvaluatorUtils::scaleUpToZZ(pxvals[ix].real(), logp);
-					pxVec[pos][jdx] = EvaluatorUtils::scaleUpToZZ(pxvals[ix].imag(), logp);
+					pxVec[idx] = EvaluatorUtils::scaleUpToZZ(pxvals[ix].real(), logp);
+					pxVec[jdx] = EvaluatorUtils::scaleUpToZZ(pxvals[ix].imag(), logp);
 				}
+				rpxVec[pos] = toNTTX0(pxVec, np0);
 			}
 		}
 
 		for (long kxi = 0; kxi < nx; kxi += kx) {
 			for (long pos = kxi; pos < kxi + kx; ++pos) {
 				for (long i = 0; i < nx - pos; ++i) {
-					deg = (gx0Pows[i] * (i + pos) * gapx) % M0;
-					pxvals[i] = ksix0Pows[deg];
+					deg = (gM0Pows[i] * (i + pos) * gapx) % M0;
+					pxvals[i] = ksiM0Pows[deg];
 				}
 				for (long i = nx - pos; i < nx; ++i) {
-					deg = (gx0Pows[i] * (i + pos - nx) * gapx) % M0;
-					pxvals[i] = ksix0Pows[deg];
+					deg = (gM0Pows[i] * (i + pos - nx) * gapx) % M0;
+					pxvals[i] = ksiM0Pows[deg];
 				}
 				EvaluatorUtils::rightRotateAndEqual(pxvals, nx, 1, kxi, 0);
 				IEMBX0(pxvals, nx);
 				for (long ix = 0, jdx = N0h, idx = 0; ix < nx; ++ix, jdx += gapx, idx += gapx) {
-					pxInvVec[pos][idx] = EvaluatorUtils::scaleUpToZZ(pxvals[ix].real(), logp);
-					pxInvVec[pos][jdx] = EvaluatorUtils::scaleUpToZZ(pxvals[ix].imag(), logp);
+					pxVec[idx] = EvaluatorUtils::scaleUpToZZ(pxvals[ix].real(), logp);
+					pxVec[jdx] = EvaluatorUtils::scaleUpToZZ(pxvals[ix].imag(), logp);
 				}
-			}
-		}
-
-		for (long kyi = 0; kyi < ny; kyi += ky) {
-			for (long pos = kyi; pos < kyi + ky; ++pos) {
-				for (long i = 0; i < ny - pos; ++i) {
-					deg = ((M1 - gx1Pows[i + pos]) * i) % M1;
-					pyvals[i] = (ksix1Pows2[deg] - ksix1Pows2[gx1Pows[i + pos]]) * (double)N1 / (double)M1;
-//					pyvals[i] = (ksiyPows2[deg] - ksiyPows2[gyPows[i + pos]]);
-				}
-				for (long i = ny - pos; i < ny; ++i) {
-					deg = ((M1 - gx1Pows[i + pos - ny]) * i) % M1;
-					pyvals[i] = (ksix1Pows2[deg] - ksix1Pows2[gx1Pows[i + pos - ny]]) * (double)N1 / (double)M1;
-//					pyvals[i] = (ksiyPows2[deg] - ksiyPows2[gyPows[i + pos - ny]]);
-				}
-
-				EvaluatorUtils::rightRotateAndEqual(pyvals, 1, ny, 0, kyi);
-
-				IEMBX1(pyvals);
-				for (long iy = 0; iy < ny; ++iy) {
-					pyrVec[pos][iy] = EvaluatorUtils::scaleUpToZZ(pyvals[iy].real(), logp);
-					pyiVec[pos][iy] = EvaluatorUtils::scaleUpToZZ(pyvals[iy].imag(), logp);
-				}
-			}
-		}
-
-		for (long kyi = 0; kyi < ny; kyi += ky) {
-			for (long pos = kyi; pos < kyi + ky; ++pos) {
-				for (long iy = 0; iy < ny - pos; ++iy) {
-					deg = (gx1Pows[iy] * (iy + pos)) % M1;
-					pyvals[iy] = ksix1Pows2[deg];
-				}
-				for (long iy = ny - pos; iy < ny; ++iy) {
-					deg = (gx1Pows[iy] * (iy + pos - ny)) % M1;
-					pyvals[iy] = ksix1Pows2[deg];
-				}
-
-				EvaluatorUtils::rightRotateAndEqual(pyvals, 1, ny, 0, kyi);
-
-				IEMBX1(pyvals);
-				for (long iy = 0; iy < ny; ++iy) {
-					pyrInvVec[pos][iy] = EvaluatorUtils::scaleUpToZZ(pyvals[iy].real(), logp);
-					pyiInvVec[pos][iy] = EvaluatorUtils::scaleUpToZZ(pyvals[iy].imag(), logp);
-				}
+				rpxInvVec[pos] = toNTTX0(pxVec, np0);
 			}
 		}
 
 		delete[] pxvals;
-		delete[] pyvals;
+		delete[] pxVec;
 
-		bootContextMap.insert(pair<pair<long, long>, BootContext>({lognx, logny}, BootContext(pxVec, pyrVec, pyiVec, pxInvVec, pyrInvVec, pyiInvVec, p1, p2, logp)));
+		bootContextMap.insert(pair<pair<long, long>, BootContext>({lognx, logny}, BootContext(rpxVec, rpxInvVec, rp1, rp2, logp)));
 	}
 }
 
@@ -252,8 +191,7 @@ void Ring::addMatrixContext(long lognx) {
 		multByMonomialAndEqual(pvec[0], M0 - powsum, 0, Q);
 
 		for (long ix = 1; ix < nx; ++ix) {
-			pvec[ix] = new ZZ[N];
-			leftRotate(pvec[ix], pvec[0], 0, ix);
+			pvec[ix] = leftRotate(pvec[0], 0, ix);
 		}
 		matrixContext.insert(pair<pair<long, long>, MatrixContext>({lognx, lognx}, MatrixContext(pvec)));
 	}
@@ -282,7 +220,7 @@ void Ring::DFTX1(complex<double>* vals) {
 				long idx = j * gap;
 				complex<double> u = vals[i + j];
 				complex<double> v = vals[i + j + lenh];
-				v *= ksix1Pows[idx];
+				v *= ksiN1Pows[idx];
 				vals[i + j] = u + v;
 				vals[i + j + lenh] = u - v;
 			}
@@ -300,7 +238,7 @@ void Ring::IDFTX1(complex<double>* vals) {
 				long idx = N1 - (j * gap);
 				complex<double> u = vals[i + j];
 				complex<double> v = vals[i + j + lenh];
-				v *= ksix1Pows[idx];
+				v *= ksiN1Pows[idx];
 				vals[i + j] = u + v;
 				vals[i + j + lenh] = u - v;
 			}
@@ -319,10 +257,10 @@ void Ring::EMBX0(complex<double>* vals, long nx) {
 			long lenq = len << 2;
 			long gap = M0 / lenq;
 			for (long j = 0; j < lenh; ++j) {
-				long idx = (gx0Pows[j] % lenq) * gap;
+				long idx = (gM0Pows[j] % lenq) * gap;
 				complex<double> u = vals[i + j];
 				complex<double> v = vals[i + j + lenh];
-				v *= ksix0Pows[idx];
+				v *= ksiM0Pows[idx];
 				vals[i + j] = u + v;
 				vals[i + j + lenh] = u - v;
 			}
@@ -337,10 +275,10 @@ void Ring::IEMBX0(complex<double>* vals, long nx) {
 			long lenq = len << 2;
 			long gap = M0 / lenq;
 			for (long j = 0; j < lenh; ++j) {
-				long idx = (lenq - (gx0Pows[j] % lenq)) * gap;
+				long idx = (lenq - (gM0Pows[j] % lenq)) * gap;
 				complex<double> u = vals[i + j] + vals[i + j + lenh];
 				complex<double> v = vals[i + j] - vals[i + j + lenh];
-				v *= ksix0Pows[idx];
+				v *= ksiM0Pows[idx];
 				vals[i + j] = u;
 				vals[i + j + lenh] = v;
 			}
@@ -355,7 +293,7 @@ void Ring::IEMBX0(complex<double>* vals, long nx) {
 void Ring::EMBX1(complex<double>* vals) {
 	complex<double>* tmp = new complex<double>[N1];
 	for (long i = 0; i < N1; ++i) {
-		tmp[i] = vals[gx1Pows[N1 - i] - 1];
+		tmp[i] = vals[gM1Pows[N1 - i] - 1];
 	}
 	for (long i = 0; i < N1; ++i) {
 		vals[i] = tmp[i];
@@ -384,7 +322,7 @@ void Ring::IEMBX1(complex<double>* vals) {
 
 	complex<double>* tmp = new complex<double>[N1]();
 	for (long i = 0; i < N1; ++i) {
-		tmp[gx1Pows[N1 - i] - 1] = vals[i];
+		tmp[gM1Pows[N1 - i] - 1] = vals[i];
 	}
 	for (long i = 0; i < N1; ++i) {
 		vals[i] = tmp[i];
@@ -562,6 +500,14 @@ void Ring::multX1AndEqual(ZZ* a, ZZ* b, long np, ZZ& q) {
 	multiplier.multX1AndEqual(a, b, np, q);
 }
 
+void Ring::multNTTX1(ZZ* x, ZZ* a, uint64_t* b, long np, ZZ& q) {
+	multiplier.multNTTX1(x, a, b, np, q);
+}
+
+void Ring::multNTTX1AndEqual(ZZ* a, uint64_t* b, long np, ZZ& q) {
+	multiplier.multNTTX1AndEqual(a, b, np, q);
+}
+
 void Ring::mult(ZZ* x, ZZ* a, ZZ* b, long np, ZZ& q) {
 	multiplier.mult(x, a, b, np, q);
 }
@@ -661,10 +607,8 @@ void Ring::subAndEqual2(ZZ* p1, ZZ* p2, ZZ& q) {
 	}
 }
 
-void Ring::multByMonomial(ZZ* res, ZZ* p, long degx, long degy, ZZ& q) {
-	for (long i = 0; i < N; ++i) {
-		res[i] = ZZ::zero();
-	}
+ZZ* Ring::multByMonomial(ZZ* p, long degx, long degy, ZZ& q) {
+	ZZ* res = new ZZ[N];
 
 	for (long ix = 0; ix < N0; ++ix) {
 		for (long iy = 0; iy < N1; ++iy) {
@@ -690,11 +634,11 @@ void Ring::multByMonomial(ZZ* res, ZZ* p, long degx, long degy, ZZ& q) {
 			}
 		}
 	}
+	return res;
 }
 
 void Ring::multByMonomialAndEqual(ZZ* p, long degx, long degy, ZZ& q) {
-	ZZ* res = new ZZ[N];
-	multByMonomial(res, p, degx, degy, q);
+	ZZ* res = multByMonomial(p, degx, degy, q);
 	for (long i = 0; i < N; ++i) {
 		p[i] = res[i];
 	}
@@ -758,10 +702,10 @@ void Ring::rightShiftAndEqual(ZZ* p, long bits) {
 //----------------------------------------------------------------------------------
 
 
-void Ring::leftRotate(ZZ* res, ZZ* p, long rx, long ry) {
+ZZ* Ring::leftRotate(ZZ* p, long rx, long ry) {
 
 	ZZ* xxx = new ZZ[N];
-	long degx = gx0Pows[rx];
+	long degx = gM0Pows[rx];
 	for (long j = 0; j < N; j += N0) {
 		for (long ix = 0; ix < N0; ++ix) {
 			long ipow = ix * degx;
@@ -774,11 +718,9 @@ void Ring::leftRotate(ZZ* res, ZZ* p, long rx, long ry) {
 		}
 	}
 
-	for (long i = 0; i < N; ++i) {
-		res[i] = ZZ::zero();
-	}
+	ZZ* res = new ZZ[N];
 
-	long degy = gx1Pows[ry];
+	long degy = gM1Pows[ry];
 	for (long ix = 0; ix < N0; ++ix) {
 		for (long iy = 0; iy < N1; ++iy) {
 			long ipow = iy * degy;
@@ -793,9 +735,10 @@ void Ring::leftRotate(ZZ* res, ZZ* p, long rx, long ry) {
 		}
 	}
 	delete[] xxx;
+	return res;
 }
 
-void Ring::conjugate(ZZ* res, ZZ* p) {
+ZZ* Ring::conjugate(ZZ* p) {
 	ZZ* xxx = new ZZ[N];
 
 	for (long j = 0; j < N; j += N0) {
@@ -804,9 +747,7 @@ void Ring::conjugate(ZZ* res, ZZ* p) {
 			xxx[N0 - ix + j] = -p[ix + j];
 		}
 	}
-	for (long i = 0; i < N; ++i) {
-		res[i] = ZZ::zero();
-	}
+	ZZ* res = new ZZ[N];
 
 	for (long ix = 0; ix < N0; ++ix) {
 		res[ix] += xxx[ix];
@@ -819,6 +760,7 @@ void Ring::conjugate(ZZ* res, ZZ* p) {
 	}
 
 	delete[] xxx;
+	return res;
 }
 
 

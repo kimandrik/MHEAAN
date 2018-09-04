@@ -207,7 +207,7 @@ Ciphertext SchemeAlgo::squareMatMult(Ciphertext& cipher1, Ciphertext& cipher2, l
 		cipherR[i] = (i == 0) ? cipher1 : scheme.rightRotateFast(cipher1, i, 0);
 		scheme.modDownByAndEqual(cipherR[i], logSize);
 
-		cipherP[i] = scheme.multByPoly(cipher2, ptmpm.mvec[i], logSize);
+		cipherP[i] = scheme.multPoly(cipher2, ptmpm.mvec[i], logSize);
 		scheme.reScaleByAndEqual(cipherP[i], logSize);
 		for (long j = 0; j < logSize; ++j) {
 			Ciphertext rot = scheme.leftRotateFast(cipherP[i], 0, (1 << j));
@@ -240,7 +240,7 @@ void SchemeAlgo::squareMatMultAndEqual(Ciphertext& cipher, long logp, long size)
 		cipherR[i] = (i == 0) ? cipher : scheme.rightRotateFast(cipher, i, 0);
 		scheme.modDownByAndEqual(cipherR[i], logp);
 
-		cipherP[i] = scheme.multByPoly(cipher, ptmpm.mvec[i], logp);
+		cipherP[i] = scheme.multPoly(cipher, ptmpm.mvec[i], logp);
 		scheme.reScaleByAndEqual(cipherP[i], logp);
 		for (long j = 0; j < logSize; ++j) {
 			Ciphertext rot = scheme.leftRotateFast(cipherP[i], 0, (1 << j));
@@ -334,12 +334,12 @@ Ciphertext SchemeAlgo::function(Ciphertext& cipher, string& funcName, long logp,
 	long dlogp = 2 * logp;
 
 	double* coeffs = taylorCoeffsMap.at(funcName);
-	Ciphertext res = scheme.multByConst(cpows[0], coeffs[1], logp);
+	Ciphertext res = scheme.multConst(cpows[0], coeffs[1], logp);
 	scheme.addConstAndEqual(res, coeffs[0], dlogp);
 
 	for (int i = 1; i < degree; ++i) {
 		if (abs(coeffs[i + 1]) > 1e-27) {
-			Ciphertext aixi = scheme.multByConst(cpows[i], coeffs[i + 1], logp);
+			Ciphertext aixi = scheme.multConst(cpows[i], coeffs[i + 1], logp);
 			scheme.modDownToAndEqual(res, aixi.logq);
 			scheme.addAndEqual(res, aixi);
 		}
@@ -356,13 +356,13 @@ Ciphertext SchemeAlgo::functionLazy(Ciphertext& cipher, string& funcName,
 
 	double* coeffs = taylorCoeffsMap.at(funcName);
 
-	Ciphertext res = scheme.multByConst(cpows[0], coeffs[1], logp);
+	Ciphertext res = scheme.multConst(cpows[0], coeffs[1], logp);
 
 	scheme.addConstAndEqual(res, coeffs[0], dlogp);
 
 	for (int i = 1; i < degree; ++i) {
 		if (abs(coeffs[i + 1]) > 1e-27) {
-			Ciphertext aixi = scheme.multByConst(cpows[i], coeffs[i + 1], logp);
+			Ciphertext aixi = scheme.multConst(cpows[i], coeffs[i + 1], logp);
 			scheme.modDownToAndEqual(res, aixi.logq);
 			scheme.addAndEqual(res, aixi);
 		}
@@ -375,14 +375,14 @@ Ciphertext* SchemeAlgo::functionExtended(Ciphertext& cipher, string& funcName, l
 
 	long dlogp = 2 * logp;
 	double* coeffs = taylorCoeffsMap.at(funcName);
-	Ciphertext aixi = scheme.multByConst(cpows[0], coeffs[1], logp);
+	Ciphertext aixi = scheme.multConst(cpows[0], coeffs[1], logp);
 	scheme.addConstAndEqual(aixi, coeffs[0], dlogp);
 
 	Ciphertext* res = new Ciphertext[degree];
 	res[0] = aixi;
 	for (long i = 1; i < degree; ++i) {
 		if (abs(coeffs[i + 1]) > 1e-27) {
-			aixi = scheme.multByConst(cpows[i], coeffs[i + 1], logp);
+			aixi = scheme.multConst(cpows[i], coeffs[i + 1], logp);
 			Ciphertext ctmp = scheme.modDownTo(res[i - 1], aixi.logq);
 			scheme.addAndEqual(aixi, ctmp);
 			res[i] = aixi;
@@ -552,7 +552,7 @@ void SchemeAlgo::IDFTXY(Ciphertext* ciphers, const long nx, const long ny) {
 	long logn = log2((double) n);
 	NTL_EXEC_RANGE(n, first, last);
 	for (long i = first; i < last; ++i) {
-		scheme.divByPo2AndEqual(ciphers[i], logn);
+		scheme.divPo2AndEqual(ciphers[i], logn);
 	}
 	NTL_EXEC_RANGE_END;
 }

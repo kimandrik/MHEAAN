@@ -16,20 +16,14 @@ using namespace NTL;
 class BootContext {
 public:
 
-	ZZ** pxVec;
-	ZZ** pyrVec;
-	ZZ** pyiVec;
-
-	ZZ** pxInvVec;
-	ZZ** pyrInvVec;
-	ZZ** pyiInvVec;
-
-	ZZ* p1;
-	ZZ* p2;
+	uint64_t** rpxVec;
+	uint64_t** rpxInvVec;
+	uint64_t* rp1;
+	uint64_t* rp2;
 
 	long logp;
 
-	BootContext(ZZ** pxVec = NULL, ZZ** pyrVec = NULL, ZZ** pyiVec = NULL, ZZ** pxInvVec = NULL, ZZ** pyrInvVec = NULL, ZZ** pyiInvVec = NULL, ZZ* p1 = NULL, ZZ* p2 = NULL, long logp = 0);
+	BootContext(uint64_t** rpxVec = NULL, uint64_t** rpxInvVec = NULL, uint64_t* rp1 = NULL, uint64_t* rp2 = NULL, long logp = 0);
 
 };
 

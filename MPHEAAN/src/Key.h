@@ -19,9 +19,7 @@ public:
 	uint64_t* rax;
 	uint64_t* rbx;
 
-	long bnd;
-
-	Key(uint64_t* rax = NULL, uint64_t* rbx = NULL, long bnd = 0);
+	Key(uint64_t* rax = NULL, uint64_t* rbx = NULL);
 
 };
 

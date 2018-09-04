@@ -32,7 +32,7 @@ void Scheme::addEncKey(SecretKey& secretKey) {
 	ring.sampleUniform(ax, ring.logQQ);
 	ring.sampleGauss(ex);
 
-	long np = ceil((1 + ring.logQQ + 2 * ring.logN + 2)/59.0);
+	long np = ceil((1 + ring.logQQ + ring.logN + 3)/59.0);
 	ring.mult(bx, secretKey.sx, ax, np, ring.QQ);
 	ring.sub(bx, ex, bx, ring.QQ);
 
@@ -40,8 +40,7 @@ void Scheme::addEncKey(SecretKey& secretKey) {
 	uint64_t* rax = ring.toNTT(ax, np);
 	uint64_t* rbx = ring.toNTT(bx, np);
 
-	long bnd = 2 * ring.logQ;
-	keyMap.insert(pair<long, Key>(ENCRYPTION, Key(rax, rbx, bnd)));
+	keyMap.insert(pair<long, Key>(ENCRYPTION, Key(rax, rbx)));
 
 	delete[] ex;
 	delete[] ax;
@@ -54,14 +53,14 @@ void Scheme::addMultKey(SecretKey& secretKey) {
 	ZZ* bx = new ZZ[ring.N];
 	ZZ* sxsx = new ZZ[ring.N];
 
-	long np = ceil((1 + 1 + 2 * ring.logN + 2)/59.0);
+	long np = ceil((1 + 1 + ring.logN + 3)/59.0);
 	ring.mult(sxsx, secretKey.sx, secretKey.sx, np, ring.Q);
 	ring.leftShiftAndEqual(sxsx, ring.logQ, ring.QQ);
 	ring.sampleUniform(ax, ring.logQQ);
 	ring.sampleGauss(ex);
 	ring.addAndEqual(ex, sxsx, ring.QQ);
 
-	np = ceil((1 + ring.logQQ + 2 * ring.logN + 2)/59.0);
+	np = ceil((1 + ring.logQQ + ring.logN + 3)/59.0);
 	ring.mult(bx, secretKey.sx, ax, np, ring.QQ);
 	ring.sub(bx, ex, bx, ring.QQ);
 
@@ -69,8 +68,7 @@ void Scheme::addMultKey(SecretKey& secretKey) {
 	uint64_t* rax = ring.toNTT(ax, np);
 	uint64_t* rbx = ring.toNTT(bx, np);
 
-	long bnd = 2 * ring.logQ;
-	keyMap.insert(pair<long, Key>(MULTIPLICATION, Key(rax, rbx, bnd)));
+	keyMap.insert(pair<long, Key>(MULTIPLICATION, Key(rax, rbx)));
 
 	delete[] ex;
 	delete[] ax;
@@ -83,23 +81,23 @@ void Scheme::addLeftRotKey(SecretKey& secretKey, long rx, long ry) {
 	ZZ* exy = new ZZ[ring.N];
 	ZZ* axy = new ZZ[ring.N];
 	ZZ* bxy = new ZZ[ring.N];
-	ZZ* rysxy = new ZZ[ring.N];
-	ring.leftRotate(rysxy, secretKey.sx, rx, ry);
+
+	ZZ* rysxy = ring.leftRotate(secretKey.sx, rx, ry);
+
 	ring.leftShiftAndEqual(rysxy, ring.logQ, ring.QQ);
 	ring.sampleUniform(axy, ring.logQQ);
 	ring.sampleGauss(exy);
 	ring.addAndEqual(exy, rysxy, ring.QQ);
 
-	long np = ceil((1 + ring.logQQ + 2 * ring.logN + 2)/59.0);
+	long np = ceil((1 + ring.logQQ + ring.logN + 3)/59.0);
 	ring.mult(bxy, secretKey.sx, axy, np, ring.QQ);
 	ring.sub(bxy, exy, bxy, ring.QQ);
 
-	np = ceil((2 * ring.logQQ + 2 * ring.logN + 2)/59.0);
+	np = ceil((2 * ring.logQQ + ring.logN + 3)/59.0);
 	uint64_t* rax = ring.toNTT(axy, np);
 	uint64_t* rbx = ring.toNTT(bxy, np);
 
-	long bnd = 2 * ring.logQ;
-	leftRotKeyMap.insert(pair<pair<long, long>, Key>({rx, ry}, Key(rax, rbx, bnd)));
+	leftRotKeyMap.insert(pair<pair<long, long>, Key>({rx, ry}, Key(rax, rbx)));
 
 	delete[] exy;
 	delete[] axy;
@@ -142,32 +140,31 @@ void Scheme::addRightYRotKeys(SecretKey& secretKey) {
 }
 
 void Scheme::addConjKey(SecretKey& secretKey) {
-	ZZ* exy = new ZZ[ring.N];
-	ZZ* axy = new ZZ[ring.N];
-	ZZ* bxy = new ZZ[ring.N];
-	ZZ* conjsxy = new ZZ[ring.N];
+	ZZ* ex = new ZZ[ring.N];
+	ZZ* ax = new ZZ[ring.N];
+	ZZ* bx = new ZZ[ring.N];
 
-	ring.conjugate(conjsxy, secretKey.sx);
-	ring.leftShiftAndEqual(conjsxy, ring.logQ, ring.QQ);
-	ring.sampleUniform(axy, ring.logQQ);
-	ring.sampleGauss(exy);
-	ring.addAndEqual(exy, conjsxy, ring.QQ);
+	ZZ* conjsx = ring.conjugate(secretKey.sx);
 
-	long np = ceil((1 + ring.logQQ + 2 * ring.logN + 2)/59.0);
-	ring.mult(bxy, secretKey.sx, axy, np, ring.QQ);
-	ring.sub(bxy, exy, bxy, ring.QQ);
+	ring.leftShiftAndEqual(conjsx, ring.logQ, ring.QQ);
+	ring.sampleUniform(ax, ring.logQQ);
+	ring.sampleGauss(ex);
+	ring.addAndEqual(ex, conjsx, ring.QQ);
 
-	np = ceil((2 * ring.logQQ + 2 * ring.logN + 2)/59.0);
-	uint64_t* rax = ring.toNTT(axy, np);
-	uint64_t* rbx = ring.toNTT(bxy, np);
+	long np = ceil((1 + ring.logQQ + ring.logN + 3)/59.0);
+	ring.mult(bx, secretKey.sx, ax, np, ring.QQ);
+	ring.sub(bx, ex, bx, ring.QQ);
 
-	long bnd = 2 * ring.logQ;
-	keyMap.insert(pair<long, Key>(CONJUGATION, Key(rax, rbx, bnd)));
+	np = ceil((2 * ring.logQQ + ring.logN + 3)/59.0);
+	uint64_t* rax = ring.toNTT(ax, np);
+	uint64_t* rbx = ring.toNTT(bx, np);
 
-	delete[] exy;
-	delete[] axy;
-	delete[] bxy;
-	delete[] conjsxy;
+	keyMap.insert(pair<long, Key>(CONJUGATION, Key(rax, rbx)));
+
+	delete[] ex;
+	delete[] ax;
+	delete[] bx;
+	delete[] conjsx;
 }
 
 void Scheme::addBootKey(SecretKey& secretKey, long lognx, long logny, long logp) {
@@ -300,7 +297,7 @@ Ciphertext Scheme::encryptMsg(Plaintext& msg) {
 
 	Key key = keyMap.at(ENCRYPTION);
 
-	long np = ceil((1 + key.bnd + 2 * ring.logN + 2)/59.0);
+	long np = ceil((1 + ring.logQQ + ring.logN + 3)/59.0);
 	ring.multNTT(axy, vxy, key.rax, np, qQ);
 	ring.sampleGauss(exy);
 	ring.addAndEqual(axy, exy, qQ);
@@ -350,7 +347,7 @@ Plaintext Scheme::decryptMsg(SecretKey& secretKey, Ciphertext& cipher) {
 	ZZ q = ring.qvec[cipher.logq];
 	ZZ* mx = new ZZ[ring.N];
 
-	long np = ceil((1 + cipher.logq + 2 * ring.logN + 2)/59.0);
+	long np = ceil((1 + cipher.logq + ring.logN + 3)/59.0);
 	ring.mult(mx, cipher.ax, secretKey.sx, np, q);
 	ring.addAndEqual(mx, cipher.bx, q);
 	return Plaintext(mx, cipher.logp, cipher.logq, cipher.N0, cipher.N1, cipher.n0, cipher.n1);
@@ -481,11 +478,8 @@ void Scheme::subAndEqual2(Ciphertext& cipher1, Ciphertext& cipher2) {
 Ciphertext Scheme::imult(Ciphertext& cipher) {
 	ZZ q = ring.qvec[cipher.logq];
 
-	ZZ* axy = new ZZ[ring.N];
-	ZZ* bxy = new ZZ[ring.N];
-
-	ring.multByMonomial(axy, cipher.ax, ring.N0h, 0, q);
-	ring.multByMonomial(bxy, cipher.bx, ring.N0h, 0, q);
+	ZZ* axy = ring.multByMonomial(cipher.ax, ring.N0h, 0, q);
+	ZZ* bxy = ring.multByMonomial(cipher.bx, ring.N0h, 0, q);
 
 	return Ciphertext(axy, bxy, cipher.logp, cipher.logq, cipher.N0, cipher.N1, cipher.n0, cipher.n1);
 }
@@ -493,11 +487,8 @@ Ciphertext Scheme::imult(Ciphertext& cipher) {
 Ciphertext Scheme::idiv(Ciphertext& cipher) {
 	ZZ q = ring.qvec[cipher.logq];
 
-	ZZ* axy = new ZZ[ring.N];
-	ZZ* bxy = new ZZ[ring.N];
-
-	ring.multByMonomial(axy, cipher.ax, 3 * ring.N0h, 0, q);
-	ring.multByMonomial(bxy, cipher.bx, 3 * ring.N0h, 0, q);
+	ZZ* axy = ring.multByMonomial(cipher.ax, 3 * ring.N0h, 0, q);
+	ZZ* bxy = ring.multByMonomial(cipher.bx, 3 * ring.N0h, 0, q);
 
 	return Ciphertext(axy, bxy, cipher.logp, cipher.logq, cipher.N0, cipher.N1, cipher.n0, cipher.n1);
 }
@@ -519,7 +510,7 @@ Ciphertext Scheme::mult(Ciphertext& cipher1, Ciphertext& cipher2) {
 	ZZ q = ring.qvec[cipher1.logq];
 	ZZ qQ = ring.qvec[cipher1.logq + ring.logQ];
 
-	long np = ceil((2 + cipher1.logq + cipher2.logq + 2 * ring.logN + 2)/59.0);
+	long np = ceil((2 + cipher1.logq + cipher2.logq + ring.logN + 3)/59.0);
 	uint64_t* ra1 = ring.toNTT(cipher1.ax, np);
 	uint64_t* rb1 = ring.toNTT(cipher1.bx, np);
 
@@ -534,7 +525,7 @@ Ciphertext Scheme::mult(Ciphertext& cipher1, Ciphertext& cipher2) {
 
 	ZZ* aax = new ZZ[ring.N];
 	ZZ* bbx = new ZZ[ring.N];
-	np = ceil((cipher1.logq + cipher2.logq + 2 * ring.logN + 2)/59.0);
+	np = ceil((cipher1.logq + cipher2.logq + ring.logN + 3)/59.0);
 	ring.multDNTT(aax, ra1, ra2, np, q);
 	ring.multDNTT(bbx, rb1, rb2, np, q);
 
@@ -543,7 +534,7 @@ Ciphertext Scheme::mult(Ciphertext& cipher1, Ciphertext& cipher2) {
 	ZZ* ax = new ZZ[ring.N];
 	ZZ* bx = new ZZ[ring.N];
 
-	np = ceil((cipher1.logq + key.bnd + 2 * ring.logN + 2)/59.0);
+	np = ceil((cipher1.logq + ring.logQQ + ring.logN + 3)/59.0);
 	uint64_t* raa = ring.toNTT(aax, np);
 	ring.multDNTT(ax, raa, key.rax, np, qQ);
 	ring.multDNTT(bx, raa, key.rbx, np, qQ);
@@ -575,7 +566,7 @@ void Scheme::multAndEqual(Ciphertext& cipher1, Ciphertext& cipher2) {
 	ZZ q = ring.qvec[cipher1.logq];
 	ZZ qQ = ring.qvec[cipher1.logq + ring.logQ];
 
-	long np = ceil((2 + cipher1.logq + cipher2.logq + 2 * ring.logN + 2)/59.0);
+	long np = ceil((2 + cipher1.logq + cipher2.logq + ring.logN + 3)/59.0);
 
 	uint64_t* ra1 = ring.toNTT(cipher1.ax, np);
 	uint64_t* rb1 = ring.toNTT(cipher1.bx, np);
@@ -592,13 +583,13 @@ void Scheme::multAndEqual(Ciphertext& cipher1, Ciphertext& cipher2) {
 
 	ZZ* aax = new ZZ[ring.N];
 	ZZ* bbx = new ZZ[ring.N];
-	np = ceil((cipher1.logq + cipher2.logq + 2 * ring.logN + 2)/59.0);
+	np = ceil((cipher1.logq + cipher2.logq + ring.logN + 3)/59.0);
 	ring.multDNTT(aax, ra1, ra2, np, q);
 	ring.multDNTT(bbx, rb1, rb2, np, q);
 
 	Key key = keyMap.at(MULTIPLICATION);
 
-	np = ceil((cipher1.logq + key.bnd + 2 * ring.logN + 2)/59.0);
+	np = ceil((cipher1.logq + ring.logQQ + ring.logN + 3)/59.0);
 	uint64_t* raa = ring.toNTT(aax, np);
 	ring.multDNTT(cipher1.ax, raa, key.rax, np, qQ);
 	ring.multDNTT(cipher1.bx, raa, key.rbx, np, qQ);
@@ -629,7 +620,7 @@ Ciphertext Scheme::square(Ciphertext& cipher) {
 	ZZ q = ring.qvec[cipher.logq];
 	ZZ qQ = ring.qvec[cipher.logq + ring.logQ];
 
-	long np = ceil((2 * cipher.logq + 2 * ring.logN + 2)/59.0);
+	long np = ceil((2 * cipher.logq + ring.logN + 3)/59.0);
 	uint64_t* ra = ring.toNTT(cipher.ax, np);
 	uint64_t* rb = ring.toNTT(cipher.bx, np);
 
@@ -647,7 +638,7 @@ Ciphertext Scheme::square(Ciphertext& cipher) {
 	ZZ* ax = new ZZ[ring.N];
 	ZZ* bx = new ZZ[ring.N];
 
-	np = ceil((cipher.logq + key.bnd + 2 * ring.logN + 2)/59.0);
+	np = ceil((cipher.logq + ring.logQQ + ring.logN + 3)/59.0);
 	uint64_t* raa = ring.toNTT(aax, np);
 	ring.multDNTT(ax, raa, key.rax, np, qQ);
 	ring.multDNTT(bx, raa, key.rbx, np, qQ);
@@ -673,7 +664,7 @@ void Scheme::squareAndEqual(Ciphertext& cipher) {
 	ZZ q = ring.qvec[cipher.logq];
 	ZZ qQ = ring.qvec[cipher.logq + ring.logQ];
 
-	long np = ceil((2 * cipher.logq + 2 * ring.logN + 2)/59.0);
+	long np = ceil((2 * cipher.logq + ring.logN + 3)/59.0);
 	uint64_t* ra = ring.toNTT(cipher.ax, np);
 	uint64_t* rb = ring.toNTT(cipher.bx, np);
 
@@ -688,7 +679,7 @@ void Scheme::squareAndEqual(Ciphertext& cipher) {
 
 	Key key = keyMap.at(MULTIPLICATION);
 
-	np = ceil((cipher.logq + key.bnd + 2 * ring.logN + 2)/59.0);
+	np = ceil((cipher.logq + ring.logQQ + ring.logN + 3)/59.0);
 	uint64_t* raa = ring.toNTT(aax, np);
 	ring.multDNTT(cipher.ax, raa, key.rax, np, qQ);
 	ring.multDNTT(cipher.bx, raa, key.rbx, np, qQ);
@@ -710,7 +701,7 @@ void Scheme::squareAndEqual(Ciphertext& cipher) {
 	delete[] raa;
 }
 
-Ciphertext Scheme::multByConst(Ciphertext& cipher, RR& cnst, long logp) {
+Ciphertext Scheme::multConst(Ciphertext& cipher, RR& cnst, long logp) {
 	ZZ q = ring.qvec[cipher.logq];
 
 	ZZ* axy = new ZZ[ring.N];
@@ -725,7 +716,7 @@ Ciphertext Scheme::multByConst(Ciphertext& cipher, RR& cnst, long logp) {
 }
 
 
-Ciphertext Scheme::multByConst(Ciphertext& cipher, double cnst, long logp) {
+Ciphertext Scheme::multConst(Ciphertext& cipher, double cnst, long logp) {
 	ZZ q = ring.qvec[cipher.logq];
 
 	ZZ* axy = new ZZ[ring.N];
@@ -739,23 +730,20 @@ Ciphertext Scheme::multByConst(Ciphertext& cipher, double cnst, long logp) {
 	return Ciphertext(axy, bxy, cipher.logp + logp, cipher.logq, cipher.N0, cipher.N1, cipher.n0, cipher.n1);
 }
 
-Ciphertext Scheme::multByConst(Ciphertext& cipher, complex<double> cnst, long logp) {
+Ciphertext Scheme::multConst(Ciphertext& cipher, complex<double> cnst, long logp) {
 	ZZ q = ring.qvec[cipher.logq];
 
 	ZZ* axy = new ZZ[ring.N];
 	ZZ* bxy = new ZZ[ring.N];
 
-	ZZ* axyi = new ZZ[ring.N];
-	ZZ* bxyi = new ZZ[ring.N];
+	ZZ* axyi = ring.multByMonomial(cipher.ax, ring.N0h, 0, q);
+	ZZ* bxyi = ring.multByMonomial(cipher.bx, ring.N0h, 0, q);
 
 	ZZ cnstrZZ = EvaluatorUtils::scaleUpToZZ(cnst.real(), logp);
 	ZZ cnstiZZ = EvaluatorUtils::scaleUpToZZ(cnst.imag(), logp);
 
 	ring.multByConst(axy, cipher.ax, cnstrZZ, q);
 	ring.multByConst(bxy, cipher.bx, cnstrZZ, q);
-
-	ring.multByMonomial(axyi, cipher.ax, ring.N0h, 0, q);
-	ring.multByMonomial(bxyi, cipher.bx, ring.N0h, 0, q);
 
 	ring.multByConstAndEqual(axyi, cnstiZZ, q);
 	ring.multByConstAndEqual(bxyi, cnstiZZ, q);
@@ -766,7 +754,7 @@ Ciphertext Scheme::multByConst(Ciphertext& cipher, complex<double> cnst, long lo
 	return Ciphertext(axy, bxy, cipher.logp + logp, cipher.logq, cipher.N0, cipher.N1, cipher.n0, cipher.n1);
 }
 
-void Scheme::multByConstAndEqual(Ciphertext& cipher, RR& cnst, long logp) {
+void Scheme::multConstAndEqual(Ciphertext& cipher, RR& cnst, long logp) {
 	ZZ q = ring.qvec[cipher.logq];
 
 	ZZ cnstZZ = EvaluatorUtils::scaleUpToZZ(cnst, logp);
@@ -777,7 +765,7 @@ void Scheme::multByConstAndEqual(Ciphertext& cipher, RR& cnst, long logp) {
 	cipher.logp += logp;
 }
 
-void Scheme::multByConstAndEqual(Ciphertext& cipher, double cnst, long logp) {
+void Scheme::multConstAndEqual(Ciphertext& cipher, double cnst, long logp) {
 	ZZ q = ring.qvec[cipher.logq];
 
 	ZZ cnstZZ = EvaluatorUtils::scaleUpToZZ(cnst, logp);
@@ -788,17 +776,15 @@ void Scheme::multByConstAndEqual(Ciphertext& cipher, double cnst, long logp) {
 	cipher.logp += logp;
 }
 
-void Scheme::multByConstAndEqual(Ciphertext& cipher, complex<double> cnst, long logp) {
+void Scheme::multConstAndEqual(Ciphertext& cipher, complex<double> cnst, long logp) {
 	ZZ q = ring.qvec[cipher.logq];
 
-	ZZ* axyi = new ZZ[ring.N];
-	ZZ* bxyi = new ZZ[ring.N];
 
 	ZZ cnstrZZ = EvaluatorUtils::scaleUpToZZ(cnst.real(), logp);
 	ZZ cnstiZZ = EvaluatorUtils::scaleUpToZZ(cnst.imag(), logp);
 
-	ring.multByMonomial(axyi, cipher.ax, ring.N0h, 0, q);
-	ring.multByMonomial(bxyi, cipher.bx, ring.N0h, 0, q);
+	ZZ* axyi = ring.multByMonomial(cipher.ax, ring.N0h, 0, q);
+	ZZ* bxyi = ring.multByMonomial(cipher.bx, ring.N0h, 0, q);
 
 	ring.multByConstAndEqual(axyi, cnstiZZ, q);
 	ring.multByConstAndEqual(bxyi, cnstiZZ, q);
@@ -813,102 +799,158 @@ void Scheme::multByConstAndEqual(Ciphertext& cipher, complex<double> cnst, long 
 }
 
 
-Ciphertext Scheme::multByXPoly(Ciphertext& cipher, ZZ* xpoly, long logp) {
+Ciphertext Scheme::multPolyX0(Ciphertext& cipher, ZZ* poly, long logp) {
 	ZZ q = ring.qvec[cipher.logq];
 
 	ZZ* ax = new ZZ[ring.N];
 	ZZ* bx = new ZZ[ring.N];
 
-	long np = ceil((cipher.logq + ring.MaxBits(xpoly, ring.N0) + 2 * ring.logN + 2)/59.0);
-	ring.multX0(ax, cipher.ax, xpoly, np, q);
-	ring.multX0(bx, cipher.bx, xpoly, np, q);
+	long np = ceil((cipher.logq + logp + ring.logN0 + 3)/59.0);
+	uint64_t* rpoly = ring.toNTTX0(poly, np);
+	ring.multNTTX0(ax, cipher.ax, rpoly, np, q);
+	ring.multNTTX0(bx, cipher.bx, rpoly, np, q);
+	delete[] rpoly;
 
 	return Ciphertext(ax, bx, cipher.logp + logp, cipher.logq, cipher.N0, cipher.N1, cipher.n0, cipher.n1);
 }
 
-void Scheme::multByXPolyAndEqual(Ciphertext& cipher, ZZ* xpoly, long logp) {
+void Scheme::multPolyX0AndEqual(Ciphertext& cipher, ZZ* poly, long logp) {
 	ZZ q = ring.qvec[cipher.logq];
 
-	long np = ceil((cipher.logq + ring.MaxBits(xpoly, ring.N0) + 2 * ring.logN + 2)/59.0);
-	ring.multX0AndEqual(cipher.ax, xpoly, np, q);
-	ring.multX0AndEqual(cipher.bx, xpoly, np, q);
+	long np = ceil((cipher.logq + logp + ring.logN0 + 3)/59.0);
+	uint64_t* rpoly = ring.toNTTX0(poly, np);
+	ring.multNTTX0AndEqual(cipher.ax, rpoly, np, q);
+	ring.multNTTX0AndEqual(cipher.bx, rpoly, np, q);
+	delete[] rpoly;
 
 	cipher.logp += logp;
 }
 
-Ciphertext Scheme::multByYPoly(Ciphertext& cipher, ZZ* yrpoly, ZZ* yipoly, long logp) {
+Ciphertext Scheme::multPolyNTTX0(Ciphertext& cipher, uint64_t* rpoly, long logp) {
+	ZZ q = ring.qvec[cipher.logq];
+
+	ZZ* ax = new ZZ[ring.N];
+	ZZ* bx = new ZZ[ring.N];
+
+	long np = ceil((cipher.logq + logp + ring.logN0 + 3)/59.0);
+	ring.multNTTX0(ax, cipher.ax, rpoly, np, q);
+	ring.multNTTX0(bx, cipher.bx, rpoly, np, q);
+	return Ciphertext(ax, bx, cipher.logp + logp, cipher.logq, cipher.N0, cipher.N1, cipher.n0, cipher.n1);
+
+}
+
+void Scheme::multPolyNTTX0AndEqual(Ciphertext& cipher, uint64_t* rpoly, long logp) {
+	ZZ q = ring.qvec[cipher.logq];
+
+	long np = ceil((cipher.logq + logp + ring.logN0 + 3)/59.0);
+	ring.multNTTX0AndEqual(cipher.ax, rpoly, np, q);
+	ring.multNTTX0AndEqual(cipher.bx, rpoly, np, q);
+	cipher.logp += logp;
+}
+
+Ciphertext Scheme::multPolyX1(Ciphertext& cipher, ZZ* rpoly, ZZ* ipoly, long logp) {
 	ZZ q = ring.qvec[cipher.logq];
 
 	ZZ* axyr = new ZZ[ring.N];
 	ZZ* bxyr = new ZZ[ring.N];
-	ZZ* axyi = new ZZ[ring.N];
-	ZZ* bxyi = new ZZ[ring.N];
 
-	ring.multByMonomial(axyi, cipher.ax, ring.N0h, 0, q);
-	ring.multByMonomial(bxyi, cipher.bx, ring.N0h, 0, q);
+	ZZ* axyi = ring.multByMonomial(cipher.ax, ring.N0h, 0, q);
+	ZZ* bxyi = ring.multByMonomial(cipher.bx, ring.N0h, 0, q);
 
-	long np = ceil((cipher.logq + ring.MaxBits(yipoly, ring.N0) + 2 * ring.logN + 2)/59.0);
-	ring.multX1AndEqual(axyi, yipoly, np, q);
-	ring.multX1AndEqual(bxyi, yipoly, np, q);
+	long np = ceil((cipher.logq + logp + ring.logN1 + 3)/59.0);
+	uint64_t* ripoly = ring.toNTT(ipoly, np);
+	ring.multNTTX1AndEqual(axyi, ripoly, np, q);
+	ring.multNTTX1AndEqual(bxyi, ripoly, np, q);
 
-	np = ceil((cipher.logq + ring.MaxBits(yrpoly, ring.N0) + 2 * ring.logN + 2)/59.0);
-	ring.multX1(axyr, cipher.ax, yrpoly, np, q);
-	ring.multX1(bxyr, cipher.bx, yrpoly, np, q);
+	np = ceil((cipher.logq + logp + ring.logN1 + 3)/59.0);
+	uint64_t* rrpoly = ring.toNTT(rpoly, np);
+	ring.multNTTX1(axyr, cipher.ax, rrpoly, np, q);
+	ring.multNTTX1(bxyr, cipher.bx, rrpoly, np, q);
 
 	ring.addAndEqual(axyr, axyi, q);
 	ring.addAndEqual(bxyr, bxyi, q);
 
 	delete[] axyi;
 	delete[] bxyi;
+	delete[] ripoly;
+	delete[] rrpoly;
 
 	return Ciphertext(axyr, bxyr, cipher.logp + logp, cipher.logq, cipher.N0, cipher.N1, cipher.n0, cipher.n1);
 }
 
-void Scheme::multByYPolyAndEqual(Ciphertext& cipher, ZZ* yrpoly, ZZ* yipoly, long logp) {
+void Scheme::multPolyX1AndEqual(Ciphertext& cipher, ZZ* rpoly, ZZ* ipoly, long logp) {
 	ZZ q = ring.qvec[cipher.logq];
 
-	ZZ* axyi = new ZZ[ring.N];
-	ZZ* bxyi = new ZZ[ring.N];
+	ZZ* axyi = ring.multByMonomial(cipher.ax, ring.N0h, 0, q);
+	ZZ* bxyi = ring.multByMonomial(cipher.bx, ring.N0h, 0, q);
 
-	ring.multByMonomial(axyi, cipher.ax, ring.N0h, 0, q);
-	ring.multByMonomial(bxyi, cipher.bx, ring.N0h, 0, q);
+	long np = ceil((cipher.logq + logp + ring.logN1 + 3)/59.0);
+	uint64_t* rrpoly = ring.toNTT(rpoly, np);
+	ring.multNTTX1AndEqual(cipher.ax, rrpoly, np, q);
+	ring.multNTTX1AndEqual(cipher.bx, rrpoly, np, q);
 
-	long np = ceil((cipher.logq + ring.MaxBits(yipoly, ring.N0) + 2 * ring.logN + 2)/59.0);
-	ring.multX1AndEqual(cipher.ax, yrpoly, np, q);
-	ring.multX1AndEqual(cipher.bx, yrpoly, np, q);
-
-	np = ceil((cipher.logq + ring.MaxBits(yrpoly, ring.N0) + 2 * ring.logN + 2)/59.0);
-	ring.multX1AndEqual(axyi, yipoly, np, q);
-	ring.multX1AndEqual(bxyi, yipoly, np, q);
+	np = ceil((cipher.logq + logp + ring.logN1 + 3)/59.0);
+	uint64_t* ripoly = ring.toNTT(ipoly, np);
+	ring.multNTTX1AndEqual(axyi, ripoly, np, q);
+	ring.multNTTX1AndEqual(bxyi, ripoly, np, q);
 
 	ring.addAndEqual(cipher.ax, axyi, q);
 	ring.addAndEqual(cipher.bx, bxyi, q);
 
 	delete[] axyi;
 	delete[] bxyi;
+	delete[] ripoly;
+	delete[] rrpoly;
 
 	cipher.logp += logp;
 }
 
-Ciphertext Scheme::multByPoly(Ciphertext& cipher, ZZ* poly, long logp) {
+Ciphertext Scheme::multPoly(Ciphertext& cipher, ZZ* poly, long logp) {
 	ZZ q = ring.qvec[cipher.logq];
 
 	ZZ* axy = new ZZ[ring.N];
 	ZZ* bxy = new ZZ[ring.N];
 
-	long np = ceil((cipher.logq + ring.MaxBits(poly, ring.N) + 2 * ring.logN + 2)/59.0);
-	ring.mult(axy, cipher.ax, poly, np, q);
-	ring.mult(bxy, cipher.bx, poly, np, q);
+	long np = ceil((cipher.logq + logp + ring.logN + 3)/59.0);
+	uint64_t* rpoly = ring.toNTT(poly, np);
+	ring.multNTT(axy, cipher.ax, rpoly, np, q);
+	ring.multNTT(bxy, cipher.bx, rpoly, np, q);
+	delete[] rpoly;
+	return Ciphertext(axy, bxy, cipher.logp + logp, cipher.logq, cipher.N0, cipher.N1, cipher.n0, cipher.n1);
+}
+
+void Scheme::multPolyAndEqual(Ciphertext& cipher, ZZ* poly, long logp) {
+	ZZ q = ring.qvec[cipher.logq];
+
+	long np = ceil((cipher.logq + logp + ring.logN + 3)/59.0);
+	uint64_t* rpoly = ring.toNTT(poly, np);
+	ring.multNTTAndEqual(cipher.ax, rpoly, np, q);
+	ring.multNTTAndEqual(cipher.bx, rpoly, np, q);
+	delete[] rpoly;
+
+	cipher.logp += logp;
+}
+
+
+Ciphertext Scheme::multPolyNTT(Ciphertext& cipher, uint64_t* rpoly, long logp) {
+	ZZ q = ring.qvec[cipher.logq];
+
+	ZZ* axy = new ZZ[ring.N];
+	ZZ* bxy = new ZZ[ring.N];
+
+	long np = ceil((cipher.logq + logp + ring.logN + 3)/59.0);
+	ring.multNTT(axy, cipher.ax, rpoly, np, q);
+	ring.multNTT(bxy, cipher.bx, rpoly, np, q);
 
 	return Ciphertext(axy, bxy, cipher.logp + logp, cipher.logq, cipher.N0, cipher.N1, cipher.n0, cipher.n1);
 }
 
-void Scheme::multByPolyAndEqual(Ciphertext& cipher, ZZ* poly, long logp) {
+void Scheme::multPolyNTTAndEqual(Ciphertext& cipher, uint64_t* rpoly, long logp) {
 	ZZ q = ring.qvec[cipher.logq];
 
-	long np = ceil((cipher.logq + ring.MaxBits(poly, ring.N) + 2 * ring.logN + 2)/59.0);
-	ring.multAndEqual(cipher.ax, poly, np, q);
-	ring.multAndEqual(cipher.bx, poly, np, q);
+	long np = ceil((cipher.logq + logp + ring.logN + 3)/59.0);
+	ring.multNTTAndEqual(cipher.ax, rpoly, np, q);
+	ring.multNTTAndEqual(cipher.bx, rpoly, np, q);
 
 	cipher.logp += logp;
 }
@@ -916,11 +958,8 @@ void Scheme::multByPolyAndEqual(Ciphertext& cipher, ZZ* poly, long logp) {
 Ciphertext Scheme::multByMonomial(Ciphertext& cipher, const long dx, const long dy) {
 	ZZ q = ring.qvec[cipher.logq];
 
-	ZZ* axy = new ZZ[ring.N];
-	ZZ* bxy = new ZZ[ring.N];
-
-	ring.multByMonomial(axy, cipher.ax, dx, dy, q);
-	ring.multByMonomial(bxy, cipher.bx, dx, dy, q);
+	ZZ* axy = ring.multByMonomial(cipher.ax, dx, dy, q);
+	ZZ* bxy = ring.multByMonomial(cipher.bx, dx, dy, q);
 
 	return Ciphertext(axy, bxy, cipher.logp, cipher.logq, cipher.N0, cipher.N1, cipher.n0, cipher.n1);
 }
@@ -932,7 +971,7 @@ void Scheme::multByMonomialAndEqual(Ciphertext& cipher, const long dx, const lon
 	ring.multByMonomialAndEqual(cipher.bx, dx, dy, q);
 }
 
-Ciphertext Scheme::multByPo2(Ciphertext& cipher, long degree) {
+Ciphertext Scheme::multPo2(Ciphertext& cipher, long degree) {
 	ZZ q = ring.qvec[cipher.logq];
 
 	ZZ* axy = new ZZ[ring.N];
@@ -944,7 +983,7 @@ Ciphertext Scheme::multByPo2(Ciphertext& cipher, long degree) {
 	return Ciphertext(axy, bxy, cipher.logp, cipher.logq, cipher.N0, cipher.N1, cipher.n0, cipher.n1);
 }
 
-void Scheme::multByPo2AndEqual(Ciphertext& cipher, long degree) {
+void Scheme::multPo2AndEqual(Ciphertext& cipher, long degree) {
 	ZZ q = ring.qvec[cipher.logq];
 
 	ring.leftShiftAndEqual(cipher.ax, degree, q);
@@ -958,7 +997,7 @@ void Scheme::doubleAndEqual(Ciphertext& cipher) {
 	ring.doubleAndEqual(cipher.bx, q);
 }
 
-Ciphertext Scheme::divByPo2(Ciphertext& cipher, long logd) {
+Ciphertext Scheme::divPo2(Ciphertext& cipher, long logd) {
 	ZZ* axy = new ZZ[ring.N];
 	ZZ* bxy = new ZZ[ring.N];
 
@@ -968,7 +1007,7 @@ Ciphertext Scheme::divByPo2(Ciphertext& cipher, long logd) {
 	return Ciphertext(axy, bxy, cipher.logp, cipher.logq - logd, cipher.N0, cipher.N1, cipher.n0, cipher.n1);
 }
 
-void Scheme::divByPo2AndEqual(Ciphertext& cipher, long logd) {
+void Scheme::divPo2AndEqual(Ciphertext& cipher, long logd) {
 	ring.rightShiftAndEqual(cipher.ax, logd);
 	ring.rightShiftAndEqual(cipher.bx, logd);
 	cipher.logq -= logd;
@@ -1067,16 +1106,14 @@ Ciphertext Scheme::leftRotateFast(Ciphertext& cipher, long rx, long ry) {
 	ZZ q = ring.qvec[cipher.logq];
 	ZZ qQ = ring.qvec[cipher.logq + ring.logQ];
 
-	ZZ* rxbx = new ZZ[ring.N];
-	ZZ* rxax = new ZZ[ring.N];
-	ring.leftRotate(rxbx, cipher.bx, rx, ry);
-	ring.leftRotate(rxax, cipher.ax, rx, ry);
+	ZZ* rxbx = ring.leftRotate(cipher.bx, rx, ry);
+	ZZ* rxax = ring.leftRotate(cipher.ax, rx, ry);
 
 	Key key = leftRotKeyMap.at({rx, ry});
 
 	ZZ* ax = new ZZ[ring.N];
 	ZZ* bx = new ZZ[ring.N];
-	long np = ceil((cipher.logq + key.bnd + 2 * ring.logN + 2)/59.0);
+	long np = ceil((cipher.logq + ring.logQQ + ring.logN + 3)/59.0);
 	uint64_t* rrxa = ring.toNTT(rxax, np);
 	ring.multDNTT(ax, rrxa, key.rax, np, qQ);
 	ring.multDNTT(bx, rrxa, key.rbx, np, qQ);
@@ -1103,15 +1140,12 @@ void Scheme::leftRotateFastAndEqual(Ciphertext& cipher, long rx, long ry) {
 	ZZ q = ring.qvec[cipher.logq];
 	ZZ qQ = ring.qvec[cipher.logq + ring.logQ];
 
-	ZZ* rxax = new ZZ[ring.N];
-	ZZ* rxbx = new ZZ[ring.N];
-
-	ring.leftRotate(rxax, cipher.ax, rx, ry);
-	ring.leftRotate(rxbx, cipher.bx, rx, ry);
+	ZZ* rxax = ring.leftRotate(cipher.ax, rx, ry);
+	ZZ* rxbx = ring.leftRotate(cipher.bx, rx, ry);
 
 	Key key = leftRotKeyMap.at({rx, ry});
 
-	long np = ceil((cipher.logq + key.bnd + 2 * ring.logN + 2)/59.0);
+	long np = ceil((cipher.logq + ring.logQQ + ring.logN + 3)/59.0);
 	uint64_t* rrxa = ring.toNTT(rxax, np);
 	ring.multDNTT(cipher.bx, rrxa, key.rbx, np, qQ);
 	ring.multDNTT(cipher.ax, rrxa, key.rax, np, qQ);
@@ -1145,17 +1179,17 @@ Ciphertext Scheme::rightRotate(Ciphertext& cipher, long rx, long ry) {
 }
 
 
-void Scheme::leftRotateAndEqual(Ciphertext& cipher, long rx, long ry) {
-	long rxRem = rx % cipher.n0;
-	long logrxRem = log2((double)rxRem) + 1;
+void Scheme::leftRotateAndEqual(Ciphertext& cipher, long r0, long r1) {
+	r0 %= cipher.n0;
+	long logrxRem = log2((double)r0) + 1;
 	long ipow;
 	for (long i = 0; i < logrxRem; ++i) {
-		if(bit(rxRem, i)) {
+		if(bit(r0, i)) {
 			ipow = 1 << i;
 			leftRotateFastAndEqual(cipher, ipow, 0);
 		}
 	}
-	long ryRem = ry % cipher.n1;
+	long ryRem = r1 % cipher.n1;
 	long logryRem = log2((double)ryRem) + 1;
 	for (long i = 0; i < logryRem; ++i) {
 		if(bit(ryRem, i)) {
@@ -1192,15 +1226,12 @@ Ciphertext Scheme::conjugate(Ciphertext& cipher) {
 	ZZ* ax = new ZZ[ring.N];
 	ZZ* bx = new ZZ[ring.N];
 
-	ZZ* conjbx = new ZZ[ring.N];
-	ZZ* conjax = new ZZ[ring.N];
-
-	ring.conjugate(conjbx, cipher.bx);
-	ring.conjugate(conjax, cipher.ax);
+	ZZ* conjbx = ring.conjugate(cipher.bx);
+	ZZ* conjax = ring.conjugate(cipher.ax);
 
 	Key key = keyMap.at(CONJUGATION);
 
-	long np = ceil((cipher.logq + key.bnd + 2 * ring.logN + 2)/59.0);
+	long np = ceil((cipher.logq + ring.logQQ + ring.logN + 3)/59.0);
 	uint64_t* rconja = ring.toNTT(conjax, np);
 	ring.multDNTT(ax, rconja, key.rax, np, qQ);
 	ring.multDNTT(bx, rconja, key.rbx, np, qQ);
@@ -1221,15 +1252,12 @@ void Scheme::conjugateAndEqual(Ciphertext& cipher) {
 	ZZ q = ring.qvec[cipher.logq];
 	ZZ qQ = ring.qvec[cipher.logq + ring.logQ];
 
-	ZZ* conjax = new ZZ[ring.N];
-	ZZ* conjbx = new ZZ[ring.N];
-
-	ring.conjugate(conjbx, cipher.bx);
-	ring.conjugate(conjax, cipher.ax);
+	ZZ* conjax = ring.conjugate(cipher.ax);
+	ZZ* conjbx = ring.conjugate(cipher.bx);
 
 	Key key = keyMap.at(CONJUGATION);
 
-	long np = ceil((cipher.logq + key.bnd + 2 * ring.logN + 2)/59.0);
+	long np = ceil((cipher.logq + ring.logQQ + ring.logN + 3)/59.0);
 	uint64_t* rconja = ring.toNTT(conjax, np);
 	ring.multDNTT(cipher.ax, rconja, key.rax, np, qQ);
 	ring.multDNTT(cipher.bx, rconja, key.rbx, np, qQ);
@@ -1267,7 +1295,7 @@ void Scheme::normalizeAndEqual(Ciphertext& cipher) {
 	}
 }
 
-void Scheme::coeffToSlotXAndEqual(Ciphertext& cipher) {
+void Scheme::coeffToSlotX0AndEqual(Ciphertext& cipher) {
 	long nx = cipher.n0;
 	long ny = cipher.n1;
 
@@ -1291,7 +1319,7 @@ void Scheme::coeffToSlotXAndEqual(Ciphertext& cipher) {
 
 	NTL_EXEC_RANGE(kx, first, last);
 	for (long j = first; j < last; ++j) {
-		tmpvec[j] = multByXPoly(rotvec[j], bootContext.pxVec[j], bootContext.logp);
+		tmpvec[j] = multPolyNTTX0(rotvec[j], bootContext.rpxVec[j], bootContext.logp);
 	}
 	NTL_EXEC_RANGE_END;
 
@@ -1303,7 +1331,7 @@ void Scheme::coeffToSlotXAndEqual(Ciphertext& cipher) {
 	for (long ki = kx; ki < nx; ki += kx) {
 		NTL_EXEC_RANGE(kx, first, last);
 		for (long j = first; j < last; ++j) {
-			tmpvec[j] = multByXPoly(rotvec[j], bootContext.pxVec[j + ki], bootContext.logp);
+			tmpvec[j] = multPolyNTTX0(rotvec[j], bootContext.rpxVec[j + ki], bootContext.logp);
 		}
 		NTL_EXEC_RANGE_END;
 		for (long j = 1; j < kx; ++j) {
@@ -1317,61 +1345,61 @@ void Scheme::coeffToSlotXAndEqual(Ciphertext& cipher) {
 	delete[] tmpvec;
 }
 
-void Scheme::coeffToSlotYAndEqualNew(Ciphertext& cipher) {
-	long nx = cipher.n0;
-	long ny = cipher.n1;
-	long lognx = log2(nx);
-	long logny = log2(ny);
+void Scheme::coeffToSlotX1AndEqual(Ciphertext& cipher) {
+	long n0 = cipher.n0;
+	long n1 = cipher.n1;
+	long logn0 = log2(n0);
+	long logn1 = log2(n1);
 
-	long logky = logny / 2;
-	long ky = 1 << logky;
+	long logk1 = logn1 / 2;
+	long k1 = 1 << logk1;
 
-	BootContext bootContext = ring.bootContextMap.at({lognx, logny});
+	BootContext bootContext = ring.bootContextMap.at({logn0, logn1});
 
 	multByMonomialAndEqual(cipher, 0, 1);
 	Ciphertext rot = cipher;
-	for (long i = 0; i < logny; ++i) {
-		Ciphertext tmp = leftRotate(rot, 0, 1 << i);
+	for (long i = 1; i < n1; i <<= 1) {
+		Ciphertext tmp = leftRotateFast(rot, 0, i);
 		addAndEqual(rot, tmp);
 	}
 
-	Ciphertext* rotvec = new Ciphertext[ky];
+	Ciphertext* rotvec = new Ciphertext[k1];
 
-	NTL_EXEC_RANGE(ky, first, last);
+	NTL_EXEC_RANGE(k1, first, last);
 	for (long j = first; j < last; ++j) {
 		rotvec[j] = (j == 0) ? cipher : leftRotateFast(cipher, 0, j);
 	}
 	NTL_EXEC_RANGE_END;
 
-	Ciphertext* tmpvec = new Ciphertext[ky];
+	Ciphertext* tmpvec = new Ciphertext[k1];
 
-	NTL_EXEC_RANGE(ky, first, last);
+	NTL_EXEC_RANGE(k1, first, last);
 	for (long j = first; j < last; ++j) {
-		complex<double> cnst = ring.ksix1Pows2[ring.M1 - ring.gx1Pows[j]] * 256./257.;
-		tmpvec[j] = multByConst(rotvec[j], cnst, bootContext.logp);
+		complex<double> cnst = ring.ksiM1Pows[ring.M1 - ring.gM1Pows[j]] * 256./257.;
+		tmpvec[j] = multConst(rotvec[j], cnst, bootContext.logp);
 	}
 	NTL_EXEC_RANGE_END;
 
-	for (long j = 1; j < ky; ++j) {
+	for (long j = 1; j < k1; ++j) {
 		addAndEqual(tmpvec[0], tmpvec[j]);
 	}
 	cipher = tmpvec[0];
 
-	for (long ki = ky; ki < ny; ki += ky) {
-		NTL_EXEC_RANGE(ky, first, last);
+	for (long ki = k1; ki < n1; ki += k1) {
+		NTL_EXEC_RANGE(k1, first, last);
 		for (long j = first; j < last; ++j) {
-			complex<double> cnst = ring.ksix1Pows2[ring.M1 - ring.gx1Pows[j + ki]] * 256./257.;
-			tmpvec[j] = multByConst(rotvec[j], cnst, bootContext.logp);
+			complex<double> cnst = ring.ksiM1Pows[ring.M1 - ring.gM1Pows[j + ki]] * 256./257.;
+			tmpvec[j] = multConst(rotvec[j], cnst, bootContext.logp);
 		}
 		NTL_EXEC_RANGE_END;
-		for (long j = 1; j < ky; ++j) {
+		for (long j = 1; j < k1; ++j) {
 			addAndEqual(tmpvec[0], tmpvec[j]);
 		}
 		leftRotateFastAndEqual(tmpvec[0], 0, ki);
 		addAndEqual(cipher, tmpvec[0]);
 	}
 
-	multByConstAndEqual(rot, 256./257., bootContext.logp);
+	multConstAndEqual(rot, 256./257., bootContext.logp);
 	subAndEqual(cipher, rot);
 	reScaleByAndEqual(cipher, bootContext.logp);
 	delete[] rotvec;
@@ -1379,11 +1407,11 @@ void Scheme::coeffToSlotYAndEqualNew(Ciphertext& cipher) {
 }
 
 void Scheme::coeffToSlotAndEqual(Ciphertext& cipher) {
-	coeffToSlotYAndEqualNew(cipher);
-	coeffToSlotXAndEqual(cipher);
+	coeffToSlotX1AndEqual(cipher);
+	coeffToSlotX0AndEqual(cipher);
 }
 
-void Scheme::slotToCoeffXAndEqual(Ciphertext& cipher) {
+void Scheme::slotToCoeffX0AndEqual(Ciphertext& cipher) {
 	long nx = cipher.n0;
 	long ny = cipher.n1;
 	long lognx = log2(nx);
@@ -1406,7 +1434,7 @@ void Scheme::slotToCoeffXAndEqual(Ciphertext& cipher) {
 
 	NTL_EXEC_RANGE(k, first, last);
 	for (long j = first; j < last; ++j) {
-		tmpvec[j] = multByXPoly(rotvec[j], bootContext.pxInvVec[j], bootContext.logp);
+		tmpvec[j] = multPolyNTTX0(rotvec[j], bootContext.rpxInvVec[j], bootContext.logp);
 	}
 	NTL_EXEC_RANGE_END;
 
@@ -1418,7 +1446,7 @@ void Scheme::slotToCoeffXAndEqual(Ciphertext& cipher) {
 	for (long ki = k; ki < nx; ki+=k) {
 		NTL_EXEC_RANGE(k, first, last);
 		for (long j = first; j < last; ++j) {
-			tmpvec[j] = multByXPoly(rotvec[j], bootContext.pxInvVec[j + ki], bootContext.logp);
+			tmpvec[j] = multPolyNTTX0(rotvec[j], bootContext.rpxInvVec[j + ki], bootContext.logp);
 		}
 		NTL_EXEC_RANGE_END;
 
@@ -1434,7 +1462,7 @@ void Scheme::slotToCoeffXAndEqual(Ciphertext& cipher) {
 	delete[] tmpvec;
 }
 
-void Scheme::slotToCoeffYAndEqualNew(Ciphertext& cipher) {
+void Scheme::slotToCoeffX1AndEqual(Ciphertext& cipher) {
 	long nx = cipher.n0;
 	long ny = cipher.n1;
 	long lognx = log2(nx);
@@ -1457,8 +1485,8 @@ void Scheme::slotToCoeffYAndEqualNew(Ciphertext& cipher) {
 
 	NTL_EXEC_RANGE(k, first, last);
 	for (long j = first; j < last; ++j) {
-		complex<double> cnst = ring.ksix1Pows2[ring.gx1Pows[(ring.N1 - j)%ring.N1]];
-		tmpvec[j] = multByConst(rotvec[j], cnst, bootContext.logp);
+		complex<double> cnst = ring.ksiM1Pows[ring.gM1Pows[(ring.N1 - j)%ring.N1]];
+		tmpvec[j] = multConst(rotvec[j], cnst, bootContext.logp);
 	}
 	NTL_EXEC_RANGE_END;
 
@@ -1470,8 +1498,8 @@ void Scheme::slotToCoeffYAndEqualNew(Ciphertext& cipher) {
 	for (long ki = k; ki < ny; ki+=k) {
 		NTL_EXEC_RANGE(k, first, last);
 		for (long j = first; j < last; ++j) {
-			complex<double> cnst = ring.ksix1Pows2[ring.gx1Pows[(ring.N1 - j - ki)%ring.N1]];
-			tmpvec[j] = multByConst(rotvec[j], cnst, bootContext.logp);
+			complex<double> cnst = ring.ksiM1Pows[ring.gM1Pows[(ring.N1 - j - ki)%ring.N1]];
+			tmpvec[j] = multConst(rotvec[j], cnst, bootContext.logp);
 		}
 		NTL_EXEC_RANGE_END;
 
@@ -1490,8 +1518,8 @@ void Scheme::slotToCoeffYAndEqualNew(Ciphertext& cipher) {
 }
 
 void Scheme::slotToCoeffAndEqual(Ciphertext& cipher) {
-	slotToCoeffXAndEqual(cipher);
-	slotToCoeffYAndEqualNew(cipher);
+	slotToCoeffX0AndEqual(cipher);
+	slotToCoeffX1AndEqual(cipher);
 }
 
 void Scheme::exp2piAndEqual(Ciphertext& cipher, long logp) {
@@ -1505,14 +1533,14 @@ void Scheme::exp2piAndEqual(Ciphertext& cipher, long logp) {
 	Ciphertext cipher01 = addConst(cipher, c, logp);
 
 	c = 2*Pi;
-	multByConstAndEqual(cipher01, c, logp);
+	multConstAndEqual(cipher01, c, logp);
 	reScaleByAndEqual(cipher01, logp);
 
 	c = 3/(2*Pi);
 	Ciphertext cipher23 = addConst(cipher, c, logp);
 
 	c = 4*Pi*Pi*Pi/3;
-	multByConstAndEqual(cipher23, c, logp);
+	multConstAndEqual(cipher23, c, logp);
 	reScaleByAndEqual(cipher23, logp);
 
 	multAndEqual(cipher23, cipher2);
@@ -1524,14 +1552,14 @@ void Scheme::exp2piAndEqual(Ciphertext& cipher, long logp) {
 	Ciphertext cipher45 = addConst(cipher, c, logp);
 
 	c = 4*Pi*Pi*Pi*Pi*Pi/15;
-	multByConstAndEqual(cipher45, c, logp);
+	multConstAndEqual(cipher45, c, logp);
 	reScaleByAndEqual(cipher45, logp);
 
 	c = 7/(2*Pi);
 	addConstAndEqual(cipher, c, logp);
 
 	c = 8*Pi*Pi*Pi*Pi*Pi*Pi*Pi/315;
-	multByConstAndEqual(cipher, c, logp);
+	multConstAndEqual(cipher, c, logp);
 	reScaleByAndEqual(cipher, logp);
 
 	multAndEqual(cipher, cipher2);
@@ -1549,18 +1577,18 @@ void Scheme::exp2piAndEqual(Ciphertext& cipher, long logp) {
 
 void Scheme::evalExpAndEqual(Ciphertext& cipher, long logT, long logI) {
 	//TODO change method for different cases
-	long lognx = log2(cipher.n0);
-	long logny = log2(cipher.n1);
+	long logn0 = log2(cipher.n0);
+	long logn1 = log2(cipher.n1);
 
-	BootContext bootContext = ring.bootContextMap.at({lognx, logny});
+	BootContext bootContext = ring.bootContextMap.at({logn0, logn1});
 
 	Ciphertext tmp = conjugate(cipher);
 	Ciphertext cimag = sub(cipher, tmp);
 	addAndEqual(cipher, tmp);
 	imultAndEqual(cipher);
 
-	divByPo2AndEqual(cipher, logT + ring.logN);
-	divByPo2AndEqual(cimag, logT + ring.logN);
+	divPo2AndEqual(cipher, logT + ring.logN);
+	divPo2AndEqual(cimag, logT + ring.logN);
 
 	exp2piAndEqual(cipher, bootContext.logp);
 	exp2piAndEqual(cimag, bootContext.logp);
@@ -1580,7 +1608,7 @@ void Scheme::evalExpAndEqual(Ciphertext& cipher, long logT, long logI) {
 	subAndEqual2(cimag, cipher);
 
 	RR c = 0.25/Pi;
-	multByConstAndEqual(cipher, c, bootContext.logp);
+	multConstAndEqual(cipher, c, bootContext.logp);
 	reScaleByAndEqual(cipher, bootContext.logp + logI);
 }
 
@@ -1599,10 +1627,10 @@ void Scheme::bootstrapXAndEqual(Ciphertext& cipher, long logq, long logQ, long l
 		Ciphertext rot = leftRotateFast(cipher, (1 << i), 0);
 		addAndEqual(cipher, rot);
 	}
-	coeffToSlotXAndEqual(cipher);
-	divByPo2AndEqual(cipher, ring.logN0h);
+	coeffToSlotX0AndEqual(cipher);
+	divPo2AndEqual(cipher, ring.logN0h);
 	evalExpAndEqual(cipher, logT, logI);
-	slotToCoeffXAndEqual(cipher);
+	slotToCoeffX0AndEqual(cipher);
 	cipher.logp = logp;
 }
 
@@ -1621,10 +1649,10 @@ void Scheme::bootstrapYAndEqual(Ciphertext& cipher, long logq, long logQ, long l
 		Ciphertext rot = leftRotateFast(cipher, 0, (1 << i));
 		addAndEqual(cipher, rot);
 	}
-	coeffToSlotYAndEqualNew(cipher);
-	divByPo2AndEqual(cipher, ring.logN1);
+	coeffToSlotX1AndEqual(cipher);
+	divPo2AndEqual(cipher, ring.logN1);
 	evalExpAndEqual(cipher, logT, logI);
-	slotToCoeffYAndEqualNew(cipher);
+	slotToCoeffX1AndEqual(cipher);
 	cipher.logp = logp;
 }
 
@@ -1649,7 +1677,7 @@ void Scheme::bootstrapAndEqual(Ciphertext& cipher, long logq, long logQ, long lo
 		addAndEqual(cipher, rot);
 	}
 	coeffToSlotAndEqual(cipher);
-	divByPo2AndEqual(cipher, ring.logN0h + ring.logN1);
+	divPo2AndEqual(cipher, ring.logN0h + ring.logN1);
 	evalExpAndEqual(cipher, logT, logI);
 	slotToCoeffAndEqual(cipher);
 	cipher.logp = logp;

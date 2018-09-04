@@ -30,25 +30,25 @@ using namespace NTL;
 //----------------------------------------------------------------------------------
 
 
-void TestScheme::testEncrypt(long logNx, long logNy, long logQ, long logp, long lognx, long logny) {
+void TestScheme::testEncrypt(long logN0, long logN1, long logQ, long logp, long logn0, long logn1) {
 	cout << "!!! START TEST ENCRYPT !!!" << endl;
 
 	srand(time(NULL));
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring ring(logNx, logQ);
+	Ring ring(logN0, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 
-	long nx = (1 << lognx);
-	long ny = (1 << logny);
-	long n = nx * ny;
+	long n0 = (1 << logn0);
+	long n1 = (1 << logn1);
+	long n = n0 * n1;
 
 	complex<double>* mmat = EvaluatorUtils::randomComplexArray(n);
 
 	timeutils.start("Encode matrix");
-	Plaintext msg = scheme.encode(mmat, nx, ny, logp, logQ);
+	Plaintext msg = scheme.encode(mmat, n0, n1, logp, logQ);
 	timeutils.stop("Encode matrix");
 
 	timeutils.start("Encrypt msg");
@@ -68,14 +68,14 @@ void TestScheme::testEncrypt(long logNx, long logNy, long logQ, long logp, long 
 	cout << "!!! END TEST ENCRYPT !!!" << endl;
 }
 
-void TestScheme::testEncryptSingle(long logNx, long logNy, long logQ, long logp) {
+void TestScheme::testEncryptSingle(long logN0, long logN1, long logQ, long logp) {
 	cout << "!!! START TEST ENCRYPT SINGLE !!!" << endl;
 
 	srand(time(NULL));
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring ring(logNx, logQ);
+	Ring ring(logN0, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 
@@ -94,14 +94,14 @@ void TestScheme::testEncryptSingle(long logNx, long logNy, long logQ, long logp)
 	cout << "!!! END TEST ENCRYPT SINGLE !!!" << endl;
 }
 
-void TestScheme::testStandard(long logNx, long logNy, long logQ, long logp, long lognx, long logny) {
+void TestScheme::testStandard(long logN0, long logN1, long logQ, long logp, long lognx, long logny) {
 	cout << "!!! START TEST STANDARD !!!" << endl;
 
 	srand(time(NULL));
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring ring(logNx, logQ);
+	Ring ring(logN0, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 
@@ -138,14 +138,14 @@ void TestScheme::testStandard(long logNx, long logNy, long logQ, long logp, long
 	cout << "!!! END TEST STANDARD !!!" << endl;
 }
 
-void TestScheme::testimult(long logNx, long logNy, long logQ, long logp, long lognx, long logny) {
+void TestScheme::testimult(long logN0, long logN1, long logQ, long logp, long lognx, long logny) {
 	cout << "!!! START TEST i MULTIPLICATION !!!" << endl;
 
 	srand(time(NULL));
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring ring(logNx, logQ);
+	Ring ring(logN0, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 
@@ -179,14 +179,14 @@ void TestScheme::testimult(long logNx, long logNy, long logQ, long logp, long lo
 //----------------------------------------------------------------------------------
 
 
-void TestScheme::testRotateFast(long logNx, long logNy, long logQ, long logp, long lognx, long logny, long rx, long ry) {
+void TestScheme::testRotateFast(long logN0, long logN1, long logQ, long logp, long lognx, long logny, long rx, long ry) {
 	cout << "!!! START TEST ROTATE FAST !!!" << endl;
 
 	srand(time(NULL));
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring ring(logNx, logQ);
+	Ring ring(logN0, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 
@@ -210,14 +210,14 @@ void TestScheme::testRotateFast(long logNx, long logNy, long logQ, long logp, lo
 	cout << "!!! END TEST ROTATE FAST !!!" << endl;
 }
 
-void TestScheme::testRotate(long logNx, long logNy, long logQ, long logp, long lognx, long logny, long rx, long ry) {
+void TestScheme::testRotate(long logN0, long logN1, long logQ, long logp, long lognx, long logny, long rx, long ry) {
 	cout << "!!! START TEST ROTATE !!!" << endl;
 
 	srand(time(NULL));
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring ring(logNx, logQ);
+	Ring ring(logN0, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 
@@ -242,14 +242,14 @@ void TestScheme::testRotate(long logNx, long logNy, long logQ, long logp, long l
 	cout << "!!! END TEST ROTATE !!!" << endl;
 }
 
-void TestScheme::testConjugate(long logNx, long logNy, long logQ, long logp, long lognx, long logny) {
+void TestScheme::testConjugate(long logN0, long logN1, long logQ, long logp, long lognx, long logny) {
 	cout << "!!! START TEST CONJUGATE !!!" << endl;
 
 	srand(time(NULL));
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring ring(logNx, logQ);
+	Ring ring(logN0, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 
@@ -283,14 +283,14 @@ void TestScheme::testConjugate(long logNx, long logNy, long logQ, long logp, lon
 //----------------------------------------------------------------------------------
 
 
-void TestScheme::testPowerOf2(long logNx, long logNy, long logQ, long logp, long lognx, long logny, long logDegree) {
+void TestScheme::testPowerOf2(long logN0, long logN1, long logQ, long logp, long lognx, long logny, long logDegree) {
 	cout << "!!! START TEST POWER OF 2 !!!" << endl;
 
 	srand(time(NULL));
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring ring(logNx, logQ);
+	Ring ring(logN0, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 	SchemeAlgo algo(scheme);
@@ -318,14 +318,14 @@ void TestScheme::testPowerOf2(long logNx, long logNy, long logQ, long logp, long
 	cout << "!!! END TEST POWER OF 2 !!!" << endl;
 }
 
-void TestScheme::testPower(long logNx, long logNy, long logQ, long logp, long lognx, long logny, long degree) {
+void TestScheme::testPower(long logN0, long logN1, long logQ, long logp, long lognx, long logny, long degree) {
 	cout << "!!! START TEST POWER !!!" << endl;
 
 	srand(time(NULL));
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring ring(logNx, logQ);
+	Ring ring(logN0, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 	SchemeAlgo algo(scheme);
@@ -354,14 +354,14 @@ void TestScheme::testPower(long logNx, long logNy, long logQ, long logp, long lo
 
 //-----------------------------------------
 
-void TestScheme::testProdOfPo2(long logNx, long logNy, long logQ, long logp, long lognx, long logny, long logDegree) {
+void TestScheme::testProdOfPo2(long logN0, long logN1, long logQ, long logp, long lognx, long logny, long logDegree) {
 	cout << "!!! START TEST PROD OF POWER OF 2 !!!" << endl;
 
 	srand(time(NULL));
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring ring(logNx, logQ);
+	Ring ring(logN0, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 	SchemeAlgo algo(scheme);
@@ -399,14 +399,14 @@ void TestScheme::testProdOfPo2(long logNx, long logNy, long logQ, long logp, lon
 	cout << "!!! END TEST PROD OF POWER OF 2 !!!" << endl;
 }
 
-void TestScheme::testProd(long logNx, long logNy, long logQ, long logp, long lognx, long logny, long degree) {
+void TestScheme::testProd(long logN0, long logN1, long logQ, long logp, long lognx, long logny, long degree) {
 	cout << "!!! START TEST PROD !!!" << endl;
 
 	srand(time(NULL));
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring ring(logNx, logQ);
+	Ring ring(logN0, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 	SchemeAlgo algo(scheme);
@@ -449,14 +449,14 @@ void TestScheme::testProd(long logNx, long logNy, long logQ, long logp, long log
 //----------------------------------------------------------------------------------
 
 
-void TestScheme::testInverse(long logNx, long logNy, long logQ, long logp, long lognx, long logny, long steps) {
+void TestScheme::testInverse(long logN0, long logN1, long logQ, long logp, long lognx, long logny, long steps) {
 	cout << "!!! START TEST INVERSE !!!" << endl;
 
 	srand(time(NULL));
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring ring(logNx, logQ);
+	Ring ring(logN0, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 	SchemeAlgo algo(scheme);
@@ -485,14 +485,14 @@ void TestScheme::testInverse(long logNx, long logNy, long logQ, long logp, long 
 
 //-----------------------------------------
 
-void TestScheme::testLogarithm(long logNx, long logNy, long logQ, long logp, long lognx, long logny, long degree) {
+void TestScheme::testLogarithm(long logN0, long logN1, long logQ, long logp, long lognx, long logny, long degree) {
 	cout << "!!! START TEST LOGARITHM !!!" << endl;
 
 	srand(time(NULL));
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring ring(logNx, logQ);
+	Ring ring(logN0, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 	SchemeAlgo algo(scheme);
@@ -519,14 +519,14 @@ void TestScheme::testLogarithm(long logNx, long logNy, long logQ, long logp, lon
 	cout << "!!! END TEST LOGARITHM !!!" << endl;
 }
 
-void TestScheme::testExponent(long logNx, long logNy, long logQ, long logp, long lognx, long logny, long degree) {
+void TestScheme::testExponent(long logN0, long logN1, long logQ, long logp, long lognx, long logny, long degree) {
 	cout << "!!! START TEST EXPONENT !!!" << endl;
 
 	srand(time(NULL));
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring ring(logNx, logQ);
+	Ring ring(logN0, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 	SchemeAlgo algo(scheme);
@@ -553,14 +553,14 @@ void TestScheme::testExponent(long logNx, long logNy, long logQ, long logp, long
 	cout << "!!! END TEST EXPONENT !!!" << endl;
 }
 
-void TestScheme::testExponentLazy(long logNx, long logNy, long logQ, long logp, long lognx, long logny, long degree) {
+void TestScheme::testExponentLazy(long logN0, long logN1, long logQ, long logp, long lognx, long logny, long degree) {
 	cout << "!!! START TEST EXPONENT LAZY !!!" << endl;
 
 	srand(time(NULL));
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring ring(logNx, logQ);
+	Ring ring(logN0, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 	SchemeAlgo algo(scheme);
@@ -587,14 +587,14 @@ void TestScheme::testExponentLazy(long logNx, long logNy, long logQ, long logp, 
 	cout << "!!! END TEST EXPONENT LAZY !!!" << endl;
 }
 
-void TestScheme::testSigmoid(long logNx, long logNy, long logQ, long logp, long lognx, long logny, long degree) {
+void TestScheme::testSigmoid(long logN0, long logN1, long logQ, long logp, long lognx, long logny, long degree) {
 	cout << "!!! START TEST SIGMOID !!!" << endl;
 
 	srand(time(NULL));
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring ring(logNx, logQ);
+	Ring ring(logN0, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 	SchemeAlgo algo(scheme);
@@ -621,14 +621,14 @@ void TestScheme::testSigmoid(long logNx, long logNy, long logQ, long logp, long 
 	cout << "!!! END TEST SIGMOID !!!" << endl;
 }
 
-void TestScheme::testSigmoidLazy(long logNx, long logNy, long logQ, long logp, long lognx, long logny, long degree) {
+void TestScheme::testSigmoidLazy(long logN0, long logN1, long logQ, long logp, long lognx, long logny, long degree) {
 	cout << "!!! START TEST SIGMOID LAZY !!!" << endl;
 
 	srand(time(NULL));
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring ring(logNx, logQ);
+	Ring ring(logN0, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 	SchemeAlgo algo(scheme);
@@ -661,14 +661,14 @@ void TestScheme::testSigmoidLazy(long logNx, long logNy, long logQ, long logp, l
 //----------------------------------------------------------------------------------
 
 
-void TestScheme::testSquareMatMult(long logNx, long logNy, long logQ, long logp, long lognx) {
+void TestScheme::testSquareMatMult(long logN0, long logN1, long logQ, long logp, long lognx) {
 	cout << "!!! START TEST SQUARE MATRIX !!!" << endl;
 
 	srand(time(NULL));
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring ring(logNx, logQ);
+	Ring ring(logN0, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 	SchemeAlgo algo(scheme);
@@ -696,14 +696,14 @@ void TestScheme::testSquareMatMult(long logNx, long logNy, long logQ, long logp,
 	cout << "!!! END TEST SQUARE MATRIX !!!" << endl;
 }
 
-void TestScheme::testSquareMatPow(long logNx, long logNy, long logQ, long logp, long lognx, long logDegree) {
+void TestScheme::testSquareMatPow(long logN0, long logN1, long logQ, long logp, long lognx, long logDegree) {
 	cout << "!!! START TEST SQUARE MATRIX POW!!!" << endl;
 
 	srand(time(NULL));
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring ring(logNx, logQ);
+	Ring ring(logN0, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 	SchemeAlgo algo(scheme);
@@ -731,14 +731,14 @@ void TestScheme::testSquareMatPow(long logNx, long logNy, long logQ, long logp, 
 	cout << "!!! END TEST SQUARE MATRIX POW !!!" << endl;
 }
 
-void TestScheme::testSquareMatInv(long logNx, long logNy, long logQ, long logp, long lognx, long steps) {
+void TestScheme::testSquareMatInv(long logN0, long logN1, long logQ, long logp, long lognx, long steps) {
 	cout << "!!! START TEST MATRIX INV !!!" << endl;
 
 	srand(time(NULL));
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring ring(logNx, logQ);
+	Ring ring(logN0, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 	SchemeAlgo algo(scheme);
@@ -766,7 +766,7 @@ void TestScheme::testSquareMatInv(long logNx, long logNy, long logQ, long logp, 
 	cout << "!!! END TEST MATRIX INV !!!" << endl;
 }
 
-void TestScheme::testMatMult(long logNx, long logNy, long logQ, long logp, long lognx, long logny, long lognz) {
+void TestScheme::testMatMult(long logN0, long logN1, long logQ, long logp, long lognx, long logny, long lognz) {
 }
 
 
@@ -775,14 +775,14 @@ void TestScheme::testMatMult(long logNx, long logNy, long logQ, long logp, long 
 //----------------------------------------------------------------------------------
 
 
-void TestScheme::testBootstrap(long logNx, long logNy, long logq, long logQ, long logp, long lognx, long logny, long logT, long logI) {
+void TestScheme::testBootstrap(long logN0, long logN1, long logq, long logQ, long logp, long lognx, long logny, long logT, long logI) {
 	cout << "!!! START TEST BOOTSTRAP !!!" << endl;
 
 	srand(time(NULL));
 	SetNumThreads(8);
 
 	TimeUtils timeutils;
-	Ring ring(logNx, logQ);
+	Ring ring(logN0, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 
@@ -844,7 +844,7 @@ void TestScheme::testBootstrap(long logNx, long logNy, long logq, long logQ, lon
 	cout << "!!! END TEST BOOTSRTAP !!!" << endl;
 }
 
-void TestScheme::testCiphertextWriteAndRead(long logNx, long logNy, long logQ, long logp, long logSlotx, long logSloty) {
+void TestScheme::testCiphertextWriteAndRead(long logN0, long logN1, long logQ, long logp, long logSlotx, long logSloty) {
 	cout << "!!! START TEST WRITE AND READ !!!" << endl;
 	cout << "!!! END TEST WRITE AND READ !!!" << endl;
 }
@@ -917,29 +917,27 @@ void TestScheme::test() {
 	StringUtils::showMat(vals, nx, 10);
 
 	timeutils.start("Coeff to Slot Y");
-	scheme.coeffToSlotYAndEqualNew(cipher);
-//	scheme.coeffToSlotYAndEqual(cipher);
+	scheme.coeffToSlotX1AndEqual(cipher);
 	timeutils.stop("Coeff to Slot Y");
 
 	complex<double>* ccdecy = scheme.decrypt(secretKey, cipher);
 	StringUtils::showMat(ccdecy, nx, ring.N1);
 
 	timeutils.start("Coeff to Slot X");
-	scheme.coeffToSlotXAndEqual(cipher);
+	scheme.coeffToSlotX0AndEqual(cipher);
 	timeutils.stop("Coeff to Slot X");
 
 	complex<double>* ccdec = scheme.decrypt(secretKey, cipher);
 	StringUtils::showMat(ccdec, nx, ring.N1);
 
 	timeutils.start("Slot to Coeff Y");
-	scheme.slotToCoeffYAndEqualNew(cipher);
-//	scheme.slotToCoeffYAndEqual(cipher);
+	scheme.slotToCoeffX1AndEqual(cipher);
 	timeutils.stop("Slot to Coeff Y");
 
 	timeutils.start("Slot to Coeff X");
-	scheme.slotToCoeffXAndEqual(cipher);
+	scheme.slotToCoeffX0AndEqual(cipher);
 	timeutils.stop("Slot to Coeff X");
-	scheme.divByPo2AndEqual(cipher, ring.logN - 1);
+	scheme.divPo2AndEqual(cipher, ring.logN - 1);
 
 	complex<double>* dmat = scheme.decrypt(secretKey, cipher);
 	StringUtils::compare(mmat, dmat, 10, "boot");
@@ -973,13 +971,13 @@ void TestScheme::test1() {
 	scheme.addBootKey(secretKey, logn0, ring.logN1, logq + logI);
 	timeutils.stop("Key generated");
 
-	long nx = (1 << logn0);
-	long ny = (1 << ring.logN1);
-	long n = nx * ny;
+	long n0 = (1 << logn0);
+	long n1 = (1 << ring.logN1);
+	long n = n0 * n1;
 
 	complex<double>* mmat = EvaluatorUtils::randomComplexSignedArray(n);
 
-	Ciphertext cipher = scheme.encrypt(mmat, nx, ny, logp, logq);
+	Ciphertext cipher = scheme.encrypt(mmat, n0, n1, logp, logq);
 
 	cout << "cipher logq before: " << cipher.logq << endl;
 	cipher.logq = logQ;
@@ -990,10 +988,10 @@ void TestScheme::test1() {
 
 	ZZ q = ring.qvec[cipher.logq];
 	ZZ qh = ring.qvec[cipher.logq - 1];
-	long gapx = ring.N0h / nx;
+	long gap0 = ring.N0h / n0;
 	ZZ tmp;
 	complex<double>* vals = new complex<double>[n];
-	for (long ix = 0, iix = ring.N0h, irx = 0; ix < nx; ++ix, iix += gapx, irx += gapx) {
+	for (long ix = 0, iix = ring.N0h, irx = 0; ix < n0; ++ix, iix += gap0, irx += gap0) {
 		for (long iy = 0; iy < ring.N1; ++iy) {
 			tmp = ptxt.mx[irx + ring.N0 * iy];
 			if (tmp > qh) {
@@ -1001,7 +999,7 @@ void TestScheme::test1() {
 			} else if (tmp < -qh) {
 				tmp += q;
 			}
-			vals[ix + nx * iy].real(EvaluatorUtils::scaleDownToReal(tmp, logq));
+			vals[ix + n0 * iy].real(EvaluatorUtils::scaleDownToReal(tmp, logq));
 
 			tmp = ptxt.mx[iix + ring.N0 * iy];
 			if (tmp > qh) {
@@ -1009,21 +1007,21 @@ void TestScheme::test1() {
 			} else if (tmp < -qh) {
 				tmp += q;
 			}
-			vals[ix + nx * iy].imag(EvaluatorUtils::scaleDownToReal(tmp, logq));
+			vals[ix + n0 * iy].imag(EvaluatorUtils::scaleDownToReal(tmp, logq));
 		}
 	}
 
-	StringUtils::showMat(vals, nx, 5);
+	StringUtils::showMat(vals, n0, 5);
 
 	timeutils.start("Coeff to Slot");
-	scheme.coeffToSlotYAndEqualNew(cipher);
-	scheme.coeffToSlotXAndEqual(cipher);
+	scheme.coeffToSlotX1AndEqual(cipher);
+	scheme.coeffToSlotX0AndEqual(cipher);
 	timeutils.stop("Coeff to Slot");
 
 	long tmplogp = cipher.logp;
 	cipher.logp = tmplogp + 9;
 	complex<double>* ccdec = scheme.decrypt(secretKey, cipher);
-	StringUtils::showMat(ccdec, nx, 5);
+	StringUtils::showMat(ccdec, n0, 5);
 	cipher.logp = tmplogp;
 
 	BootContext bootContext = ring.bootContextMap.at({logn0, ring.logN1});
@@ -1037,11 +1035,11 @@ void TestScheme::test1() {
 	cout << cipher.logq << endl;
 	cipher.logp = tmplogp + 9;
 	complex<double>* x0 = scheme.decrypt(secretKey, cipher);
-	StringUtils::showMat(x0, nx, 5);
+	StringUtils::showMat(x0, n0, 5);
 	cipher.logp = tmplogp;
 
-	scheme.divByPo2AndEqual(cipher, logT + ring.logN);
-	scheme.divByPo2AndEqual(cimag, logT + ring.logN);
+	scheme.divPo2AndEqual(cipher, logT + ring.logN);
+	scheme.divPo2AndEqual(cimag, logT + ring.logN);
 
 	scheme.exp2piAndEqual(cipher, bootContext.logp);
 	scheme.exp2piAndEqual(cimag, bootContext.logp);
@@ -1056,7 +1054,7 @@ void TestScheme::test1() {
 	cout << cipher.logp << endl;
 	cout << cipher.logq << endl;
 	complex<double>* x3 = scheme.decrypt(secretKey, cipher);
-	StringUtils::showMat(x3, nx, 5);
+	StringUtils::showMat(x3, n0, 5);
 
 	ctmp = scheme.conjugate(cimag);
 	scheme.subAndEqual(cimag, ctmp);
@@ -1066,18 +1064,18 @@ void TestScheme::test1() {
 	scheme.subAndEqual2(cimag, cipher);
 
 	RR c = 0.25/Pi;
-	scheme.multByConstAndEqual(cipher, c, bootContext.logp);
+	scheme.multConstAndEqual(cipher, c, bootContext.logp);
 	scheme.reScaleByAndEqual(cipher, bootContext.logp + logI);
 
 	cout << cipher.logp << endl;
 	cout << cipher.logq << endl;
 	cipher.logp = logp;
 	complex<double>* x4 = scheme.decrypt(secretKey, cipher);
-	StringUtils::showMat(x4, nx, 5);
+	StringUtils::showMat(x4, n0, 5);
 
 	timeutils.start("Slot to Coeff");
-	scheme.slotToCoeffXAndEqual(cipher);
-	scheme.slotToCoeffYAndEqualNew(cipher);
+	scheme.slotToCoeffX0AndEqual(cipher);
+	scheme.slotToCoeffX1AndEqual(cipher);
 	timeutils.stop("Slot to Coeff");
 
 	complex<double>* dmat = scheme.decrypt(secretKey, cipher);
@@ -1091,9 +1089,9 @@ void TestScheme::test2() {
 	srand(0);
 	SetNumThreads(8);
 
-	long logNx = 7;
+	long logN0 = 7;
 	long logQ = 700;
-	long lognx = logNx - 1;
+	long lognx = logN0 - 1;
 	long logp = 53;
 	long logq = 59;
 	TimeUtils timeutils;
@@ -1102,7 +1100,7 @@ void TestScheme::test2() {
 	long logT = 2;
 
 	timeutils.start("Scheme generating");
-	Ring ring(logNx, logQ);
+	Ring ring(logN0, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 	timeutils.stop("Scheme generating");
@@ -1156,7 +1154,7 @@ void TestScheme::test2() {
 	timeutils.start("Coeff to Slot");
 	scheme.coeffToSlotAndEqual(cipher);
 	timeutils.stop("Coeff to Slot");
-	scheme.divByPo2AndEqual(cipher, ring.logN - 1);
+	scheme.divPo2AndEqual(cipher, ring.logN - 1);
 
 	complex<double>* ccdec = scheme.decrypt(secretKey, cipher);
 	StringUtils::showMat(ccdec, nx, 5);
@@ -1176,15 +1174,15 @@ void TestScheme::test3() {
 	srand(0);
 	SetNumThreads(8);
 
-	long logNx = 7;
+	long logN0 = 7;
 	long logQ = 700;
-	long lognx = logNx - 1;
+	long lognx = logN0 - 1;
 	long logp = 53;
 	long logq = 59;
 	TimeUtils timeutils;
 
 	timeutils.start("Scheme generating");
-	Ring ring(logNx, logQ);
+	Ring ring(logN0, logQ);
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 	timeutils.stop("Scheme generating");
