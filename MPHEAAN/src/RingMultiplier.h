@@ -27,11 +27,11 @@ public:
 	long logN;
 	long N;
 
-	long* gyPows;
-	uint64_t** dftomegaPows;
-	uint64_t** dftomegaPowsInv;
-	uint64_t** omegaPows;
-	uint64_t** omegaPowsInv;
+	long* g1Pows;
+	uint64_t** rootM1DFTPows;
+	uint64_t** rootM1DFTPowsInv;
+	uint64_t** rootM1Pows;
+	uint64_t** rootM1PowsInv;
 
 	uint64_t* pVec;
 	uint64_t* prVec;
@@ -39,11 +39,11 @@ public:
 
 	uint64_t* pInvVec;
 
-	uint64_t** scaledRootx0Pows;
-	uint64_t** scaledRootx1Pows;
+	uint64_t** scaledRootM0Pows;
+	uint64_t** scaledRootN1Pows;
 
-	uint64_t** scaledRootx0PowsInv;
-	uint64_t** scaledRootx1PowsInv;
+	uint64_t** scaledRootM0PowsInv;
+	uint64_t** scaledRootN1PowsInv;
 
 	uint64_t* scaledN0Inv;
 	uint64_t* scaledN1Inv;

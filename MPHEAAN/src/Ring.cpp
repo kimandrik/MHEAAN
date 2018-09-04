@@ -110,69 +110,69 @@ Ring::Ring(long logN0, long logQ, double sigma, long h) :
 	}
 }
 
-void Ring::addBootContext(long lognx, long logny, long logp) {
-	if (bootContextMap.find({lognx, logny}) == bootContextMap.end()) {
-		long nx = 1 << lognx;
-		long logkx = lognx >> 1;
-		long kx = 1 << logkx;
+void Ring::addBootContext(long logn0, long logn1, long logp) {
+	if (bootContextMap.find({logn0, logn1}) == bootContextMap.end()) {
+		long n0 = 1 << logn0;
+		long logk0 = logn0 >> 1;
+		long k0 = 1 << logk0;
 
-		uint64_t** rpxVec = new uint64_t*[nx];
-		uint64_t** rpxInvVec = new uint64_t*[nx];
+		uint64_t** rp0Vec = new uint64_t*[n0];
+		uint64_t** rp0InvVec = new uint64_t*[n0];
 
-		complex<double>* pxvals = new complex<double>[nx];
+		complex<double>* p0vals = new complex<double>[n0];
 		uint64_t* rp1 = NULL;
 		uint64_t* rp2 = NULL;
 
 		long np0 = ceil((logQ + logp + logN0 + 3)/59.0);
 
-		ZZ* pxVec = new ZZ[N0];
+		ZZ* p0Vec = new ZZ[N0];
 
-		long gapx = N0h >> lognx;
+		long gap0 = N0h >> logn0;
 		long deg;
-		for (long kxi = 0; kxi < nx; kxi += kx) {
-			for (long pos = kxi; pos < kxi + kx; ++pos) {
-				for (long i = 0; i < nx - pos; ++i) {
-					deg = ((M0 - gM0Pows[i + pos]) * i * gapx) % M0;
-					pxvals[i] = ksiM0Pows[deg];
+		for (long k0i = 0; k0i < n0; k0i += k0) {
+			for (long pos = k0i; pos < k0i + k0; ++pos) {
+				for (long i = 0; i < n0 - pos; ++i) {
+					deg = ((M0 - gM0Pows[i + pos]) * i * gap0) % M0;
+					p0vals[i] = ksiM0Pows[deg];
 				}
-				for (long i = nx - pos; i < nx; ++i) {
-					deg = ((M0 - gM0Pows[i + pos - nx]) * i * gapx) % M0;
-					pxvals[i] = ksiM0Pows[deg];
+				for (long i = n0 - pos; i < n0; ++i) {
+					deg = ((M0 - gM0Pows[i + pos - n0]) * i * gap0) % M0;
+					p0vals[i] = ksiM0Pows[deg];
 				}
-				EvaluatorUtils::rightRotateAndEqual(pxvals, nx, 1, kxi, 0);
-				IEMBX0(pxvals, nx);
-				for (long ix = 0, jdx = N0h, idx = 0; ix < nx; ++ix, jdx += gapx, idx += gapx) {
-					pxVec[idx] = EvaluatorUtils::scaleUpToZZ(pxvals[ix].real(), logp);
-					pxVec[jdx] = EvaluatorUtils::scaleUpToZZ(pxvals[ix].imag(), logp);
+				EvaluatorUtils::rightRotateAndEqual(p0vals, n0, 1, k0i, 0);
+				IEMBX0(p0vals, n0);
+				for (long i0 = 0, jd0 = N0h, id0 = 0; i0 < n0; ++i0, jd0 += gap0, id0 += gap0) {
+					p0Vec[id0] = EvaluatorUtils::scaleUpToZZ(p0vals[i0].real(), logp);
+					p0Vec[jd0] = EvaluatorUtils::scaleUpToZZ(p0vals[i0].imag(), logp);
 				}
-				rpxVec[pos] = toNTTX0(pxVec, np0);
+				rp0Vec[pos] = toNTTX0(p0Vec, np0);
 			}
 		}
 
-		for (long kxi = 0; kxi < nx; kxi += kx) {
-			for (long pos = kxi; pos < kxi + kx; ++pos) {
-				for (long i = 0; i < nx - pos; ++i) {
-					deg = (gM0Pows[i] * (i + pos) * gapx) % M0;
-					pxvals[i] = ksiM0Pows[deg];
+		for (long k0i = 0; k0i < n0; k0i += k0) {
+			for (long pos = k0i; pos < k0i + k0; ++pos) {
+				for (long i = 0; i < n0 - pos; ++i) {
+					deg = (gM0Pows[i] * (i + pos) * gap0) % M0;
+					p0vals[i] = ksiM0Pows[deg];
 				}
-				for (long i = nx - pos; i < nx; ++i) {
-					deg = (gM0Pows[i] * (i + pos - nx) * gapx) % M0;
-					pxvals[i] = ksiM0Pows[deg];
+				for (long i = n0 - pos; i < n0; ++i) {
+					deg = (gM0Pows[i] * (i + pos - n0) * gap0) % M0;
+					p0vals[i] = ksiM0Pows[deg];
 				}
-				EvaluatorUtils::rightRotateAndEqual(pxvals, nx, 1, kxi, 0);
-				IEMBX0(pxvals, nx);
-				for (long ix = 0, jdx = N0h, idx = 0; ix < nx; ++ix, jdx += gapx, idx += gapx) {
-					pxVec[idx] = EvaluatorUtils::scaleUpToZZ(pxvals[ix].real(), logp);
-					pxVec[jdx] = EvaluatorUtils::scaleUpToZZ(pxvals[ix].imag(), logp);
+				EvaluatorUtils::rightRotateAndEqual(p0vals, n0, 1, k0i, 0);
+				IEMBX0(p0vals, n0);
+				for (long i0 = 0, jd0 = N0h, id0 = 0; i0 < n0; ++i0, jd0 += gap0, id0 += gap0) {
+					p0Vec[id0] = EvaluatorUtils::scaleUpToZZ(p0vals[i0].real(), logp);
+					p0Vec[jd0] = EvaluatorUtils::scaleUpToZZ(p0vals[i0].imag(), logp);
 				}
-				rpxInvVec[pos] = toNTTX0(pxVec, np0);
+				rp0InvVec[pos] = toNTTX0(p0Vec, np0);
 			}
 		}
 
-		delete[] pxvals;
-		delete[] pxVec;
+		delete[] p0vals;
+		delete[] p0Vec;
 
-		bootContextMap.insert(pair<pair<long, long>, BootContext>({lognx, logny}, BootContext(rpxVec, rpxInvVec, rp1, rp2, logp)));
+		bootContextMap.insert(pair<pair<long, long>, BootContext>({logn0, logn1}, BootContext(rp0Vec, rp0InvVec, rp1, rp2, logp)));
 	}
 }
 
@@ -406,29 +406,29 @@ void Ring::encode(ZZ* mx, double* vals, long nx, long ny, long logp) {
 	delete[] uvals;
 }
 
-void Ring::decode(ZZ* mxy, complex<double>* vals, long nx, long ny, long logp, long logq) {
+void Ring::decode(ZZ* mxy, complex<double>* vals, long n0, long n1, long logp, long logq) {
 	ZZ q = qvec[logq];
 	ZZ qh = qvec[logq - 1];
-	long gapx = N0h / nx;
+	long gap0 = N0h / n0;
 	ZZ tmp;
 
-	complex<double>* fvals = new complex<double>[nx * N1];
-	for (long ix = 0, iix = N0h, irx = 0; ix < nx; ++ix, iix += gapx, irx += gapx) {
-		for (long iy = 0; iy < N1; ++iy) {
-			rem(tmp, mxy[irx + N0 * iy], q);
+	complex<double>* fvals = new complex<double>[n0 * N1];
+	for (long i0 = 0, ii0 = N0h, ir0 = 0; i0 < n0; ++i0, ii0 += gap0, ir0 += gap0) {
+		for (long i1 = 0; i1 < N1; ++i1) {
+			rem(tmp, mxy[ir0 + N0 * i1], q);
 			while (tmp < 0) tmp += q;
 			while (tmp > qh) tmp -= q;
-			fvals[ix + nx * iy].real(EvaluatorUtils::scaleDownToReal(tmp, logp));
+			fvals[i0 + n0 * i1].real(EvaluatorUtils::scaleDownToReal(tmp, logp));
 
-			rem(tmp, mxy[iix + N0 * iy], q);
+			rem(tmp, mxy[ii0 + N0 * i1], q);
 			while(tmp < 0) tmp += q;
 			while (tmp > qh) tmp -= q;
-			fvals[ix + nx * iy].imag(EvaluatorUtils::scaleDownToReal(tmp, logp));
+			fvals[i0 + n0 * i1].imag(EvaluatorUtils::scaleDownToReal(tmp, logp));
 		}
 	}
 
-	EMB(fvals, nx);
-	copy(fvals, fvals + nx * ny, vals);
+	EMB(fvals, n0);
+	copy(fvals, fvals + n0 * n1, vals);
 	delete[] fvals;
 }
 

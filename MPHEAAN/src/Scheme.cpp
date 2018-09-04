@@ -36,7 +36,7 @@ void Scheme::addEncKey(SecretKey& secretKey) {
 	ring.mult(bx, secretKey.sx, ax, np, ring.QQ);
 	ring.sub(bx, ex, bx, ring.QQ);
 
-	np = ceil((2 * ring.logN + 4 * ring.logQ + 2)/59.0);
+	np = ceil((2 * ring.logQQ + ring.logN + 3)/59.0);
 	uint64_t* rax = ring.toNTT(ax, np);
 	uint64_t* rbx = ring.toNTT(bx, np);
 
@@ -64,7 +64,7 @@ void Scheme::addMultKey(SecretKey& secretKey) {
 	ring.mult(bx, secretKey.sx, ax, np, ring.QQ);
 	ring.sub(bx, ex, bx, ring.QQ);
 
-	np = ceil((2 * ring.logN + 4 * ring.logQ + 2)/59.0);
+	np = ceil((2 * ring.logQQ + ring.logN + 3)/59.0);
 	uint64_t* rax = ring.toNTT(ax, np);
 	uint64_t* rbx = ring.toNTT(bx, np);
 

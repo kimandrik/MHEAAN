@@ -34,32 +34,32 @@ RingMultiplier::RingMultiplier(long logN0, long nprimes) : logN0(logN0) {
 	pTwok = new long[nprimes];
 	pInvVec = new uint64_t[nprimes];
 
-	scaledRootx0Pows = new uint64_t*[nprimes];
-	scaledRootx0PowsInv = new uint64_t*[nprimes];
+	scaledRootM0Pows = new uint64_t*[nprimes];
+	scaledRootM0PowsInv = new uint64_t*[nprimes];
 
-	scaledRootx1Pows = new uint64_t*[nprimes];
-	scaledRootx1PowsInv = new uint64_t*[nprimes];
+	scaledRootN1Pows = new uint64_t*[nprimes];
+	scaledRootN1PowsInv = new uint64_t*[nprimes];
 
 	scaledN0Inv = new uint64_t[nprimes];
 	scaledN1Inv = new uint64_t[nprimes];
 
-	dftomegaPows = new uint64_t*[nprimes]();
-	dftomegaPowsInv = new uint64_t*[nprimes]();
-	omegaPows = new uint64_t*[nprimes]();
-	omegaPowsInv = new uint64_t*[nprimes]();
+	rootM1DFTPows = new uint64_t*[nprimes]();
+	rootM1DFTPowsInv = new uint64_t*[nprimes]();
+	rootM1Pows = new uint64_t*[nprimes]();
+	rootM1PowsInv = new uint64_t*[nprimes]();
 
 	red_ss_array = new _ntl_general_rem_one_struct*[nprimes];
 
-	long My = N1 + 1;
-	gyPows = new long[My];
-	long gy = 3;
-	long gyPow = 1;
+	long M1 = N1 + 1;
+	g1Pows = new long[M1];
+	long g1 = 3;
+	long g1Pow = 1;
 	for (long i = 0; i < N1; ++i) {
-		gyPows[i] = gyPow;
-		gyPow *= gy;
-		gyPow %= My;
+		g1Pows[i] = g1Pow;
+		g1Pow *= g1;
+		g1Pow %= M1;
 	}
-	gyPows[N1] = 1;
+	g1Pows[N1] = 1;
 
 	for (long i = 0; i < nprimes; ++i) {
 		pVec[i] = pPrimesVec[i];
@@ -78,53 +78,54 @@ RingMultiplier::RingMultiplier(long logN0, long nprimes) : logN0(logN0) {
 		mulMod(scaledN1Inv[i], NyInvModp, (1ULL << 32), pVec[i]);
 		mulMod(scaledN1Inv[i], scaledN1Inv[i],(1ULL << 32), pVec[i]);
 
-		scaledRootx0Pows[i] = new uint64_t[N0]();
-		scaledRootx0PowsInv[i] = new uint64_t[N0]();
+		scaledRootM0Pows[i] = new uint64_t[N0]();
+		scaledRootM0PowsInv[i] = new uint64_t[N0]();
 		uint64_t power = 1;
 		uint64_t powerInv = 1;
 		for (long j = 0; j < N0; ++j) {
 			uint32_t jprime = bitReverse(static_cast<uint32_t>(j)) >> (32 - logN0);
 			uint64_t rootpow = power;
-			mulMod(scaledRootx0Pows[i][jprime], rootpow, (1ULL << 32), pVec[i]);
-			mulMod(scaledRootx0Pows[i][jprime], scaledRootx0Pows[i][jprime], (1ULL << 32), pVec[i]);
+			mulMod(scaledRootM0Pows[i][jprime], rootpow, (1ULL << 32), pVec[i]);
+			mulMod(scaledRootM0Pows[i][jprime], scaledRootM0Pows[i][jprime], (1ULL << 32), pVec[i]);
 			uint64_t rootpowinv = powerInv;
-			mulMod(scaledRootx0PowsInv[i][jprime], rootpowinv, (1ULL << 32), pVec[i]);
-			mulMod(scaledRootx0PowsInv[i][jprime], scaledRootx0PowsInv[i][jprime], (1ULL << 32), pVec[i]);
+			mulMod(scaledRootM0PowsInv[i][jprime], rootpowinv, (1ULL << 32), pVec[i]);
+			mulMod(scaledRootM0PowsInv[i][jprime], scaledRootM0PowsInv[i][jprime], (1ULL << 32), pVec[i]);
 			mulMod(power, power, root, pVec[i]);
 			mulMod(powerInv, powerInv, rootinv, pVec[i]);
 		}
 
 		root = findMthRootOfUnity(N1, pVec[i]);
 		rootinv = powMod(root, pVec[i] - 2, pVec[i]);
-		scaledRootx1Pows[i] = new uint64_t[N1]();
-		scaledRootx1PowsInv[i] = new uint64_t[N1]();
+		scaledRootN1Pows[i] = new uint64_t[N1]();
+		scaledRootN1PowsInv[i] = new uint64_t[N1]();
 
 		power = 1;
 		powerInv = 1;
 		for (long j = 0; j < N1; ++j) {
 			uint64_t rootpow = power;
-			mulMod(scaledRootx1Pows[i][j], rootpow, (1ULL << 32), pVec[i]);
-			mulMod(scaledRootx1Pows[i][j], scaledRootx1Pows[i][j], (1ULL << 32), pVec[i]);
+			mulMod(scaledRootN1Pows[i][j], rootpow, (1ULL << 32), pVec[i]);
+			mulMod(scaledRootN1Pows[i][j], scaledRootN1Pows[i][j], (1ULL << 32), pVec[i]);
 			uint64_t rootpowinv = powerInv;
-			mulMod(scaledRootx1PowsInv[i][j], rootpowinv, (1ULL << 32), pVec[i]);
-			mulMod(scaledRootx1PowsInv[i][j], scaledRootx1PowsInv[i][j], (1ULL << 32), pVec[i]);
+			mulMod(scaledRootN1PowsInv[i][j], rootpowinv, (1ULL << 32), pVec[i]);
+			mulMod(scaledRootN1PowsInv[i][j], scaledRootN1PowsInv[i][j], (1ULL << 32), pVec[i]);
 			mulMod(power, power, root, pVec[i]);
 			mulMod(powerInv, powerInv, rootinv, pVec[i]);
 		}
 
-		root = findMthRootOfUnity(My, pVec[i]);
-		dftomegaPows[i] = new uint64_t[N1]();
-		dftomegaPowsInv[i] = new uint64_t[N1]();
-		omegaPows[i] = new uint64_t[N1]();
-		omegaPowsInv[i] = new uint64_t[N1]();
+		root = findMthRootOfUnity(M1, pVec[i]);
+
+		rootM1DFTPows[i] = new uint64_t[N1]();
+		rootM1DFTPowsInv[i] = new uint64_t[N1]();
+		rootM1Pows[i] = new uint64_t[N1]();
+		rootM1PowsInv[i] = new uint64_t[N1]();
 		for (long j = 0; j < N1; ++j) {
-			dftomegaPows[i][j] = powMod(root, gyPows[j], pVec[i]);
-			omegaPows[i][j] = dftomegaPows[i][j];
-			omegaPowsInv[i][j] = powMod(root, My - gyPows[j], pVec[i]);
+			rootM1DFTPows[i][j] = powMod(root, g1Pows[j], pVec[i]);
+			rootM1Pows[i][j] = rootM1DFTPows[i][j];
+			rootM1PowsInv[i][j] = powMod(root, M1 - g1Pows[j], pVec[i]);
 		}
-		NTTPO2X1(dftomegaPows[i], i);
+		NTTPO2X1(rootM1DFTPows[i], i);
 		for (long j = 0; j < N1; ++j) {
-			dftomegaPowsInv[i][j] = powMod(dftomegaPows[i][j], pVec[i] - 2, pVec[i]);
+			rootM1DFTPowsInv[i][j] = powMod(rootM1DFTPows[i][j], pVec[i] - 2, pVec[i]);
 		}
 	}
 
@@ -217,7 +218,7 @@ void RingMultiplier::NTTX0(uint64_t* a, long index) {
 		for (long i = 0; i < m; i++) {
 			long j1 = i << logt1;
 			long j2 = j1 + t - 1;
-			uint64_t W = scaledRootx0Pows[index][m + i];
+			uint64_t W = scaledRootM0Pows[index][m + i];
 			for (long j = j1; j <= j2; j++) {
 				butt2(a[j], a[j + t], p, pInv, W);
 			}
@@ -234,7 +235,7 @@ void RingMultiplier::INTTX0(uint64_t* a, long index) {
 		long h = m >> 1;
 		for (long i = 0; i < h; i++) {
 			long j2 = j1 + t - 1;
-			uint64_t W = scaledRootx0PowsInv[index][h + i];
+			uint64_t W = scaledRootM0PowsInv[index][h + i];
 			for (long j = j1; j <= j2; j++) {
 				butt1(a[j], a[j+t], p, pInv, W);
 			}
@@ -252,14 +253,17 @@ void RingMultiplier::INTTX0(uint64_t* a, long index) {
 void RingMultiplier::NTTPO2X1(uint64_t* a, long index) {
 	uint64_t p = pVec[index];
 	uint64_t pInv = pInvVec[index];
+	uint64_t* scaledRootN1Powsi = scaledRootN1Pows[index];
+
 	arrayBitReverse(a, N1);
+
 	for (long i = 0; i < logN1; ++i) {
 		long ihpow = 1 << i;
 		long ipow = 1 << (i + 1);
 		for (long j = 0; j < N1; j += ipow) {
 			for (long k = 0; k < ihpow; ++k) {
 				long idx = k << (logN1 - i - 1);
-				uint64_t W = scaledRootx1Pows[index][idx];
+				uint64_t W = scaledRootN1Powsi[idx];
 				butt2(a[j + k], a[j + k + ihpow], p, pInv, W);
 			}
 		}
@@ -269,14 +273,17 @@ void RingMultiplier::NTTPO2X1(uint64_t* a, long index) {
 void RingMultiplier::INTTPO2X1(uint64_t* a, long index) {
 	uint64_t p = pVec[index];
 	uint64_t pInv = pInvVec[index];
+	uint64_t* scaledRootN1PowsInvi = scaledRootN1PowsInv[index];
+
 	arrayBitReverse(a, N1);
+
 	for (long i = 0; i < logN1; ++i) {
 		long ihpow = 1 << i;
 		long ipow = 1 << (i + 1);
 		for (long j = 0; j < N1; j += ipow) {
 			for (long k = 0; k < ihpow; ++k) {
 				long idx = k << (logN1 - i - 1);
-				uint64_t W = scaledRootx1PowsInv[index][idx];
+				uint64_t W = scaledRootN1PowsInvi[idx];
 				butt2(a[j + k], a[j + k + ihpow], p, pInv, W);
 			}
 		}
@@ -291,25 +298,21 @@ void RingMultiplier::NTTX1(uint64_t* a, long index) {
 	uint64_t pi = pVec[index];
 	uint64_t pri = prVec[index];
 	uint64_t pti = pTwok[index];
-	uint64_t* dftomegaPowsi = dftomegaPows[index];
-	uint64_t* omegaPowsInvi = omegaPowsInv[index];
+	uint64_t* rootM1DFTPowsi = rootM1DFTPows[index];
+	uint64_t* rootM1PowsInvi = rootM1PowsInv[index];
 
 	uint64_t* tmp = new uint64_t[N1];
-
-	for (long i = 0; i < N1; ++i) {
-		tmp[i] = a[gyPows[N1 - i] - 1];
-	}
-	for (long i = 0; i < N1; ++i) {
-		a[i] = tmp[i];
-	}
+	for (long i = 0; i < N1; ++i) tmp[i] = a[g1Pows[N1 - i] - 1];
+	for (long i = 0; i < N1; ++i) a[i] = tmp[i];
 	delete[] tmp;
+
 	NTTPO2X1(a, index);
 	for (long i = 0; i < N1; ++i) {
-		mulModBarrett(a[i], a[i], dftomegaPowsi[i], pi, pri, pti);
+		mulModBarrett(a[i], a[i], rootM1DFTPowsi[i], pi, pri, pti);
 	}
 	INTTPO2X1(a, index);
 	for (long i = 0; i < N1; ++i) {
-		mulModBarrett(a[i], a[i], omegaPowsInvi[i], pi, pri, pti);
+		mulModBarrett(a[i], a[i], rootM1PowsInvi[i], pi, pri, pti);
 	}
 }
 
@@ -317,29 +320,22 @@ void RingMultiplier::INTTX1(uint64_t* a, long index) {
 	uint64_t pi = pVec[index];
 	uint64_t pri = prVec[index];
 	uint64_t pti = pTwok[index];
-	uint64_t* omegaPowsi = omegaPows[index];
-	uint64_t* dftomegaPowsInvi = dftomegaPowsInv[index];
+	uint64_t* omegaPowsi = rootM1Pows[index];
+	uint64_t* dftomegaPowsInvi = rootM1DFTPowsInv[index];
 
 	for (long i = 0; i < N1; ++i) {
 		mulModBarrett(a[i], a[i], omegaPowsi[i], pi, pri, pti);
 	}
 
 	NTTPO2X1(a, index);
-
 	for (long i = 0; i < N1; ++i) {
 		mulModBarrett(a[i], a[i], dftomegaPowsInvi[i], pi, pri, pti);
 	}
-
 	INTTPO2X1(a, index);
 
 	uint64_t* tmp = new uint64_t[N1]();
-	for (long i = 0; i < N1; ++i) {
-		tmp[gyPows[N1 - i] - 1] = a[i];
-	}
-	for (long i = 0; i < N1; ++i) {
-		a[i] = tmp[i];
-	}
-
+	for (long i = 0; i < N1; ++i) tmp[g1Pows[N1 - i] - 1] = a[i];
+	for (long i = 0; i < N1; ++i) a[i] = tmp[i];
 	delete[] tmp;
 }
 
@@ -347,15 +343,11 @@ void RingMultiplier::NTTX1Lazy(uint64_t* a, long index) {
 	uint64_t pi = pVec[index];
 	uint64_t pri = prVec[index];
 	uint64_t pti = pTwok[index];
-	uint64_t* dftomegaPowsi = dftomegaPows[index];
+	uint64_t* dftomegaPowsi = rootM1DFTPows[index];
 
 	uint64_t* tmp = new uint64_t[N1];
-	for (long i = 0; i < N1; ++i) {
-		tmp[i] = a[gyPows[N1 - i] - 1];
-	}
-	for (long i = 0; i < N1; ++i) {
-		a[i] = tmp[i];
-	}
+	for (long i = 0; i < N1; ++i) tmp[i] = a[g1Pows[N1 - i] - 1];
+	for (long i = 0; i < N1; ++i) a[i] = tmp[i];
 	delete[] tmp;
 
 	NTTPO2X1(a, index);
@@ -369,7 +361,7 @@ void RingMultiplier::INTTX1Lazy(uint64_t* a, long index) {
 	uint64_t pi = pVec[index];
 	uint64_t pri = prVec[index];
 	uint64_t pti = pTwok[index];
-	uint64_t* dftomegaPowsInvi = dftomegaPowsInv[index];
+	uint64_t* dftomegaPowsInvi = rootM1DFTPowsInv[index];
 
 	NTTPO2X1(a, index);
 
@@ -380,12 +372,8 @@ void RingMultiplier::INTTX1Lazy(uint64_t* a, long index) {
 	INTTPO2X1(a, index);
 
 	uint64_t* tmp = new uint64_t[N1]();
-	for (long i = 0; i < N1; ++i) {
-		tmp[gyPows[N1 - i] - 1] = a[i];
-	}
-	for (long i = 0; i < N1; ++i) {
-		a[i] = tmp[i];
-	}
+	for (long i = 0; i < N1; ++i) tmp[g1Pows[N1 - i] - 1] = a[i];
+	for (long i = 0; i < N1; ++i) a[i] = tmp[i];
 	delete[] tmp;
 }
 
