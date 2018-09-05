@@ -209,11 +209,11 @@ void Scheme::addBootKey(SecretKey& secretKey, long lognx, long logny, long logp)
 	}
 }
 
-void Scheme::addSquareMatrixKeys(SecretKey& secretKey, long lognx) {
-	ring.addMatrixContext(lognx);
-	long nx = 1 << lognx;
-	for (long ix = 1; ix < nx; ++ix) {
-		long idx = ring.N0h - ix;
+void Scheme::addSquareMatrixKeys(SecretKey& secretKey, long logn) {
+	ring.addMatrixContext(logn);
+	long n = 1 << logn;
+	for (long i = 1; i < n; ++i) {
+		long idx = ring.N0h - i;
 		if(leftRotKeyMap.find({idx, 0}) == leftRotKeyMap.end()) {
 			addLeftRotKey(secretKey, idx, 0);
 		}
@@ -227,16 +227,16 @@ void Scheme::addSquareMatrixKeys(SecretKey& secretKey, long lognx) {
 //----------------------------------------------------------------------------------
 
 
-Plaintext Scheme::encode(complex<double>* vals, long nx, long ny, long logp, long logq) {
+Plaintext Scheme::encode(complex<double>* vals, long n0, long n1, long logp, long logq) {
 	ZZ* mx = new ZZ[ring.N];
-	ring.encode(mx, vals, nx, ny, logp + ring.logQ);
-	return Plaintext(mx, logp, logq, ring.N0, ring.N1, nx, ny);
+	ring.encode(mx, vals, n0, n1, logp + ring.logQ);
+	return Plaintext(mx, logp, logq, ring.N0, ring.N1, n0, n1);
 }
 
-Plaintext Scheme::encode(double* vals, long nx, long ny, long logp, long logq) {
+Plaintext Scheme::encode(double* vals, long n0, long n1, long logp, long logq) {
 	ZZ* mxy = new ZZ[ring.N];
-	ring.encode(mxy, vals, nx, ny, logp + ring.logQ);
-	return Plaintext(mxy, logp, logq, ring.N0, ring.N1, nx, ring.N1);
+	ring.encode(mxy, vals, n0, n1, logp + ring.logQ);
+	return Plaintext(mxy, logp, logq, ring.N0, ring.N1, n0, ring.N1);
 }
 
 Plaintext Scheme::encodeSingle(complex<double> val, long logp, long logq) {

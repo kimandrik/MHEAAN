@@ -27,7 +27,8 @@ public:
 	long logN;
 	long N;
 
-	long* g1Pows;
+	long* gM1Pows;
+	long* gM1PowsInv;
 	uint64_t** rootM1DFTPows;
 	uint64_t** rootM1DFTPowsInv;
 	uint64_t** rootM1Pows;
