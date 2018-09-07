@@ -51,11 +51,11 @@ public:
 	//----------------------------------------------------------------------------------
 
 
-	static double scaleDownToReal(const ZZ& x, const long logp);
+	static double scaleDownToReal(ZZ& x, long logp);
 
-	static ZZ scaleUpToZZ(const double x, const long logp);
+	static ZZ scaleUpToZZ(double x, long logp);
 
-	static ZZ scaleUpToZZ(const RR& x, const long logp);
+	static ZZ scaleUpToZZ(RR& x, long logp);
 
 
 	//----------------------------------------------------------------------------------
@@ -63,9 +63,9 @@ public:
 	//----------------------------------------------------------------------------------
 
 
-	static void leftRotateAndEqual(complex<double>* vals, const long nx, const long ny, const long rx, const long ry);
+	static void leftRotateAndEqual(complex<double>* vals, long n0, long n1, long r0, long r1);
 
-	static void rightRotateAndEqual(complex<double>* vals, const long nx, const long ny, const long rx, const long ry);
+	static void rightRotateAndEqual(complex<double>* vals, long n0, long n1, long r0, long r1);
 
 
 	//----------------------------------------------------------------------------------
@@ -73,9 +73,9 @@ public:
 	//----------------------------------------------------------------------------------
 
 
-	static void squareMatMult(complex<double>* res, complex<double>* vals1, complex<double>* vals2, const long nx);
+	static void squareMatMult(complex<double>* res, complex<double>* vals1, complex<double>* vals2, long n);
 
-	static void squareMatSquareAndEqual(complex<double>* vals, const long nx);
+	static void squareMatSquareAndEqual(complex<double>* vals, long n);
 };
 
 #endif

@@ -546,19 +546,16 @@ uint64_t* RingMultiplier::toNTTLazy(ZZ* a, long np) {
 	return ra;
 }
 
-uint64_t* RingMultiplier::addNTT(uint64_t* ra, uint64_t* rb, long np) {
-	uint64_t* rx = new uint64_t[np << logN];
+void RingMultiplier::addNTTAndEqual(uint64_t* ra, uint64_t* rb, long np) {
 	for (long i = 0; i < np; ++i) {
 		uint64_t* rai = ra + (i << logN);
 		uint64_t* rbi = rb + (i << logN);
-		uint64_t* rxi = rx + (i << logN);
 		uint64_t pi = pVec[i];
 		for (long n = 0; n < N; ++n) {
-			rxi[n] = rai[n] + rbi[n];
-			if(rxi[n] > pi) rxi[n] -= pi;
+			rai[n] += rbi[n];
+			if(rai[n] > pi) rai[n] -= pi;
 		}
 	}
-	return rx;
 }
 
 void RingMultiplier::reconstruct(ZZ* x, uint64_t* rx, long np, ZZ& q) {

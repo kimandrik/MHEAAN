@@ -152,16 +152,16 @@ public:
 
 	Ciphertext multPolyX0(Ciphertext& cipher, ZZ* xpoly, long logp);
 	void multPolyX0AndEqual(Ciphertext& cipher, ZZ* xpoly, long logp);
-	Ciphertext multPolyNTTX0(Ciphertext& cipher, uint64_t* rxpoly, long logp);
-	void multPolyNTTX0AndEqual(Ciphertext& cipher, uint64_t* rxpoly, long logp);
+	Ciphertext multPolyNTTX0(Ciphertext& cipher, uint64_t* rxpoly, long bnd, long logp);
+	void multPolyNTTX0AndEqual(Ciphertext& cipher, uint64_t* rxpoly, long bnd, long logp);
 
 	Ciphertext multPolyX1(Ciphertext& cipher, ZZ* yrpoly, ZZ* yipoly, long logp);
 	void multPolyX1AndEqual(Ciphertext& cipher, ZZ* yrpoly, ZZ* yipoly, long logp);
 
 	Ciphertext multPoly(Ciphertext& cipher, ZZ* poly, long logp);
 	void multPolyAndEqual(Ciphertext& cipher, ZZ* poly, long logp);
-	Ciphertext multPolyNTT(Ciphertext& cipher, uint64_t* rpoly, long logp);
-	void multPolyNTTAndEqual(Ciphertext& cipher, uint64_t* rpoly, long logp);
+	Ciphertext multPolyNTT(Ciphertext& cipher, uint64_t* rpoly, long bnd, long logp);
+	void multPolyNTTAndEqual(Ciphertext& cipher, uint64_t* rpoly, long bnd, long logp);
 
 	Ciphertext multByMonomial(Ciphertext& cipher, const long dx, const long dy);
 	void multByMonomialAndEqual(Ciphertext& cipher, const long dx, const long dy);
@@ -232,8 +232,8 @@ public:
 
 	void evalExpAndEqual(Ciphertext& cipher, long logT, long logI = 4);
 
-	void bootstrapXAndEqual(Ciphertext& cipher, long logq, long logQ, long logT, long logI = 4);
-	void bootstrapYAndEqual(Ciphertext& cipher, long logq, long logQ, long logT, long logI = 4);
+	void bootstrapX0AndEqual(Ciphertext& cipher, long logq, long logQ, long logT, long logI = 4);
+	void bootstrapX1AndEqual(Ciphertext& cipher, long logq, long logQ, long logT, long logI = 4);
 	void bootstrapAndEqual(Ciphertext& cipher, long logq, long logQ, long logT, long logI = 4);
 
 };

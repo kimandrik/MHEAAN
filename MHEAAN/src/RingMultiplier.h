@@ -84,7 +84,7 @@ public:
 	uint64_t* toNTT(ZZ* a, long np);
 	uint64_t* toNTTLazy(ZZ* a, long np);
 
-	uint64_t* addNTT(uint64_t* ra, uint64_t* rb, long np);
+	void addNTTAndEqual(uint64_t* ra, uint64_t* rb, long np);
 
 	void reconstruct(ZZ* x, uint64_t* rx, long np, ZZ& q);
 

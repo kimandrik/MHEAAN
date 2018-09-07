@@ -855,7 +855,7 @@ void TestScheme::test() {
 	srand(time(NULL));
 	SetNumThreads(8);
 
-	long logN0 = 8;
+	long logN0 = 7;
 	long logQ = 1200;
 	long logn0 = logN0 - 1;
 	long logp = 53;

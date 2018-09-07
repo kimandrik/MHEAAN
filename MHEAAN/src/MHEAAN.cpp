@@ -17,7 +17,7 @@ int main() {
 
 //	TestScheme::testEncrypt(8, 8, 1200, 50, 2, 2);
 //	TestScheme::testEncryptSingle(8, 8, 300, 30);
-	TestScheme::testStandard(8, 8, 1200, 50, 1, 3);
+//	TestScheme::testStandard(8, 8, 1200, 50, 1, 3);
 //	TestScheme::testimult(8, 8, 300, 30, 2, 2);
 
 

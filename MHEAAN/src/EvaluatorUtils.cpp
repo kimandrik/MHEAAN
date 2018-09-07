@@ -90,17 +90,18 @@ complex<double>* EvaluatorUtils::randomCircleArray(long n, double bound) {
 //----------------------------------------------------------------------------------
 
 
-double EvaluatorUtils::scaleDownToReal(const ZZ& x, const long logp) {
+double EvaluatorUtils::scaleDownToReal(ZZ& x, long logp) {
 	RR xp = to_RR(x);
 	xp.e -= logp;
 	return to_double(xp);
 }
 
-ZZ EvaluatorUtils::scaleUpToZZ(const double x, const long logp) {
-	return scaleUpToZZ(to_RR(x), logp);
+ZZ EvaluatorUtils::scaleUpToZZ(double x, long logp) {
+	RR rx = to_RR(x);
+	return scaleUpToZZ(rx, logp);
 }
 
-ZZ EvaluatorUtils::scaleUpToZZ(const RR& x, const long logp) {
+ZZ EvaluatorUtils::scaleUpToZZ(RR& x, long logp) {
 	RR xp = MakeRR(x.x, x.e + logp);
 	return RoundToZZ(xp);
 }
@@ -111,47 +112,47 @@ ZZ EvaluatorUtils::scaleUpToZZ(const RR& x, const long logp) {
 //----------------------------------------------------------------------------------
 
 
-void EvaluatorUtils::leftRotateAndEqual(complex<double>* vals, const long nx, const long ny, const long rx, const long ry) {
-	long rxRem = rx % nx;
-	if(rxRem != 0) {
-		long divisor = GCD(rxRem, nx);
-		long steps = nx / divisor;
-		for (long iy = 0; iy < ny; ++iy) {
-			for (long ix = 0; ix < divisor; ++ix) {
-				complex<double> tmp = vals[ix + iy * nx];
-				long idx = ix;
+void EvaluatorUtils::leftRotateAndEqual(complex<double>* vals, long n0, long n1, long r0, long r1) {
+	r0 %= n0;
+	if(r0 != 0) {
+		long divisor = GCD(r0, n0);
+		long steps = n0 / divisor;
+		for (long i = 0; i < n1; ++i) {
+			for (long j = 0; j < divisor; ++j) {
+				complex<double> tmp = vals[j + i * n0];
+				long idx = j;
 				for (long k = 0; k < steps - 1; ++k) {
-					vals[idx + iy * nx] = vals[((idx + rxRem) % nx) + iy * nx];
-					idx = (idx + rxRem) % nx;
+					vals[idx + i * n0] = vals[((idx + r0) % n0) + i * n0];
+					idx = (idx + r0) % n0;
 				}
-				vals[idx + iy * nx] = tmp;
+				vals[idx + i * n0] = tmp;
 			}
 		}
 	}
-	long ryRem = ry % ny;
-	if(ryRem != 0) {
-		long divisor = GCD(ryRem, ny);
-		long steps = ny / divisor;
-		for (long ix = 0; ix < nx; ++ix) {
-			for (long iy = 0; iy < divisor; ++iy) {
-				complex<double> tmp = vals[ix + iy * nx];
-				long idy = iy;
+	r1 %= n1;
+	if(r1 != 0) {
+		long divisor = GCD(r1, n1);
+		long steps = n1 / divisor;
+		for (long i = 0; i < n0; ++i) {
+			for (long j = 0; j < divisor; ++j) {
+				complex<double> tmp = vals[i + j * n0];
+				long idy = j;
 				for (long k = 0; k < steps - 1; ++k) {
-					vals[ix + idy * nx] = vals[ix + ((idy + ryRem) % ny) * nx];
-					idy = (idy + ryRem) % ny;
+					vals[i + idy * n0] = vals[i + ((idy + r1) % n1) * n0];
+					idy = (idy + r1) % n1;
 				}
-				vals[ix + idy * nx] = tmp;
+				vals[i + idy * n0] = tmp;
 			}
 		}
 	}
 }
 
-void EvaluatorUtils::rightRotateAndEqual(complex<double>* vals, const long nx, const long ny, const long rx, const long ry) {
-	long rxRem = rx % nx;
-	rxRem = (nx - rxRem) % nx;
-	long ryRem = ry % ny;
-	ryRem = (ny - ryRem) % ny;
-	leftRotateAndEqual(vals, nx, ny, rxRem, ryRem);
+void EvaluatorUtils::rightRotateAndEqual(complex<double>* vals, long n0, long n1, long r0, long r1) {
+	r0 %= n0;
+	r0 = (n0 - r0) % n0;
+	r1 %= n1;
+	r1 = (n1 - r1) % n1;
+	leftRotateAndEqual(vals, n0, n1, r0, r1);
 }
 
 
@@ -160,27 +161,27 @@ void EvaluatorUtils::rightRotateAndEqual(complex<double>* vals, const long nx, c
 //----------------------------------------------------------------------------------
 
 
-void EvaluatorUtils::squareMatMult(complex<double>* res, complex<double>* vals1, complex<double>* vals2, const long nx) {
-	for (long i = 0; i < nx; ++i) {
-		for (long j = 0; j < nx; ++j) {
-			for (long k = 0; k < nx; ++k) {
-				res[i + j * nx] += vals1[k + j * nx] * vals2[i + k * nx];
+void EvaluatorUtils::squareMatMult(complex<double>* res, complex<double>* vals1, complex<double>* vals2, long n) {
+	for (long i = 0; i < n; ++i) {
+		for (long j = 0; j < n; ++j) {
+			for (long k = 0; k < n; ++k) {
+				res[i + j * n] += vals1[k + j * n] * vals2[i + k * n];
 			}
 		}
 	}
 }
 
-void EvaluatorUtils::squareMatSquareAndEqual(complex<double>* vals, const long nx) {
-	long n = nx * nx;
-	complex<double>* res = new complex<double>[n];
-	for (long ix = 0; ix < nx; ++ix) {
-		for (long iy = 0; iy < nx; ++iy) {
-			for (long k = 0; k < nx; ++k) {
-				res[ix + iy * nx] += vals[k + iy * nx] * vals[ix + k * nx];
+void EvaluatorUtils::squareMatSquareAndEqual(complex<double>* vals, long n) {
+	long n2 = n * n;
+	complex<double>* res = new complex<double>[n2];
+	for (long i = 0; i < n; ++i) {
+		for (long j = 0; j < n; ++j) {
+			for (long k = 0; k < n; ++k) {
+				res[i + j * n] += vals[k + j * n] * vals[i + k * n];
 			}
 		}
 	}
-	for (long i = 0; i < n; ++i) {
+	for (long i = 0; i < n2; ++i) {
 		vals[i] = res[i];
 	}
 	delete[] res;

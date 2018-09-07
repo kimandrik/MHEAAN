@@ -75,9 +75,9 @@ public:
 	//----------------------------------------------------------------------------------
 
 
-	void addBootContext(long lognx, long logny, long logp);
+	void addBootContext(long logn0, long logn1, long logp);
 
-	void addMatrixContext(long lognx);
+	void addMatrixContext(long logn);
 
 
 	//----------------------------------------------------------------------------------
@@ -89,18 +89,18 @@ public:
 	void DFTX1(complex<double>* vals);
 	void IDFTX1(complex<double>* vals);
 
-	void EMBX0(complex<double>* vals, long nx);
-	void IEMBX0(complex<double>* vals, long nx);
+	void EMBX0(complex<double>* vals, long n0);
+	void IEMBX0(complex<double>* vals, long n0);
 
 	void EMBX1(complex<double>* vals);
 	void IEMBX1(complex<double>* vals);
 
-	void EMB(complex<double>* vals, long nx);
-	void IEMB(complex<double>* vals, long nx);
+	void EMB(complex<double>* vals, long n0);
+	void IEMB(complex<double>* vals, long n0);
 
-	void encode(ZZ* mxy, complex<double>* vals, long nx, long ny, long logp);
-	void encode(ZZ* mxy, double* vals, long nx, long ny, long logp);
-	void decode(ZZ* mxy, complex<double>*vals, long nx, long ny, long logp, long logq);
+	void encode(ZZ* mxy, complex<double>* vals, long n0, long n1, long logp);
+	void encode(ZZ* mxy, double* vals, long n0, long n1, long logp);
+	void decode(ZZ* mxy, complex<double>* vals, long n0, long n1, long logp, long logq);
 
 
 	//----------------------------------------------------------------------------------
@@ -108,29 +108,24 @@ public:
 	//----------------------------------------------------------------------------------
 
 	long MaxBits(const ZZ* f, long n);
+	void addNTTAndEqual(uint64_t* ra, uint64_t* rb, long np);
 
 	uint64_t* toNTTX0(ZZ* a, long np);
-
 	uint64_t* toNTTX1(ZZ* a, long np);
 	uint64_t* toNTTX1Lazy(ZZ* a, long np);
-
 	uint64_t* toNTT(ZZ* a, long np);
 	uint64_t* toNTTLazy(ZZ* a, long np);
-
-	uint64_t* addNTT(uint64_t* ra, uint64_t* rb, long np);
 
 	void multX0(ZZ* x, ZZ* a, ZZ* b, long np, ZZ& q);
 	void multX0AndEqual(ZZ* a, ZZ* b, long np, ZZ& q);
 	void multNTTX0(ZZ* x, ZZ* a, uint64_t* rb, long np, ZZ& q);
 	void multNTTX0AndEqual(ZZ* a, uint64_t* rb, long np, ZZ& q);
-	void multNTTX0D(ZZ* x, uint64_t* ra, uint64_t* rb, long np, ZZ& q);
-
+	void multDNTTX0(ZZ* x, uint64_t* ra, uint64_t* rb, long np, ZZ& q);
 	void multX1(ZZ* x, ZZ* a, ZZ* b, long np, ZZ& q);
 	void multX1AndEqual(ZZ* a, ZZ* b, long np, ZZ& q);
 	void multNTTX1(ZZ* x, ZZ* a, uint64_t* rb, long np, ZZ& q);
 	void multNTTX1AndEqual(ZZ* a, uint64_t* rb, long np, ZZ& q);
 	void multDNTTX1(ZZ* x, uint64_t* ra, uint64_t* rb, long np, ZZ& q);
-
 	void mult(ZZ* x, ZZ* a, ZZ* b, long np, ZZ& q);
 	void multAndEqual(ZZ* a, ZZ* b, long np, ZZ& q);
 	void multNTT(ZZ* x, ZZ* a, uint64_t* rb, long np, ZZ& q);
@@ -162,8 +157,8 @@ public:
 	void subAndEqual(ZZ* p1, ZZ* p2, ZZ& q);
 	void subAndEqual2(ZZ* p1, ZZ* p2, ZZ& q);
 
-	ZZ* multByMonomial(ZZ* p, long degx, long degy, ZZ& q);
-	void multByMonomialAndEqual(ZZ* p, long degx, long degy, ZZ& q);
+	ZZ* multByMonomial(ZZ* p, long deg0, long deg1, ZZ& q);
+	void multByMonomialAndEqual(ZZ* p, long deg0, long deg1, ZZ& q);
 
 	void multByConst(ZZ* res, ZZ* p, ZZ& cnst, ZZ& q);
 	void multByConstAndEqual(ZZ* p, ZZ& cnst, ZZ& q);
@@ -187,7 +182,7 @@ public:
 	//----------------------------------------------------------------------------------
 
 
-	ZZ* leftRotate(ZZ* p, long rx, long ry);
+	ZZ* leftRotate(ZZ* p, long r0, long r1);
 	ZZ* conjugate(ZZ* p);
 
 
