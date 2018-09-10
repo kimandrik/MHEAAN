@@ -116,17 +116,17 @@ public:
 
 	void bitReverse(Ciphertext* ciphers, long n);
 
-	void DFTX(Ciphertext* ciphers, long nx);
-	void IDFTX(Ciphertext* ciphers, long nx);
-	void IDFTXLazy(Ciphertext* ciphers, long nx);
+	void DFTX0(Ciphertext* ciphers, long n0);
+	void IDFTX0(Ciphertext* ciphers, long n0);
+	void IDFTX0Lazy(Ciphertext* ciphers, long n0);
 
-	void DFTY(Ciphertext* ciphers, long ny);
-	void IDFTY(Ciphertext* ciphers, long ny);
-	void IDFTYLazy(Ciphertext* ciphers, long ny);
+	void DFTX1(Ciphertext* ciphers, long n1);
+	void IDFTX1(Ciphertext* ciphers, long n1);
+	void IDFTX1Lazy(Ciphertext* ciphers, long n1);
 
-	void DFTXY(Ciphertext* ciphers, long nx, long ny);
-	void IDFTXY(Ciphertext* ciphers, long nx, long ny);
-	void IDFTXYLazy(Ciphertext* ciphers, long nx, long ny);
+	void DFT(Ciphertext* ciphers, long n0, long n1);
+	void IDFT(Ciphertext* ciphers, long n0, long n1);
+	void IDFTLazy(Ciphertext* ciphers, long n0, long n1);
 
 };
 

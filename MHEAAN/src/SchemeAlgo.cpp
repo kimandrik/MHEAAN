@@ -408,12 +408,12 @@ void SchemeAlgo::bitReverse(Ciphertext* ciphers, const long n) {
 	}
 }
 
-void SchemeAlgo::DFTX(Ciphertext* ciphers, const long nx) {
-	bitReverse(ciphers, nx);
-	for (long len = 2; len <= nx; len <<= 1) {
+void SchemeAlgo::DFTX0(Ciphertext* ciphers, long n0) {
+	bitReverse(ciphers, n0);
+	for (long len = 2; len <= n0; len <<= 1) {
 		long lenh = len >> 1;
 		long shift = scheme.ring.M0 / len;
-		for (long i = 0; i < nx; i += len) {
+		for (long i = 0; i < n0; i += len) {
 			NTL_EXEC_RANGE(lenh, first, last);
 			for (long j = first; j < last; ++j) {
 				Ciphertext u = ciphers[i + j];
@@ -426,12 +426,12 @@ void SchemeAlgo::DFTX(Ciphertext* ciphers, const long nx) {
 	}
 }
 
-void SchemeAlgo::IDFTXLazy(Ciphertext* ciphers, const long nx) {
-	bitReverse(ciphers, nx);
-	for (long len = 2; len <= nx; len <<= 1) {
+void SchemeAlgo::IDFTX0Lazy(Ciphertext* ciphers, long n0) {
+	bitReverse(ciphers, n0);
+	for (long len = 2; len <= n0; len <<= 1) {
 		long lenh = len >> 1;
 		long shift = scheme.ring.M0 - scheme.ring.M0 / len;
-		for (long i = 0; i < nx; i += len) {
+		for (long i = 0; i < n0; i += len) {
 			NTL_EXEC_RANGE(lenh, first, last);
 			for (long j = first; j < last; ++j) {
 				Ciphertext u = ciphers[i + j];
@@ -444,23 +444,23 @@ void SchemeAlgo::IDFTXLazy(Ciphertext* ciphers, const long nx) {
 	}
 }
 
-void SchemeAlgo::IDFTX(Ciphertext* ciphers, const long nx) {
-	IDFTXLazy(ciphers, nx);
+void SchemeAlgo::IDFTX0(Ciphertext* ciphers, long n0) {
+	IDFTX0Lazy(ciphers, n0);
 
-	long lognx = log2((double) nx);
-	NTL_EXEC_RANGE(nx, first, last);
+	long lognx = log2((double) n0);
+	NTL_EXEC_RANGE(n0, first, last);
 	for (long i = first; i < last; ++i) {
 		scheme.reScaleByAndEqual(ciphers[i], lognx);
 	}
 	NTL_EXEC_RANGE_END;
 }
 
-void SchemeAlgo::DFTY(Ciphertext* ciphers, const long ny) {
-	bitReverse(ciphers, ny);
-	for (long len = 2; len <= ny; len <<= 1) {
+void SchemeAlgo::DFTX1(Ciphertext* ciphers, long n1) {
+	bitReverse(ciphers, n1);
+	for (long len = 2; len <= n1; len <<= 1) {
 		long lenh = len >> 1;
 		long shift = scheme.ring.M1 / len;
-		for (long i = 0; i < ny; i += len) {
+		for (long i = 0; i < n1; i += len) {
 			NTL_EXEC_RANGE(lenh, first, last);
 			for (long j = first; j < last; ++j) {
 				Ciphertext u = ciphers[i + j];
@@ -473,12 +473,12 @@ void SchemeAlgo::DFTY(Ciphertext* ciphers, const long ny) {
 	}
 }
 
-void SchemeAlgo::IDFTYLazy(Ciphertext* ciphers, const long ny) {
-	bitReverse(ciphers, ny);
-	for (long len = 2; len <= ny; len <<= 1) {
+void SchemeAlgo::IDFTX1Lazy(Ciphertext* ciphers, long n1) {
+	bitReverse(ciphers, n1);
+	for (long len = 2; len <= n1; len <<= 1) {
 		long lenh = len >> 1;
 		long shift = scheme.ring.M1 - scheme.ring.M1 / len;
-		for (long i = 0; i < ny; i += len) {
+		for (long i = 0; i < n1; i += len) {
 			NTL_EXEC_RANGE(lenh, first, last);
 			for (long j = first; j < last; ++j) {
 				Ciphertext u = ciphers[i + j];
@@ -491,61 +491,61 @@ void SchemeAlgo::IDFTYLazy(Ciphertext* ciphers, const long ny) {
 	}
 }
 
-void SchemeAlgo::IDFTY(Ciphertext* ciphers, const long ny) {
-	IDFTYLazy(ciphers, ny);
+void SchemeAlgo::IDFTX1(Ciphertext* ciphers, long n1) {
+	IDFTX1Lazy(ciphers, n1);
 
-	long logny = log2((double) ny);
-	NTL_EXEC_RANGE(ny, first, last);
+	long logny = log2((double) n1);
+	NTL_EXEC_RANGE(n1, first, last);
 	for (long i = first; i < last; ++i) {
 		scheme.reScaleByAndEqual(ciphers[i], logny);
 	}
 	NTL_EXEC_RANGE_END;
 }
 
-void SchemeAlgo::DFTXY(Ciphertext* ciphers, const long nx, const long ny) {
-	for (long iy = 0; iy < ny; ++iy) {
-		DFTX(ciphers + iy * nx, nx);
+void SchemeAlgo::DFT(Ciphertext* ciphers, long n0, long n1) {
+	for (long iy = 0; iy < n1; ++iy) {
+		DFTX0(ciphers + iy * n0, n0);
 	}
 
-	Ciphertext* tmp = new Ciphertext[ny];
-	for (long ix = 0; ix < nx; ++ix) {
-		for (long iy = 0; iy < ny; ++iy) {
-			tmp[iy] = ciphers[ix + iy * nx];
+	Ciphertext* tmp = new Ciphertext[n1];
+	for (long ix = 0; ix < n0; ++ix) {
+		for (long iy = 0; iy < n1; ++iy) {
+			tmp[iy] = ciphers[ix + iy * n0];
 		}
 
-		DFTY(tmp, ny);
+		DFTX1(tmp, n1);
 
-		for (long iy = 0; iy < ny; ++iy) {
-			ciphers[ix + iy * nx] = tmp[iy];
-		}
-	}
-	delete[] tmp;
-}
-
-void SchemeAlgo::IDFTXYLazy(Ciphertext* ciphers, const long nx, const long ny) {
-	for (long iy = 0; iy < ny; ++iy) {
-		IDFTXLazy(ciphers + iy * nx, nx);
-	}
-
-	Ciphertext* tmp = new Ciphertext[ny];
-	for (long ix = 0; ix < nx; ++ix) {
-		for (long iy = 0; iy < ny; ++iy) {
-			tmp[iy] = ciphers[ix + iy * nx];
-		}
-
-		IDFTYLazy(tmp, ny);
-
-		for (long iy = 0; iy < ny; ++iy) {
-			ciphers[ix + iy * nx] = tmp[iy];
+		for (long iy = 0; iy < n1; ++iy) {
+			ciphers[ix + iy * n0] = tmp[iy];
 		}
 	}
 	delete[] tmp;
 }
 
-void SchemeAlgo::IDFTXY(Ciphertext* ciphers, const long nx, const long ny) {
-	IDFTXYLazy(ciphers, nx, ny);
+void SchemeAlgo::IDFTLazy(Ciphertext* ciphers, long n0, long n1) {
+	for (long iy = 0; iy < n1; ++iy) {
+		IDFTX0Lazy(ciphers + iy * n0, n0);
+	}
 
-	long n = nx * ny;
+	Ciphertext* tmp = new Ciphertext[n1];
+	for (long ix = 0; ix < n0; ++ix) {
+		for (long iy = 0; iy < n1; ++iy) {
+			tmp[iy] = ciphers[ix + iy * n0];
+		}
+
+		IDFTX1Lazy(tmp, n1);
+
+		for (long iy = 0; iy < n1; ++iy) {
+			ciphers[ix + iy * n0] = tmp[iy];
+		}
+	}
+	delete[] tmp;
+}
+
+void SchemeAlgo::IDFT(Ciphertext* ciphers, long n0, long n1) {
+	IDFTLazy(ciphers, n0, n1);
+
+	long n = n0 * n1;
 	long logn = log2((double) n);
 	NTL_EXEC_RANGE(n, first, last);
 	for (long i = first; i < last; ++i) {

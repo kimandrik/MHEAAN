@@ -76,13 +76,11 @@ public:
 	//----------------------------------------------------------------------------------
 
 
-	static void testSquareMatMult(long logN0, long logN1, long logQ, long logp, long logn0);
+	static void testSqrMatMult(long logN0, long logN1, long logQ, long logp, long logn);
 
-	static void testSquareMatPow(long logN0, long logN1, long logQ, long logp, long logn0, long logDegree);
+	static void testSqrMatPow(long logN0, long logN1, long logQ, long logp, long logn, long logDegree);
 
-	static void testSquareMatInv(long logN0, long logN1, long logQ, long logp, long logn0, long steps);
-
-	static void testMatMult(long logN0, long logN1, long logQ, long logp, long logn0, long logn1, long lognz);
+	static void testMatInv(long logN0, long logN1, long logQ, long logp, long logn, long steps);
 
 
 	//----------------------------------------------------------------------------------

@@ -59,10 +59,9 @@ int main() {
 //----------------------------------------------------------------------------------
 
 
-//	TestScheme::testSquareMatMult(8, 8, 100, 30, 2);
-//	TestScheme::testSquareMatPow(8, 8, 300, 30, 2, 4);
-//	TestScheme::testSquareMatInv(8, 8, 300, 25, 2, 4);
-//	TestScheme::testMatMult(8, 8, 300, 30, 2, 3, 4);
+//	TestScheme::testSqrMatMult(8, 8, 100, 30, 2);
+//	TestScheme::testSqrMatPow(8, 8, 300, 30, 2, 4);
+//	TestScheme::testMatInv(8, 8, 300, 25, 2, 4);
 
 
 //----------------------------------------------------------------------------------

@@ -661,7 +661,7 @@ void TestScheme::testSigmoidLazy(long logN0, long logN1, long logQ, long logp, l
 //----------------------------------------------------------------------------------
 
 
-void TestScheme::testSquareMatMult(long logN0, long logN1, long logQ, long logp, long logn) {
+void TestScheme::testSqrMatMult(long logN0, long logN1, long logQ, long logp, long logn) {
 	cout << "!!! START TEST SQUARE MATRIX !!!" << endl;
 
 	srand(time(NULL));
@@ -696,7 +696,7 @@ void TestScheme::testSquareMatMult(long logN0, long logN1, long logQ, long logp,
 	cout << "!!! END TEST SQUARE MATRIX !!!" << endl;
 }
 
-void TestScheme::testSquareMatPow(long logN0, long logN1, long logQ, long logp, long logn, long logDegree) {
+void TestScheme::testSqrMatPow(long logN0, long logN1, long logQ, long logp, long logn, long logDegree) {
 	cout << "!!! START TEST SQUARE MATRIX POW!!!" << endl;
 
 	srand(time(NULL));
@@ -731,7 +731,7 @@ void TestScheme::testSquareMatPow(long logN0, long logN1, long logQ, long logp, 
 	cout << "!!! END TEST SQUARE MATRIX POW !!!" << endl;
 }
 
-void TestScheme::testSquareMatInv(long logN0, long logN1, long logQ, long logp, long logn, long steps) {
+void TestScheme::testMatInv(long logN0, long logN1, long logQ, long logp, long logn, long steps) {
 	cout << "!!! START TEST MATRIX INV !!!" << endl;
 
 	srand(time(NULL));
@@ -764,9 +764,6 @@ void TestScheme::testSquareMatInv(long logN0, long logN1, long logQ, long logp, 
 	StringUtils::showMat(imat, n, n);
 
 	cout << "!!! END TEST MATRIX INV !!!" << endl;
-}
-
-void TestScheme::testMatMult(long logN0, long logN1, long logQ, long logp, long logn0, long logn1, long logn2) {
 }
 
 
