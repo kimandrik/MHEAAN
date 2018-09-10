@@ -15,9 +15,9 @@
 #include <map>
 #include <math.h>
 
-#include "MatrixContext.h"
 #include "BootContext.h"
 #include "RingMultiplier.h"
+#include "SqrMatContext.h"
 
 using namespace std;
 using namespace NTL;
@@ -65,7 +65,7 @@ public:
 
 	map<pair<long, long>, BootContext> bootContextMap;
 
-	map<pair<long, long>, MatrixContext> matrixContext;
+	map<long, SqrMatContext> sqrMatContextMap;
 
 	Ring(long logN0, long logQ, double sigma = 3.2, long h = 64);
 
@@ -77,7 +77,7 @@ public:
 
 	void addBootContext(long logn0, long logn1, long logp);
 
-	void addMatrixContext(long logn);
+	void addSqrMatContext(long logn, long logp);
 
 
 	//----------------------------------------------------------------------------------

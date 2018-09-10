@@ -194,22 +194,22 @@ Ciphertext SchemeAlgo::innerProd(Ciphertext* ciphers1, Ciphertext* ciphers2, con
 	return cip;
 }
 
-Ciphertext SchemeAlgo::squareMatMult(Ciphertext& cipher1, Ciphertext& cipher2, long logp, long size) {
-	long logSize = log2(size);
+Ciphertext SchemeAlgo::sqrMatMult(Ciphertext& cipher1, Ciphertext& cipher2, long logp, long n) {
+	long logn = log2(n);
 
-	MatrixContext ptmpm = scheme.ring.matrixContext.at({logSize,logSize});
+	SqrMatContext sqrMatContext = scheme.ring.sqrMatContextMap.at(logn);
 
-	Ciphertext* cipherP = new Ciphertext[size];
-	Ciphertext* cipherR = new Ciphertext[size];
+	Ciphertext* cipherP = new Ciphertext[n];
+	Ciphertext* cipherR = new Ciphertext[n];
 
-	NTL_EXEC_RANGE(size, first, last);
+	NTL_EXEC_RANGE(n, first, last);
 	for (long i = first; i < last; ++i) {
 		cipherR[i] = (i == 0) ? cipher1 : scheme.rightRotateFast(cipher1, i, 0);
-		scheme.modDownByAndEqual(cipherR[i], logSize);
+		scheme.modDownByAndEqual(cipherR[i], logn);
 
-		cipherP[i] = scheme.multPoly(cipher2, ptmpm.mvec[i], logSize);
-		scheme.reScaleByAndEqual(cipherP[i], logSize);
-		for (long j = 0; j < logSize; ++j) {
+		cipherP[i] = scheme.multPoly(cipher2, sqrMatContext.mvec[i], sqrMatContext.logp);
+		scheme.reScaleByAndEqual(cipherP[i], logn);
+		for (long j = 0; j < logn; ++j) {
 			Ciphertext rot = scheme.leftRotateFast(cipherP[i], 0, (1 << j));
 			scheme.addAndEqual(cipherP[i], rot);
 		}
@@ -217,7 +217,7 @@ Ciphertext SchemeAlgo::squareMatMult(Ciphertext& cipher1, Ciphertext& cipher2, l
 	}
 	NTL_EXEC_RANGE_END;
 
-	for (long i = 1; i < size; ++i) {
+	for (long i = 1; i < n; ++i) {
 		scheme.addAndEqual(cipherR[0], cipherR[i]);
 	}
 
@@ -227,22 +227,22 @@ Ciphertext SchemeAlgo::squareMatMult(Ciphertext& cipher1, Ciphertext& cipher2, l
 	return res;
 }
 
-void SchemeAlgo::squareMatMultAndEqual(Ciphertext& cipher, long logp, long size) {
-	long logSize = log2(size);
+void SchemeAlgo::sqrMatMultAndEqual(Ciphertext& cipher, long logp, long n) {
+	long logn = log2(n);
 
-	MatrixContext ptmpm = scheme.ring.matrixContext.at({logSize, logSize});
+	SqrMatContext sqrMatContext = scheme.ring.sqrMatContextMap.at(logn);
 
-	Ciphertext* cipherP = new Ciphertext[size];
-	Ciphertext* cipherR = new Ciphertext[size];
+	Ciphertext* cipherP = new Ciphertext[n];
+	Ciphertext* cipherR = new Ciphertext[n];
 
-	NTL_EXEC_RANGE(size, first, last);
+	NTL_EXEC_RANGE(n, first, last);
 	for (long i = first; i < last; ++i) {
 		cipherR[i] = (i == 0) ? cipher : scheme.rightRotateFast(cipher, i, 0);
 		scheme.modDownByAndEqual(cipherR[i], logp);
 
-		cipherP[i] = scheme.multPoly(cipher, ptmpm.mvec[i], logp);
+		cipherP[i] = scheme.multPoly(cipher, sqrMatContext.mvec[i], sqrMatContext.logp);
 		scheme.reScaleByAndEqual(cipherP[i], logp);
-		for (long j = 0; j < logSize; ++j) {
+		for (long j = 0; j < logn; ++j) {
 			Ciphertext rot = scheme.leftRotateFast(cipherP[i], 0, (1 << j));
 			scheme.addAndEqual(cipherP[i], rot);
 		}
@@ -250,7 +250,7 @@ void SchemeAlgo::squareMatMultAndEqual(Ciphertext& cipher, long logp, long size)
 	}
 	NTL_EXEC_RANGE_END;
 
-	for (long i = 1; i < size; ++i) {
+	for (long i = 1; i < n; ++i) {
 		scheme.addAndEqual(cipherR[0], cipherR[i]);
 	}
 
@@ -260,26 +260,23 @@ void SchemeAlgo::squareMatMultAndEqual(Ciphertext& cipher, long logp, long size)
 	delete[] cipherP;
 }
 
-Ciphertext SchemeAlgo::matMult(Ciphertext& cipher1, Ciphertext& cipher2, const long logp, const long sizex, const long sizey, const long sizez) {
-	return NULL;
-}
 
-Ciphertext SchemeAlgo::matInv(Ciphertext& cipher, long logp, long size, long r) {
+Ciphertext SchemeAlgo::matInv(Ciphertext& cipher, long logp, long n, long r) {
 	//TODO change method to right one
-	long logSize = log2(size);
+	long logn = log2(n);
 	Ciphertext cbar = scheme.negate(cipher);
-	MatrixContext mpmpt = scheme.ring.matrixContext.at({logSize, logSize});
-	scheme.addPolyAndEqual(cbar, mpmpt.mvec[0], logp);
+	SqrMatContext sqrMatContext = scheme.ring.sqrMatContextMap.at(logn);
+	scheme.addPolyAndEqual(cbar, sqrMatContext.mvec[0], sqrMatContext.logp);
 	Ciphertext cpow = cbar;
-	Ciphertext tmp = scheme.addPoly(cbar, mpmpt.mvec[0], logp);
+	Ciphertext tmp = scheme.addPoly(cbar, sqrMatContext.mvec[0], sqrMatContext.logp);
 	Ciphertext res = tmp;
 
 	for (long i = 1; i < r; ++i) {
-		squareMatMultAndEqual(cpow, logp, size);
+		sqrMatMultAndEqual(cpow, logp, n);
 		tmp = cpow;
-		scheme.addPolyAndEqual(tmp, mpmpt.mvec[0], logp);
+		scheme.addPolyAndEqual(tmp, sqrMatContext.mvec[0], sqrMatContext.logp);
 		scheme.modDownToAndEqual(res, tmp.logq);
-		tmp = squareMatMult(tmp, res, logp, size);
+		tmp = sqrMatMult(tmp, res, logp, n);
 		res = tmp;
 	}
 	return res;

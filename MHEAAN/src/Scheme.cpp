@@ -209,8 +209,8 @@ void Scheme::addBootKey(SecretKey& secretKey, long logn0, long logn1, long logp)
 	}
 }
 
-void Scheme::addSquareMatrixKeys(SecretKey& secretKey, long logn) {
-	ring.addMatrixContext(logn);
+void Scheme::addSqrMatKeys(SecretKey& secretKey, long logn, long logp) {
+	ring.addSqrMatContext(logn, logp);
 	long n = 1 << logn;
 	for (long i = 1; i < n; ++i) {
 		long idx = ring.N0h - i;

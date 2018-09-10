@@ -59,9 +59,9 @@ public:
 
 	void addConjKey(SecretKey& secretKey);
 
-	void addBootKey(SecretKey& secretKey, long lognx, long logny, long logp);
+	void addBootKey(SecretKey& secretKey, long logn0, long logn1, long logp);
 
-	void addSquareMatrixKeys(SecretKey& secretKey, long nx);
+	void addSqrMatKeys(SecretKey& secretKey, long n, long logp);
 
 
 	//----------------------------------------------------------------------------------
@@ -69,9 +69,9 @@ public:
 	//----------------------------------------------------------------------------------
 
 
-	Plaintext encode(complex<double>* vals, long nx, long ny, long logp, long logq);
+	Plaintext encode(complex<double>* vals, long n0, long n1, long logp, long logq);
 
-	Plaintext encode(double* vals, long nx, long ny, long logp, long logq);
+	Plaintext encode(double* vals, long n0, long n1, long logp, long logq);
 
 	Plaintext encodeSingle(complex<double> val, long logp, long logq);
 
@@ -89,15 +89,15 @@ public:
 
 	Ciphertext encryptMsg(Plaintext& msg);
 
-	Ciphertext encrypt(complex<double>* vals, long nx, long ny, long logp, long logq);
+	Ciphertext encrypt(complex<double>* vals, long n0, long n1, long logp, long logq);
 
-	Ciphertext encrypt(double* vals, long nx, long ny, long logp, long logq);
+	Ciphertext encrypt(double* vals, long n0, long n1, long logp, long logq);
 
 	Ciphertext encryptSingle(complex<double> val, long logp, long logq);
 
 	Ciphertext encryptSingle(double val, long logp, long logq);
 
-	Ciphertext encryptZeros(long nx, long ny, long logp, long logq);
+	Ciphertext encryptZeros(long n0, long n1, long logp, long logq);
 
 	Plaintext decryptMsg(SecretKey& secretKey, Ciphertext& cipher);
 
@@ -150,21 +150,21 @@ public:
 	void multConstAndEqual(Ciphertext& cipher, double cnst, long logp);
 	void multConstAndEqual(Ciphertext& cipher, complex<double> cnst, long logp);
 
-	Ciphertext multPolyX0(Ciphertext& cipher, ZZ* xpoly, long logp);
-	void multPolyX0AndEqual(Ciphertext& cipher, ZZ* xpoly, long logp);
-	Ciphertext multPolyNTTX0(Ciphertext& cipher, uint64_t* rxpoly, long bnd, long logp);
-	void multPolyNTTX0AndEqual(Ciphertext& cipher, uint64_t* rxpoly, long bnd, long logp);
+	Ciphertext multPolyX0(Ciphertext& cipher, ZZ* poly, long logp);
+	void multPolyX0AndEqual(Ciphertext& cipher, ZZ* poly, long logp);
+	Ciphertext multPolyNTTX0(Ciphertext& cipher, uint64_t* rpoly, long bnd, long logp);
+	void multPolyNTTX0AndEqual(Ciphertext& cipher, uint64_t* rpoly, long bnd, long logp);
 
-	Ciphertext multPolyX1(Ciphertext& cipher, ZZ* yrpoly, ZZ* yipoly, long logp);
-	void multPolyX1AndEqual(Ciphertext& cipher, ZZ* yrpoly, ZZ* yipoly, long logp);
+	Ciphertext multPolyX1(Ciphertext& cipher, ZZ* rpoly, ZZ* ipoly, long logp);
+	void multPolyX1AndEqual(Ciphertext& cipher, ZZ* rpoly, ZZ* ipoly, long logp);
 
 	Ciphertext multPoly(Ciphertext& cipher, ZZ* poly, long logp);
 	void multPolyAndEqual(Ciphertext& cipher, ZZ* poly, long logp);
 	Ciphertext multPolyNTT(Ciphertext& cipher, uint64_t* rpoly, long bnd, long logp);
 	void multPolyNTTAndEqual(Ciphertext& cipher, uint64_t* rpoly, long bnd, long logp);
 
-	Ciphertext multByMonomial(Ciphertext& cipher, const long dx, const long dy);
-	void multByMonomialAndEqual(Ciphertext& cipher, const long dx, const long dy);
+	Ciphertext multByMonomial(Ciphertext& cipher, const long d0, const long d1);
+	void multByMonomialAndEqual(Ciphertext& cipher, const long d0, const long d1);
 
 	Ciphertext multPo2(Ciphertext& cipher, long bits);
 	void multPo2AndEqual(Ciphertext& cipher, long bits);
@@ -197,17 +197,17 @@ public:
 	//   ROTATIONS & CONJUGATIONS
 	//----------------------------------------------------------------------------------
 
-	Ciphertext leftRotateFast(Ciphertext& cipher, long rx, long ry);
-	Ciphertext rightRotateFast(Ciphertext& cipher, long rx, long ry);
+	Ciphertext leftRotateFast(Ciphertext& cipher, long r0, long r1);
+	Ciphertext rightRotateFast(Ciphertext& cipher, long r0, long r1);
 
-	void leftRotateFastAndEqual(Ciphertext& cipher, long rx, long ry);
-	void rightRotateFastAndEqual(Ciphertext& cipher, long rx, long ry);
+	void leftRotateFastAndEqual(Ciphertext& cipher, long r0, long r1);
+	void rightRotateFastAndEqual(Ciphertext& cipher, long r0, long r1);
 
-	Ciphertext leftRotate(Ciphertext& cipher, long rx, long ry);
-	Ciphertext rightRotate(Ciphertext& cipher, long rx, long ry);
+	Ciphertext leftRotate(Ciphertext& cipher, long r0, long r1);
+	Ciphertext rightRotate(Ciphertext& cipher, long r0, long r1);
 
-	void leftRotateAndEqual(Ciphertext& cipher, long rx, long ry);
-	void rightRotateAndEqual(Ciphertext& cipher, long rx, long ry);
+	void leftRotateAndEqual(Ciphertext& cipher, long r0, long r1);
+	void rightRotateAndEqual(Ciphertext& cipher, long r0, long r1);
 
 	Ciphertext conjugate(Ciphertext& cipher);
 	void conjugateAndEqual(Ciphertext& cipher);

@@ -6,6 +6,19 @@
 * work.  If not, see <http://creativecommons.org/licenses/by-nc/3.0/>.
 */
 
-#include "MatrixContext.h"
+#ifndef MPHEAAN_MATRIXCONTEXT_H_
+#define MPHEAAN_MATRIXCONTEXT_H_
 
-MatrixContext::MatrixContext(ZZ** mvec) : mvec(mvec) {}
+#include <NTL/ZZ.h>
+
+using namespace NTL;
+class SqrMatContext {
+public:
+
+	//will be changed
+	ZZ** mvec;
+	long logp;
+	SqrMatContext(ZZ** mvec = NULL, long logp = 0);
+};
+
+#endif /* MATRIXCONTEXT_H_ */

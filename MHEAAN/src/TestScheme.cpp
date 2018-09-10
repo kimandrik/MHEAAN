@@ -673,7 +673,7 @@ void TestScheme::testSquareMatMult(long logN0, long logN1, long logQ, long logp,
 	Scheme scheme(secretKey, ring);
 	SchemeAlgo algo(scheme);
 
-	scheme.addSquareMatrixKeys(secretKey, logn);
+	scheme.addSqrMatKeys(secretKey, logn, logp);
 
 	long n = (1 << logn);
 	long n2 = n * n;
@@ -687,7 +687,7 @@ void TestScheme::testSquareMatMult(long logN0, long logN1, long logQ, long logp,
 	Ciphertext cipher2 = scheme.encrypt(mmat2, n, n, logp, logQ);
 
 	timeutils.start("Square Matrix Mult");
-	Ciphertext cmatmult = algo.squareMatMult(cipher1, cipher2, logp, n);
+	Ciphertext cmatmult = algo.sqrMatMult(cipher1, cipher2, logp, n);
 	timeutils.stop("Square Matrix Mult");
 
 	complex<double>* dmatmult = scheme.decrypt(secretKey, cmatmult);
@@ -707,7 +707,7 @@ void TestScheme::testSquareMatPow(long logN0, long logN1, long logQ, long logp, 
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 	SchemeAlgo algo(scheme);
-	scheme.addSquareMatrixKeys(secretKey, logn);
+	scheme.addSqrMatKeys(secretKey, logn, logp);
 
 	long n = (1 << logn);
 	long n2 = n * n;
@@ -718,7 +718,7 @@ void TestScheme::testSquareMatPow(long logN0, long logN1, long logQ, long logp, 
 
 	timeutils.start("Square Matrix Mult");
 	for (long i = 0; i < logDegree; ++i) {
-		algo.squareMatMultAndEqual(cipher, logp, n);
+		algo.sqrMatMultAndEqual(cipher, logp, n);
 	}
 	timeutils.stop("Square Matrix Mult");
 
@@ -742,7 +742,7 @@ void TestScheme::testSquareMatInv(long logN0, long logN1, long logQ, long logp, 
 	SecretKey secretKey(ring);
 	Scheme scheme(secretKey, ring);
 	SchemeAlgo algo(scheme);
-	scheme.addSquareMatrixKeys(secretKey, logn);
+	scheme.addSqrMatKeys(secretKey, logn, logp);
 
 	long n = (1 << logn);
 	long n2 = n * n;

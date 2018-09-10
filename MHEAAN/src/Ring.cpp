@@ -184,8 +184,8 @@ void Ring::addBootContext(long logn0, long logn1, long logp) {
 	}
 }
 
-void Ring::addMatrixContext(long logn) {
-	if (matrixContext.find({logn, logn}) == matrixContext.end()) {
+void Ring::addSqrMatContext(long logn, long logp) {
+	if (sqrMatContextMap.find(logn) == sqrMatContextMap.end()) {
 		long n = 1 << logn;
 		ZZ** pvec = new ZZ*[n];
 
@@ -201,7 +201,7 @@ void Ring::addMatrixContext(long logn) {
 		for (long i = 1; i < n; ++i) {
 			pvec[i] = leftRotate(pvec[0], 0, i);
 		}
-		matrixContext.insert(pair<pair<long, long>, MatrixContext>({logn, logn}, MatrixContext(pvec)));
+		sqrMatContextMap.insert(pair<long, SqrMatContext>(logn, SqrMatContext(pvec, logp)));
 	}
 }
 

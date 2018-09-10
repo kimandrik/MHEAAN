@@ -103,13 +103,11 @@ public:
 	//----------------------------------------------------------------------------------
 
 
-	Ciphertext squareMatMult(Ciphertext& cipher1, Ciphertext& cipher2, long logp, long size);
+	Ciphertext sqrMatMult(Ciphertext& cipher1, Ciphertext& cipher2, long logp, long size);
 
-	void squareMatMultAndEqual(Ciphertext& cipher, long logp, long size);
+	void sqrMatMultAndEqual(Ciphertext& cipher, long logp, long size);
 
-	Ciphertext matMult(Ciphertext& cipher1, Ciphertext& cipher2, long logp, long sizex, long sizey, long sizez);
-
-	Ciphertext matInv(Ciphertext& cipher, long logp, long size, long r);
+	Ciphertext matInv(Ciphertext& cipher, long logp, long n, long r);
 
 
 	//----------------------------------------------------------------------------------
