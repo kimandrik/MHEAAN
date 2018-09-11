@@ -1562,7 +1562,7 @@ void Scheme::exp2piAndEqual(Ciphertext& cipher, long logp) {
 	addAndEqual(cipher, cipher23);
 }
 
-void Scheme::evalExpAndEqual(Ciphertext& cipher, long logT, long logI) {
+void Scheme::removeIPartAndEqual(Ciphertext& cipher, long logT, long logI) {
 	//TODO change method for different cases
 	long logn0 = log2(cipher.n0);
 	long logn1 = log2(cipher.n1);
@@ -1615,7 +1615,7 @@ void Scheme::bootstrapX0AndEqual(Ciphertext& cipher, long logq, long logQ, long 
 	}
 	coeffToSlotX0AndEqual(cipher);
 	divPo2AndEqual(cipher, ring.logN0h);
-	evalExpAndEqual(cipher, logT, logI);
+	removeIPartAndEqual(cipher, logT, logI);
 	slotToCoeffX0AndEqual(cipher);
 	cipher.logp = logp;
 }
@@ -1636,7 +1636,7 @@ void Scheme::bootstrapX1AndEqual(Ciphertext& cipher, long logq, long logQ, long 
 	}
 	coeffToSlotX1AndEqual(cipher);
 	divPo2AndEqual(cipher, ring.logN1);
-	evalExpAndEqual(cipher, logT, logI);
+	removeIPartAndEqual(cipher, logT, logI);
 	slotToCoeffX1AndEqual(cipher);
 	cipher.logp = logp;
 }
@@ -1662,7 +1662,7 @@ void Scheme::bootstrapAndEqual(Ciphertext& cipher, long logq, long logQ, long lo
 	}
 	coeffToSlotAndEqual(cipher);
 	divPo2AndEqual(cipher, ring.logN0h + ring.logN1);
-	evalExpAndEqual(cipher, logT, logI);
+	removeIPartAndEqual(cipher, logT, logI);
 	slotToCoeffAndEqual(cipher);
 	cipher.logp = logp;
 }

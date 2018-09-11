@@ -16,12 +16,8 @@
 #include <type_traits>
 #include <vector>
 
-#include "Primes.h"
-
-RingMultiplier::RingMultiplier(long logN0, long nprimes) : logN0(logN0) {
+RingMultiplier::RingMultiplier(long logN0, long logN1, long nprimes) : logN0(logN0), logN1(logN1) {
 	N0 = 1 << logN0;
-
-	logN1 = 8;
 	N1 = 1 << logN1;
 
 	logN = logN0 + logN1;
@@ -51,10 +47,10 @@ RingMultiplier::RingMultiplier(long logN0, long nprimes) : logN0(logN0) {
 	red_ss_array = new _ntl_general_rem_one_struct*[nprimes];
 
 	long M1 = N1 + 1;
-	gM1Pows = new long[M1];
-	gM1PowsInv = new long[M1];
-	long g1 = 3;
-	long gM1Pow = 1;
+	gM1Pows = new uint64_t[M1];
+	gM1PowsInv = new uint64_t[M1];
+	uint64_t g1 = findPrimitiveRoot(M1);
+	uint64_t gM1Pow = 1;
 	for (long i = 0; i < N1; ++i) {
 		gM1Pows[i] = gM1Pow;
 		gM1PowsInv[gM1Pow] = i;
@@ -63,8 +59,19 @@ RingMultiplier::RingMultiplier(long logN0, long nprimes) : logN0(logN0) {
 	}
 	gM1Pows[N1] = 1;
 
+	long M = M1 * M0;
+	uint64_t primetest = (1ULL << (59-logN1)) * M1 + 1;
 	for (long i = 0; i < nprimes; ++i) {
-		pVec[i] = pPrimesVec[i];
+		while(true) {
+			primetest += M;
+			if(primeTest(primetest)) {
+				pVec[i] = primetest;
+				break;
+			}
+		}
+	}
+
+	for (long i = 0; i < nprimes; ++i) {
 		red_ss_array[i] = _ntl_general_rem_one_struct_build(pVec[i]);
 		pInvVec[i] = inv(pVec[i]);
 		pTwok[i] = (2 * ((long) log2(pVec[i]) + 1));
@@ -156,6 +163,28 @@ RingMultiplier::RingMultiplier(long logN0, long nprimes) : logN0(logN0) {
 			coeffpinv_array[i][j] = PrepMulModPrecon(pHatInvModp[i][j], pVec[j]);
 		}
 	}
+}
+
+bool RingMultiplier::primeTest(uint64_t p) {
+	if(p < 2) return false;
+	if(p != 2 && p % 2 == 0) return false;
+	uint64_t s = p - 1;
+	while(s % 2 == 0) {
+		s /= 2;
+	}
+	for(long i = 0; i < 200; i++) {
+		uint64_t temp1 = rand();
+		temp1  = (temp1 << 32) | rand();
+		temp1 = temp1 % (p - 1) + 1;
+		uint64_t temp2 = s;
+		uint64_t mod = powMod(temp1,temp2,p);
+		while (temp2 != p - 1 && mod != 1 && mod != p - 1) {
+			mulMod(mod, mod, mod, p);
+		    temp2 *= 2;
+		}
+		if (mod != p - 1 && temp2 % 2 == 0) return false;
+	}
+	return true;
 }
 
 void RingMultiplier::arrayBitReverse(uint64_t* vals, long n) {

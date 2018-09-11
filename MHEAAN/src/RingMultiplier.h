@@ -27,8 +27,8 @@ public:
 	long logN;
 	long N;
 
-	long* gM1Pows;
-	long* gM1PowsInv;
+	uint64_t* gM1Pows;
+	uint64_t* gM1PowsInv;
 	uint64_t** rootM1DFTPows;
 	uint64_t** rootM1DFTPowsInv;
 	uint64_t** rootM1Pows;
@@ -56,7 +56,9 @@ public:
 	ZZ** pHat;
 	uint64_t** pHatInvModp;
 
-	RingMultiplier(long logN0 = 0, long nprimes = 0);
+	RingMultiplier(long logN0 = 0, long logN1 = 0, long nprimes = 0);
+
+	bool primeTest(uint64_t p);
 
 	void arrayBitReverse(uint64_t* a, long n);
 

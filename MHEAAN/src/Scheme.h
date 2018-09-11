@@ -230,7 +230,7 @@ public:
 
 	void exp2piAndEqual(Ciphertext& cipher, long logp);
 
-	void evalExpAndEqual(Ciphertext& cipher, long logT, long logI = 4);
+	void removeIPartAndEqual(Ciphertext& cipher, long logT, long logI = 4);
 
 	void bootstrapX0AndEqual(Ciphertext& cipher, long logq, long logQ, long logT, long logI = 4);
 	void bootstrapX1AndEqual(Ciphertext& cipher, long logq, long logQ, long logT, long logI = 4);

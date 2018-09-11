@@ -13,15 +13,14 @@
 #include "StringUtils.h"
 
 
-Ring::Ring(long logN0, long logQ, double sigma, long h) :
-		logN0(logN0), logQ(logQ), sigma(sigma), h(h) {
+Ring::Ring(long logN0, long logN1, long logQ, double sigma, long h) :
+		logN0(logN0), logN1(logN1), logQ(logQ), sigma(sigma), h(h) {
 
 	N0 = (1 << logN0);
 	M0 = 1 << (logN0 + 1);
 	N0h = N0 >> 1;
 	logN0h = logN0 - 1;
 
-	logN1 = 8;
 	N1 = 1 << logN1;
 	M1 = N1 + 1;
 
@@ -30,37 +29,37 @@ Ring::Ring(long logN0, long logQ, double sigma, long h) :
 	Nh = N >> 1;
 
 	long nprimes = ceil((2 + 2 * logN + 4 * logQ) / 59.0);
-	multiplier = RingMultiplier(logN0, nprimes);
+	multiplier = RingMultiplier(logN0, logN1, nprimes);
 
 	logQQ = 2 * logQ;
 
 	Q = power2_ZZ(logQ);
 	QQ = power2_ZZ(logQQ);
 
-	gM0Pows = new long[N0h + 1];
-	long gx = 5;
-	long gxPow = 1;
+	gM0Pows = new uint64_t[N0h + 1];
+	uint64_t g0 = 5;
+	uint64_t g0Pow = 1;
 	for (long i = 0; i < N0h; ++i) {
-		gM0Pows[i] = gxPow;
-		gxPow *= gx;
-		gxPow %= M0;
+		gM0Pows[i] = g0Pow;
+		g0Pow *= g0;
+		g0Pow %= M0;
 	}
 	gM0Pows[N0h] = gM0Pows[0];
 
-	gM1Pows = new long[M1];
+	gM1Pows = new uint64_t[M1];
 	dftomegaPows = new complex<double>[N1]();
 	omegaPows = new complex<double>[N1]();
-	long gy = 3;
-	long gyPow = 1;
+	uint64_t g1 = multiplier.findPrimitiveRoot(M1);
+	uint64_t g1Pow = 1;
 	for (long i = 0; i < N1; ++i) {
-		double angle = 2.0 * M_PI * gyPow / M1;
+		double angle = 2.0 * M_PI * g1Pow / M1;
 		omegaPows[i].real(cos(angle));
 		omegaPows[i].imag(sin(angle));
 		dftomegaPows[i].real(cos(angle));
 		dftomegaPows[i].imag(sin(angle));
-		gM1Pows[i] = gyPow;
-		gyPow *= gy;
-		gyPow %= M1;
+		gM1Pows[i] = g1Pow;
+		g1Pow *= g1;
+		g1Pow %= M1;
 	}
 	gM1Pows[N1] = gM1Pows[0];
 

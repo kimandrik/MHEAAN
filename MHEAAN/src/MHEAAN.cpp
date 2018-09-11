@@ -69,7 +69,7 @@ int main() {
 //----------------------------------------------------------------------------------
 
 
-//	TestScheme::testBootstrap(8, 8, 55, 1200, 40, 7, 8, 5, 4);
+//	TestScheme::testBootstrap(8, 8, 41, 1240, 31, 7, 8, 7, 4);
 
 //	TestScheme::testCiphertextWriteAndRead(10, 65, 30, 2);
 

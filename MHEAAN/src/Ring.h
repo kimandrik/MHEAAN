@@ -53,8 +53,8 @@ public:
 
 	RingMultiplier multiplier;
 
-	long* gM0Pows; ///< auxiliary information about rotation group indexes for batch encoding
-	long* gM1Pows; ///< auxiliary information about rotation group indexes for batch encoding
+	uint64_t* gM0Pows; ///< auxiliary information about rotation group indexes for batch encoding
+	uint64_t* gM1Pows; ///< auxiliary information about rotation group indexes for batch encoding
 
 	complex<double>* ksiM0Pows; ///< storing ksi pows for fft calculation
 	complex<double>* ksiM1Pows;
@@ -67,7 +67,7 @@ public:
 
 	map<long, SqrMatContext> sqrMatContextMap;
 
-	Ring(long logN0, long logQ, double sigma = 3.2, long h = 64);
+	Ring(long logN0, long logN1, long logQ, double sigma = 3.2, long h = 64);
 
 
 	//----------------------------------------------------------------------------------
