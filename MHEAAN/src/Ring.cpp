@@ -373,10 +373,10 @@ void Ring::IEMB(complex<double>* vals, long n0) {
 	delete[] tmp;
 }
 
-void Ring::encode(ZZ* mx, complex<double>* vals, long n0, long n1, long logp) {
+ZZ* Ring::encode(complex<double>* vals, long n0, long n1, long logp) {
 	long gap0 = N0h / n0;
 	long gap1 = N1 / n1;
-
+	ZZ* mx = new ZZ[N];
 	complex<double>* uvals = new complex<double>[n0 * N1];
 	for (long j = 0; j < gap1; ++j) {
 		copy(vals, vals + n0 * n1, uvals + j * n0 * n1);
@@ -390,12 +390,13 @@ void Ring::encode(ZZ* mx, complex<double>* vals, long n0, long n1, long logp) {
 		}
 	}
 	delete[] uvals;
+	return mx;
 }
 
-void Ring::encode(ZZ* mx, double* vals, long n0, long n1, long logp) {
+ZZ* Ring::encode(double* vals, long n0, long n1, long logp) {
 	long gap0 = N0h / n0;
 	long gap1 = N1 / n1;
-
+	ZZ* mx = new ZZ[N];
 	complex<double>* uvals = new complex<double>[n0 * N1];
 	for (long i = 0; i < n0 * n1; ++i) {
 		for (long j = 0; j < gap1; ++j) {
@@ -411,14 +412,15 @@ void Ring::encode(ZZ* mx, double* vals, long n0, long n1, long logp) {
 		}
 	}
 	delete[] uvals;
+	return mx;
 }
 
-void Ring::decode(ZZ* mxy, complex<double>* vals, long n0, long n1, long logp, long logq) {
+complex<double>* Ring::decode(ZZ* mxy, long n0, long n1, long logp, long logq) {
 	ZZ q = qvec[logq];
 	ZZ qh = qvec[logq - 1];
 	long gap0 = N0h / n0;
 	ZZ tmp;
-
+	complex<double>* vals = new complex<double>[n0 * n1];
 	complex<double>* fvals = new complex<double>[n0 * N1];
 	for (long i0 = 0, ii0 = N0h, ir0 = 0; i0 < n0; ++i0, ii0 += gap0, ir0 += gap0) {
 		for (long i1 = 0; i1 < N1; ++i1) {
@@ -437,6 +439,7 @@ void Ring::decode(ZZ* mxy, complex<double>* vals, long n0, long n1, long logp, l
 	EMB(fvals, n0);
 	copy(fvals, fvals + n0 * n1, vals);
 	delete[] fvals;
+	return vals;
 }
 
 

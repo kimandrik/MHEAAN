@@ -41,9 +41,9 @@ public:
 	//----------------------------------------------------------------------------------
 
 
-	Ciphertext* encryptSingleArray(complex<double>* vals, long size, long logp);
+	Ciphertext** encryptSingleArray(complex<double>* vals, long size, long logp);
 
-	complex<double>* decryptSingleArray(SecretKey& secretKey, Ciphertext* ciphers, long size);
+	complex<double>* decryptSingleArray(SecretKey* secretKey, Ciphertext** ciphers, long size);
 
 
 	//----------------------------------------------------------------------------------
@@ -51,17 +51,17 @@ public:
 	//----------------------------------------------------------------------------------
 
 
-	Ciphertext powerOf2(Ciphertext& cipher, long precisionBits, long logDegree);
+	Ciphertext* powerOf2(Ciphertext* cipher, long precisionBits, long logDegree);
 
-	Ciphertext* powerOf2Extended(Ciphertext& cipher, long logp, long logDegree);
+	Ciphertext** powerOf2Extended(Ciphertext* cipher, long logp, long logDegree);
 
-	Ciphertext power(Ciphertext& cipher, long logp, long degree);
+	Ciphertext* power(Ciphertext* cipher, long logp, long degree);
 
-	Ciphertext* powerExtended(Ciphertext& cipher, long logp, long degree);
+	Ciphertext** powerExtended(Ciphertext* cipher, long logp, long degree);
 
-	Ciphertext prodOfPo2(Ciphertext* ciphers, long logp, long logDegree);
+	Ciphertext* prodOfPo2(Ciphertext** ciphers, long logp, long logDegree);
 
-	Ciphertext prod(Ciphertext* ciphers, long logp, long degree);
+	Ciphertext* prod(Ciphertext** ciphers, long logp, long degree);
 
 
 	//----------------------------------------------------------------------------------
@@ -69,15 +69,15 @@ public:
 	//----------------------------------------------------------------------------------
 
 
-	Ciphertext inverse(Ciphertext& cipher, long logp, long steps);
+	Ciphertext* inverse(Ciphertext* cipher, long logp, long steps);
 
-	Ciphertext* inverseExtended(Ciphertext& cipher, long logp, long steps);
+	Ciphertext** inverseExtended(Ciphertext* cipher, long logp, long steps);
 
-	Ciphertext function(Ciphertext& cipher, string& funcName, long logp, long degree);
+	Ciphertext* function(Ciphertext* cipher, string& funcName, long logp, long degree);
 
-	Ciphertext functionLazy(Ciphertext& cipher, string& funcName, long logp, long degree);
+	Ciphertext* functionLazy(Ciphertext* cipher, string& funcName, long logp, long degree);
 
-	Ciphertext* functionExtended(Ciphertext& cipher, string& funcName, long logp, long degree);
+	Ciphertext** functionExtended(Ciphertext* cipher, string& funcName, long logp, long degree);
 
 
 	//----------------------------------------------------------------------------------
@@ -85,17 +85,17 @@ public:
 	//----------------------------------------------------------------------------------
 
 
-	Ciphertext sum(Ciphertext* ciphers, long size);
+	Ciphertext* sum(Ciphertext** ciphers, long size);
 
-	Ciphertext* multVec(Ciphertext* ciphers1, Ciphertext* ciphers2, long size);
+	Ciphertext** multVec(Ciphertext** ciphers1, Ciphertext** ciphers2, long size);
 
-	void multAndEqualVec(Ciphertext* ciphers1, Ciphertext* ciphers2, long size);
+	void multAndEqualVec(Ciphertext** ciphers1, Ciphertext** ciphers2, long size);
 
-	Ciphertext* multAndModSwitchVec(Ciphertext* ciphers1, Ciphertext* ciphers2, long logp, long size);
+	Ciphertext** multAndModSwitchVec(Ciphertext** ciphers1, Ciphertext** ciphers2, long logp, long size);
 
-	void multModSwitchAndEqualVec(Ciphertext* ciphers1, Ciphertext* ciphers2, long logp, long size);
+	void multModSwitchAndEqualVec(Ciphertext** ciphers1, Ciphertext** ciphers2, long logp, long size);
 
-	Ciphertext innerProd(Ciphertext* ciphers1, Ciphertext* ciphers2, long logp, long size);
+	Ciphertext* innerProd(Ciphertext** ciphers1, Ciphertext** ciphers2, long logp, long size);
 
 
 	//----------------------------------------------------------------------------------
@@ -103,30 +103,34 @@ public:
 	//----------------------------------------------------------------------------------
 
 
-	Ciphertext sqrMatMult(Ciphertext& cipher1, Ciphertext& cipher2, long logp, long size);
+	Ciphertext* sqrMatMult(Ciphertext* cipher1, Ciphertext* cipher2, long logp, long size);
 
-	void sqrMatMultAndEqual(Ciphertext& cipher, long logp, long size);
+	void sqrMatMultAndEqual(Ciphertext*& cipher1, Ciphertext* cipher2, long logp, long size);
 
-	Ciphertext matInv(Ciphertext& cipher, long logp, long n, long r);
+	Ciphertext* sqrMatSqr(Ciphertext* cipher, long logp, long size);
+
+	void sqrMatSqrAndEqual(Ciphertext*& cipher, long logp, long size);
+
+	Ciphertext* matInv(Ciphertext* cipher, long logp, long n, long r);
 
 
 	//----------------------------------------------------------------------------------
 	//   FFT & IFFT
 	//----------------------------------------------------------------------------------
 
-	void bitReverse(Ciphertext* ciphers, long n);
+	void bitReverse(Ciphertext** ciphers, long n);
 
-	void DFTX0(Ciphertext* ciphers, long n0);
-	void IDFTX0(Ciphertext* ciphers, long n0);
-	void IDFTX0Lazy(Ciphertext* ciphers, long n0);
+	void DFTX0(Ciphertext** ciphers, long n0);
+	void IDFTX0(Ciphertext** ciphers, long n0);
+	void IDFTX0Lazy(Ciphertext** ciphers, long n0);
 
-	void DFTX1(Ciphertext* ciphers, long n1);
-	void IDFTX1(Ciphertext* ciphers, long n1);
-	void IDFTX1Lazy(Ciphertext* ciphers, long n1);
+	void DFTX1(Ciphertext** ciphers, long n1);
+	void IDFTX1(Ciphertext** ciphers, long n1);
+	void IDFTX1Lazy(Ciphertext** ciphers, long n1);
 
-	void DFT(Ciphertext* ciphers, long n0, long n1);
-	void IDFT(Ciphertext* ciphers, long n0, long n1);
-	void IDFTLazy(Ciphertext* ciphers, long n0, long n1);
+	void DFT(Ciphertext** ciphers, long n0, long n1);
+	void IDFT(Ciphertext** ciphers, long n0, long n1);
+	void IDFTLazy(Ciphertext** ciphers, long n0, long n1);
 
 };
 

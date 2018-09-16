@@ -98,9 +98,9 @@ public:
 	void EMB(complex<double>* vals, long n0);
 	void IEMB(complex<double>* vals, long n0);
 
-	void encode(ZZ* mxy, complex<double>* vals, long n0, long n1, long logp);
-	void encode(ZZ* mxy, double* vals, long n0, long n1, long logp);
-	void decode(ZZ* mxy, complex<double>* vals, long n0, long n1, long logp, long logq);
+	ZZ* encode(complex<double>* vals, long n0, long n1, long logp);
+	ZZ* encode(double* vals, long n0, long n1, long logp);
+	complex<double>* decode(ZZ* mxy, long n0, long n1, long logp, long logq);
 
 
 	//----------------------------------------------------------------------------------

@@ -35,10 +35,11 @@ public:
 	Ciphertext(ZZ* ax = NULL, ZZ* bx = NULL, long logp = 0, long logq = 0, long N0 = 0, long N1 = 0, long n0 = 0, long n1 = 0);
 
 	Ciphertext(const Ciphertext& o);
+	Ciphertext(const Ciphertext* o);
 
 	Ciphertext& operator=(const Ciphertext &o);
 
-	~Ciphertext();
+	virtual ~Ciphertext();
 };
 
 #endif

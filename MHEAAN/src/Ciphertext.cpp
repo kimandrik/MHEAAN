@@ -22,6 +22,16 @@ Ciphertext::Ciphertext(const Ciphertext& o) : logp(o.logp), logq(o.logq), N0(o.N
 	}
 }
 
+Ciphertext::Ciphertext(const Ciphertext* o) : logp(o->logp), logq(o->logq), N0(o->N0), N1(o->N1), n0(o->n0), n1(o->n1) {
+	long N = N0 * N1;
+	ax = new ZZ[N];
+	bx = new ZZ[N];
+	for (long i = 0; i < N; ++i) {
+		ax[i] = o->ax[i];
+		bx[i] = o->bx[i];
+	}
+}
+
 Ciphertext& Ciphertext::operator=(const Ciphertext& o) {
 	if(this == &o) return *this;
 	delete[] ax;
@@ -43,6 +53,6 @@ Ciphertext& Ciphertext::operator=(const Ciphertext& o) {
 }
 
 Ciphertext::~Ciphertext() {
-	delete[] ax;
-	delete[] bx;
+	if(ax) delete[] ax;
+	if(bx) delete[] bx;
 }
