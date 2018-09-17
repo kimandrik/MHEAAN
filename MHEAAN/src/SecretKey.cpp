@@ -8,9 +8,9 @@
 
 #include "SecretKey.h"
 
-SecretKey::SecretKey(Ring& ring) {
-	N0 = ring.N0;
-	N1 = ring.N1;
-	sx = new ZZ[ring.N];
-	ring.sampleHWT(sx);
+SecretKey::SecretKey(Ring* ring) {
+	N0 = ring->N0;
+	N1 = ring->N1;
+	sx = new ZZ[ring->N];
+	ring->sampleHWT(sx);
 }

@@ -29,7 +29,7 @@ Ring::Ring(long logN0, long logN1, long logQ, double sigma, long h) :
 	Nh = N >> 1;
 
 	long nprimes = ceil((2 + 2 * logN + 4 * logQ) / 59.0);
-	multiplier = RingMultiplier(logN0, logN1, nprimes);
+	multiplier = new RingMultiplier(logN0, logN1, nprimes);
 
 	logQQ = 2 * logQ;
 
@@ -49,7 +49,7 @@ Ring::Ring(long logN0, long logN1, long logQ, double sigma, long h) :
 	gM1Pows = new uint64_t[M1];
 	dftomegaPows = new complex<double>[N1]();
 	omegaPows = new complex<double>[N1]();
-	uint64_t g1 = multiplier.findPrimitiveRoot(M1);
+	uint64_t g1 = multiplier->findPrimitiveRoot(M1);
 	uint64_t g1Pow = 1;
 	for (long i = 0; i < N1; ++i) {
 		double angle = 2.0 * M_PI * g1Pow / M1;
@@ -178,7 +178,7 @@ void Ring::addBootContext(long logn0, long logn1, long logp) {
 		delete[] pvals;
 		delete[] pVec;
 
-		bootContextMap.insert(pair<pair<long, long>, BootContext>({logn0, logn1}, BootContext(rpVec, rpInvVec, rp1, rp2,
+		bootContextMap.insert(pair<pair<long, long>, BootContext*>({logn0, logn1}, new BootContext(rpVec, rpInvVec, rp1, rp2,
 				bndVec, bndInvVec, bnd1, bnd2, logp)));
 	}
 }
@@ -200,7 +200,7 @@ void Ring::addSqrMatContext(long logn, long logp) {
 		for (long i = 1; i < n; ++i) {
 			pvec[i] = leftRotate(pvec[0], 0, i);
 		}
-		sqrMatContextMap.insert(pair<long, SqrMatContext>(logn, SqrMatContext(pvec, logp)));
+		sqrMatContextMap.insert(pair<long, SqrMatContext*>(logn, new SqrMatContext(pvec, logp)));
 	}
 }
 
@@ -458,103 +458,103 @@ long Ring::MaxBits(const ZZ* f, long n) {
 }
 
 uint64_t* Ring::toNTTX0(ZZ* a, long np) {
-	return multiplier.toNTTX0(a, np);
+	return multiplier->toNTTX0(a, np);
 }
 
 uint64_t* Ring::toNTTX1(ZZ* a, long np) {
-	return multiplier.toNTTX1(a, np);
+	return multiplier->toNTTX1(a, np);
 }
 
 uint64_t* Ring::toNTTX1Lazy(ZZ* a, long np) {
-	return multiplier.toNTTX1Lazy(a, np);
+	return multiplier->toNTTX1Lazy(a, np);
 }
 
 uint64_t* Ring::toNTT(ZZ* a, long np) {
-	return multiplier.toNTT(a, np);
+	return multiplier->toNTT(a, np);
 }
 
 uint64_t* Ring::toNTTLazy(ZZ* a, long np) {
-	return multiplier.toNTTLazy(a, np);
+	return multiplier->toNTTLazy(a, np);
 }
 
 void Ring::addNTTAndEqual(uint64_t* ra, uint64_t* rb, long np) {
-	multiplier.addNTTAndEqual(ra, rb, np);
+	multiplier->addNTTAndEqual(ra, rb, np);
 }
 
 void Ring::multX0(ZZ* x, ZZ* a, ZZ* b, long np, ZZ& q) {
-	multiplier.multX0(x, a, b, np, q);
+	multiplier->multX0(x, a, b, np, q);
 }
 
 void Ring::multX0AndEqual(ZZ* a, ZZ* b, long np, ZZ& q) {
-	multiplier.multX0AndEqual(a, b, np, q);
+	multiplier->multX0AndEqual(a, b, np, q);
 }
 
 void Ring::multNTTX0(ZZ* x, ZZ* a, uint64_t* rb, long np, ZZ& q) {
-	multiplier.multNTTX0(x, a, rb, np, q);
+	multiplier->multNTTX0(x, a, rb, np, q);
 }
 
 void Ring::multNTTX0AndEqual(ZZ* a, uint64_t* rb, long np, ZZ& q) {
-	multiplier.multNTTX0AndEqual(a, rb, np, q);
+	multiplier->multNTTX0AndEqual(a, rb, np, q);
 }
 
 void Ring::multDNTTX0(ZZ* x, uint64_t* ra, uint64_t* rb, long np, ZZ& q) {
-	multiplier.multDNTTX0(x, ra, rb, np, q);
+	multiplier->multDNTTX0(x, ra, rb, np, q);
 }
 
 void Ring::multX1(ZZ* x, ZZ* a, ZZ* b, long np, ZZ& q) {
-	multiplier.multX1(x, a, b, np, q);
+	multiplier->multX1(x, a, b, np, q);
 }
 
 void Ring::multX1AndEqual(ZZ* a, ZZ* b, long np, ZZ& q) {
-	multiplier.multX1AndEqual(a, b, np, q);
+	multiplier->multX1AndEqual(a, b, np, q);
 }
 
 void Ring::multNTTX1(ZZ* x, ZZ* a, uint64_t* b, long np, ZZ& q) {
-	multiplier.multNTTX1(x, a, b, np, q);
+	multiplier->multNTTX1(x, a, b, np, q);
 }
 
 void Ring::multNTTX1AndEqual(ZZ* a, uint64_t* b, long np, ZZ& q) {
-	multiplier.multNTTX1AndEqual(a, b, np, q);
+	multiplier->multNTTX1AndEqual(a, b, np, q);
 }
 
 void Ring::mult(ZZ* x, ZZ* a, ZZ* b, long np, ZZ& q) {
-	multiplier.mult(x, a, b, np, q);
+	multiplier->mult(x, a, b, np, q);
 }
 
 void Ring::multAndEqual(ZZ* a, ZZ* b, long np, ZZ& q) {
-	multiplier.multAndEqual(a, b, np, q);
+	multiplier->multAndEqual(a, b, np, q);
 }
 
 void Ring::multNTT(ZZ* x, ZZ* a, uint64_t* rb, long np, ZZ& q) {
-	multiplier.multNTT(x, a, rb, np, q);
+	multiplier->multNTT(x, a, rb, np, q);
 }
 
 void Ring::multNTTAndEqual(ZZ* a, uint64_t* rb, long np, ZZ& q) {
-	multiplier.multNTTAndEqual(a, rb, np, q);
+	multiplier->multNTTAndEqual(a, rb, np, q);
 }
 
 void Ring::multNTTLazy(ZZ* x, ZZ* a, uint64_t* rb, long np, ZZ& q) {
-	multiplier.multNTTLazy(x, a, rb, np, q);
+	multiplier->multNTTLazy(x, a, rb, np, q);
 }
 
 void Ring::multNTTLazyAndEqual(ZZ* a, uint64_t* rb, long np, ZZ& q) {
-	multiplier.multNTTLazyAndEqual(a, rb, np, q);
+	multiplier->multNTTLazyAndEqual(a, rb, np, q);
 }
 
 void Ring::multDNTT(ZZ* x, uint64_t* ra, uint64_t* rb, long np, ZZ& q) {
-	multiplier.multDNTT(x, ra, rb, np, q);
+	multiplier->multDNTT(x, ra, rb, np, q);
 }
 
 void Ring::square(ZZ* x, ZZ* a, long np, ZZ& q) {
-	multiplier.square(x, a, np, q);
+	multiplier->square(x, a, np, q);
 }
 
 void Ring::squareAndEqual(ZZ* a, long np, ZZ& q) {
-	multiplier.squareAndEqual(a, np, q);
+	multiplier->squareAndEqual(a, np, q);
 }
 
 void Ring::squareNTT(ZZ* x, uint64_t* ra, long np, ZZ& q) {
-	multiplier.squareNTT(x, ra, np, q);
+	multiplier->squareNTT(x, ra, np, q);
 }
 
 //----------------------------------------------------------------------------------

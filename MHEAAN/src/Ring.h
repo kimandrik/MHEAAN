@@ -51,7 +51,7 @@ public:
 	double sigma; ///< standard deviation for Gaussian distribution
 	long h; ///< parameter for HWT distribution
 
-	RingMultiplier multiplier;
+	RingMultiplier* multiplier;
 
 	uint64_t* gM0Pows; ///< auxiliary information about rotation group indexes for batch encoding
 	uint64_t* gM1Pows; ///< auxiliary information about rotation group indexes for batch encoding
@@ -63,9 +63,9 @@ public:
 	complex<double>* dftomegaPows;
 	complex<double>* omegaPows;
 
-	map<pair<long, long>, BootContext> bootContextMap;
+	map<pair<long, long>, BootContext*> bootContextMap;
 
-	map<long, SqrMatContext> sqrMatContextMap;
+	map<long, SqrMatContext*> sqrMatContextMap;
 
 	Ring(long logN0, long logN1, long logQ, double sigma = 3.2, long h = 64);
 
