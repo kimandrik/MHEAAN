@@ -164,7 +164,7 @@ void Scheme::addLeftRotKey(SecretKey* secretKey, long r0, long r1) {
 	delete[] sxrot;
 }
 
-void Scheme::addLeftXRotKeys(SecretKey* secretKey) {
+void Scheme::addLeftX0RotKeys(SecretKey* secretKey) {
 	for (long i = 1; i < ring->N0h; i <<= 1) {
 		if(leftRotKeyMap.find({i, 0}) == leftRotKeyMap.end() && serLeftRotKeyMap.find({i, 0}) == serLeftRotKeyMap.end()) {
 			addLeftRotKey(secretKey, i, 0);
@@ -172,7 +172,7 @@ void Scheme::addLeftXRotKeys(SecretKey* secretKey) {
 	}
 }
 
-void Scheme::addLeftYRotKeys(SecretKey* secretKey) {
+void Scheme::addLeftX1RotKeys(SecretKey* secretKey) {
 	for (long i = 1; i < ring->N1; i <<=1) {
 		if(leftRotKeyMap.find({0, i}) == leftRotKeyMap.end() && serLeftRotKeyMap.find({0, i}) == serLeftRotKeyMap.end()) {
 			addLeftRotKey(secretKey, 0, i);
@@ -180,7 +180,7 @@ void Scheme::addLeftYRotKeys(SecretKey* secretKey) {
 	}
 }
 
-void Scheme::addRightXRotKeys(SecretKey* secretKey) {
+void Scheme::addRightX0RotKeys(SecretKey* secretKey) {
 	for (long i = 1; i < ring->N0h; i <<=1) {
 		long idx = ring->N0h - i;
 		if(leftRotKeyMap.find({idx, 0}) == leftRotKeyMap.end() && serLeftRotKeyMap.find({idx, 0}) == serLeftRotKeyMap.end()) {
@@ -189,7 +189,7 @@ void Scheme::addRightXRotKeys(SecretKey* secretKey) {
 	}
 }
 
-void Scheme::addRightYRotKeys(SecretKey* secretKey) {
+void Scheme::addRightX1RotKeys(SecretKey* secretKey) {
 	for (long i = 1; i < ring->N1; i<<=1) {
 		long idx = ring->N1 - i;
 		if(leftRotKeyMap.find({0, idx}) == leftRotKeyMap.end() && serLeftRotKeyMap.find({0, idx}) == serLeftRotKeyMap.end()) {
@@ -202,8 +202,8 @@ void Scheme::addBootKey(SecretKey* secretKey, long logn0, long logn1, long logp)
 	ring->addBootContext(logn0, logn1, logp);
 
 	addConjKey(secretKey);
-	addLeftXRotKeys(secretKey);
-	addLeftYRotKeys(secretKey);
+	addLeftX0RotKeys(secretKey);
+	addLeftX1RotKeys(secretKey);
 
 	long lognxh = logn0 / 2;
 	long kx = 1 << lognxh;
@@ -249,7 +249,7 @@ void Scheme::addSqrMatKeys(SecretKey* secretKey, long logn, long logp) {
 			addLeftRotKey(secretKey, idx, 0);
 		}
 	}
-	addLeftYRotKeys(secretKey);
+	addLeftX1RotKeys(secretKey);
 }
 
 
@@ -345,22 +345,30 @@ Ciphertext* Scheme::encryptMsg(Plaintext* msg) {
 
 Ciphertext* Scheme::encrypt(complex<double>* vals, long n0, long n1, long logp, long logq) {
 	Plaintext* msg = encode(vals, n0, n1, logp, logq);
-	return encryptMsg(msg);
+	Ciphertext* res = encryptMsg(msg);
+	delete msg;
+	return res;
 }
 
 Ciphertext* Scheme::encrypt(double* vals, long n0, long n1, long logp, long logq) {
 	Plaintext* msg = encode(vals, n0, n1, logp, logq);
-	return encryptMsg(msg);
+	Ciphertext* res = encryptMsg(msg);
+	delete msg;
+	return res;
 }
 
 Ciphertext* Scheme::encryptSingle(complex<double> val, long logp, long logq) {
 	Plaintext* msg = encodeSingle(val, logp, logq);
-	return encryptMsg(msg);
+	Ciphertext* res = encryptMsg(msg);
+	delete msg;
+	return res;
 }
 
 Ciphertext* Scheme::encryptSingle(double val, long logp, long logq) {
 	Plaintext* msg = encodeSingle(val, logp, logq);
-	return encryptMsg(msg);
+	Ciphertext* res = encryptMsg(msg);
+	delete msg;
+	return res;
 }
 
 Ciphertext* Scheme::encryptZeros(long n0, long n1, long logp, long logq) {
@@ -383,12 +391,17 @@ Plaintext* Scheme::decryptMsg(SecretKey* secretKey, Ciphertext* cipher) {
 
 complex<double>* Scheme::decrypt(SecretKey* secretKey, Ciphertext* cipher) {
 	Plaintext* msg = decryptMsg(secretKey, cipher);
-	return decode(msg);
+	complex<double>* res = decode(msg);
+	delete msg;
+	return res;
 }
 
 complex<double> Scheme::decryptSingle(SecretKey* secretKey, Ciphertext* cipher) {
 	Plaintext* msg = decryptMsg(secretKey, cipher);
-	return decodeSingle(msg);
+	complex<double> res = decodeSingle(msg);
+	delete msg;
+	return res;
+
 }
 
 

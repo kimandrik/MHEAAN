@@ -221,8 +221,8 @@ void TestScheme::testRotate(long logN0, long logN1, long logQ, long logp, long l
 	SecretKey*  secretKey = new SecretKey(ring);
 	Scheme* scheme = new Scheme(secretKey, ring);
 
-	scheme->addLeftXRotKeys(secretKey);
-	scheme->addLeftYRotKeys(secretKey);
+	scheme->addLeftX0RotKeys(secretKey);
+	scheme->addLeftX1RotKeys(secretKey);
 
 	long n0 = (1 << logn0);
 	long n1 = (1 << logn1);

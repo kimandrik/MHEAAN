@@ -55,15 +55,15 @@ public:
 
 	void addConjKey(SecretKey* secretKey);
 
-	void addLeftRotKey(SecretKey* secretKey, long rx, long ry);
+	void addLeftRotKey(SecretKey* secretKey, long r0, long r1);
 
-	void addLeftXRotKeys(SecretKey* secretKey);
+	void addLeftX0RotKeys(SecretKey* secretKey);
 
-	void addLeftYRotKeys(SecretKey* secretKey);
+	void addLeftX1RotKeys(SecretKey* secretKey);
 
-	void addRightXRotKeys(SecretKey* secretKey);
+	void addRightX0RotKeys(SecretKey* secretKey);
 
-	void addRightYRotKeys(SecretKey* secretKey);
+	void addRightX1RotKeys(SecretKey* secretKey);
 
 	void addBootKey(SecretKey* secretKey, long logn0, long logn1, long logp);
 
