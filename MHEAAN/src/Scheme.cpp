@@ -205,35 +205,35 @@ void Scheme::addBootKey(SecretKey* secretKey, long logn0, long logn1, long logp)
 	addLeftX0RotKeys(secretKey);
 	addLeftX1RotKeys(secretKey);
 
-	long lognxh = logn0 / 2;
-	long kx = 1 << lognxh;
-	long mx = 1 << (logn0 - lognxh);
+	long logn0h = logn0 / 2;
+	long k0 = 1 << logn0h;
+	long m0 = 1 << (logn0 - logn0h);
 
-	for (long i = 1; i < kx; ++i) {
+	for (long i = 1; i < k0; ++i) {
 		if(leftRotKeyMap.find({i,0}) == leftRotKeyMap.end() && serLeftRotKeyMap.find({i, 0}) == serLeftRotKeyMap.end()) {
 			addLeftRotKey(secretKey, i, 0);
 		}
 	}
 
-	for (long i = 1; i < mx; ++i) {
-		long idx = i * kx;
+	for (long i = 1; i < m0; ++i) {
+		long idx = i * k0;
 		if(leftRotKeyMap.find({idx, 0}) == leftRotKeyMap.end() && serLeftRotKeyMap.find({idx, 0}) == serLeftRotKeyMap.end()) {
 			addLeftRotKey(secretKey, idx, 0);
 		}
 	}
 
-	long lognyh = logn1 / 2;
-	long ky = 1 << lognyh;
-	long my = 1 << (logn1 - lognyh);
+	long logn1h = logn1 / 2;
+	long k1 = 1 << logn1h;
+	long m1 = 1 << (logn1 - logn1h);
 
-	for (long i = 1; i < ky; ++i) {
+	for (long i = 1; i < k1; ++i) {
 		if(leftRotKeyMap.find({0,i}) == leftRotKeyMap.end() && serLeftRotKeyMap.find({0, i}) == serLeftRotKeyMap.end()) {
 			addLeftRotKey(secretKey, 0, i);
 		}
 	}
 
-	for (long i = 1; i < my; ++i) {
-		long idx = i * ky;
+	for (long i = 1; i < m1; ++i) {
+		long idx = i * k1;
 		if(leftRotKeyMap.find({0, idx}) == leftRotKeyMap.end() && serLeftRotKeyMap.find({0, idx}) == serLeftRotKeyMap.end()) {
 			addLeftRotKey(secretKey, 0, idx);
 		}
@@ -1409,9 +1409,12 @@ void Scheme::coeffToSlotX1AndEqual(Ciphertext*& cipher) {
 	long logk1 = logn1 / 2;
 	long k1 = 1 << logk1;
 
+	long gap = ring->N1 >> logn1;
+
 	BootContext* bootContext = ring->bootContextMap.at({logn0, logn1});
 
-	multByMonomialAndEqual(cipher, 0, 1);
+	multByMonomialAndEqual(cipher, 0, gap);
+
 	Ciphertext* rot = new Ciphertext(cipher);
 	for (long i = 1; i < n1; i <<= 1) {
 		Ciphertext* tmp = leftRotateFast(rot, 0, i);
@@ -1431,7 +1434,7 @@ void Scheme::coeffToSlotX1AndEqual(Ciphertext*& cipher) {
 
 	NTL_EXEC_RANGE(k1, first, last);
 	for (long j = first; j < last; ++j) {
-		complex<double> cnst = ring->ksiM1Pows[ring->M1 - ring->gM1Pows[j]] * 256./257.;
+		complex<double> cnst = ring->ksiM1Pows[ring->M1 - ring->gM1Pows[gap * j]] * 256./257.;
 		tmpvec[j] = multConst(rotvec[j], cnst, bootContext->logp);
 	}
 	NTL_EXEC_RANGE_END;
@@ -1445,7 +1448,7 @@ void Scheme::coeffToSlotX1AndEqual(Ciphertext*& cipher) {
 	for (long ki = k1; ki < n1; ki += k1) {
 		NTL_EXEC_RANGE(k1, first, last);
 		for (long j = first; j < last; ++j) {
-			complex<double> cnst = ring->ksiM1Pows[ring->M1 - ring->gM1Pows[j + ki]] * 256./257.;
+			complex<double> cnst = ring->ksiM1Pows[ring->M1 - ring->gM1Pows[gap * (j + ki)]] * 256./257.;
 			delete tmpvec[j];
 			tmpvec[j] = multConst(rotvec[j], cnst, bootContext->logp);
 		}
@@ -1543,6 +1546,7 @@ void Scheme::slotToCoeffX1AndEqual(Ciphertext*& cipher) {
 	long logk1 = logn1 / 2;
 	long k1 = 1 << logk1;
 
+	long gap = ring->N1 >> logn1;
 	Ciphertext** rotvec = new Ciphertext*[k1];
 
 	NTL_EXEC_RANGE(k1, first, last);
@@ -1557,7 +1561,7 @@ void Scheme::slotToCoeffX1AndEqual(Ciphertext*& cipher) {
 
 	NTL_EXEC_RANGE(k1, first, last);
 	for (long j = first; j < last; ++j) {
-		complex<double> cnst = ring->ksiM1Pows[ring->gM1Pows[(ring->N1 - j)%ring->N1]];
+		complex<double> cnst = ring->ksiM1Pows[ring->gM1Pows[(ring->N1 - gap * j)%ring->N1]];
 		tmpvec[j] = multConst(rotvec[j], cnst, bootContext->logp);
 	}
 	NTL_EXEC_RANGE_END;
@@ -1572,7 +1576,7 @@ void Scheme::slotToCoeffX1AndEqual(Ciphertext*& cipher) {
 	for (long ki = k1; ki < n1; ki+=k1) {
 		NTL_EXEC_RANGE(k1, first, last);
 		for (long j = first; j < last; ++j) {
-			complex<double> cnst = ring->ksiM1Pows[ring->gM1Pows[(ring->N1 - j - ki)%ring->N1]];
+			complex<double> cnst = ring->ksiM1Pows[ring->gM1Pows[(ring->N1 - gap * (j + ki))%ring->N1]];
 			delete tmpvec[j];
 			tmpvec[j] = multConst(rotvec[j], cnst, bootContext->logp);
 		}
@@ -1585,7 +1589,7 @@ void Scheme::slotToCoeffX1AndEqual(Ciphertext*& cipher) {
 		leftRotateFastAndEqual(tmpvec[0], 0, ki);
 		addAndEqual(cipher, tmpvec[0]);
 	}
-	multByMonomialAndEqual(cipher, 0, ring->M1 - 1);
+	multByMonomialAndEqual(cipher, 0, ring->M1 - gap);
 
 	reScaleByAndEqual(cipher, bootContext->logp);
 	for (long i = 0; i < k1; ++i) {

@@ -73,7 +73,7 @@ int main() {
 
 //	TestScheme::testCiphertextWriteAndRead(10, 65, 30, 2);
 
-//	TestScheme::test();
+	TestScheme::test();
 
 	return 0;
 }

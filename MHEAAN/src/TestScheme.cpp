@@ -852,7 +852,6 @@ void TestScheme::test() {
 	long logN0 = 8;
 	long logN1 = 8;
 	long logQ = 1200;
-	long logn0 = logN0 - 1;
 	long logp = 53;
 	long logq = 56;
 	TimeUtils timeutils;
@@ -866,12 +865,16 @@ void TestScheme::test() {
 	Scheme* scheme = new Scheme(secretKey, ring);
 	timeutils.stop("Scheme generating");
 
+
+	long logn0 = logN0 - 1;
+//	long logn1 = logN1;
+	long logn1 = 0;
 	timeutils.start("Key generating");
-	scheme->addBootKey(secretKey, logn0, ring->logN1, logq + logI);
+	scheme->addBootKey(secretKey, logn0, logn1, logq + logI);
 	timeutils.stop("Key generated");
 
 	long n0 = (1 << logn0);
-	long n1 = (1 << ring->logN1);
+	long n1 = (1 << logn1);
 	long n = n0 * n1;
 
 	complex<double>* mmat = EvaluatorUtils::randomComplexSignedArray(n);
@@ -879,38 +882,22 @@ void TestScheme::test() {
 	Ciphertext* cipher = scheme->encrypt(mmat, n0, n1, logp, logq);
 
 	cout << "cipher logq before: " << cipher->logq << endl;
+	scheme->normalizeAndEqual(cipher);
 	cipher->logq = logQ;
 	cipher->logp = logq + logI;
-	scheme->normalizeAndEqual(cipher);
 
-	Plaintext* ptxt = scheme->decryptMsg(secretKey, cipher);
-
-	ZZ q = ring->qvec[cipher->logq];
-	ZZ qh = ring->qvec[cipher->logq - 1];
-	long gap0 = ring->N0h / n0;
-	ZZ tmp;
-	complex<double>* vals = new complex<double>[n];
-	for (long ix = 0, iix = ring->N0h, irx = 0; ix < n0; ++ix, iix += gap0, irx += gap0) {
-		for (long iy = 0; iy < ring->N1; ++iy) {
-			tmp = ptxt->mx[irx + ring->N0 * iy];
-			if (tmp > qh) {
-				tmp -= q;
-			} else if (tmp < -qh) {
-				tmp += q;
-			}
-			vals[ix + n0 * iy].real(EvaluatorUtils::scaleDownToReal(tmp, logq));
-
-			tmp = ptxt->mx[iix + ring->N0 * iy];
-			if (tmp > qh) {
-				tmp -= q;
-			} else if (tmp < -qh) {
-				tmp += q;
-			}
-			vals[ix + n0 * iy].imag(EvaluatorUtils::scaleDownToReal(tmp, logq));
-		}
+	for (long i = n0; i < ring->N0h; i <<= 1) {
+		Ciphertext* rot = scheme->leftRotateFast(cipher, i, 0);
+		scheme->addAndEqual(cipher, rot);
+		delete rot;
 	}
 
-	StringUtils::showMat(vals, n0, 5);
+	for (long i = n1; i < ring->N1; i <<= 1) {
+		Ciphertext* rot = scheme->leftRotateFast(cipher, 0, i);
+		scheme->addAndEqual(cipher, rot);
+		delete rot;
+	}
+	scheme->reScaleByAndEqual(cipher, logN1 - logn1);
 
 	timeutils.start("Coeff to Slot");
 	scheme->coeffToSlotX1AndEqual(cipher);
