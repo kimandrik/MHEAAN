@@ -845,19 +845,18 @@ void TestScheme::testCiphertextWriteAndRead(long logN0, long logN1, long logQ, l
 
 void TestScheme::test() {
 
-///	srand(0);
 	srand(time(NULL));
 	SetNumThreads(8);
 
 	long logN0 = 8;
 	long logN1 = 8;
-	long logQ = 1200;
-	long logp = 53;
-	long logq = 56;
+	long logQ = 1000;
+	long logp = 40;
+	long logq = 50;
 	TimeUtils timeutils;
 
-	long logI = 6;
-	long logT = 2;
+	long logI = 4;
+	long logT = 3;
 
 	timeutils.start("Scheme generating");
 	Ring* ring = new Ring(logN0, logN1, logQ);
@@ -867,8 +866,8 @@ void TestScheme::test() {
 
 
 	long logn0 = logN0 - 1;
-//	long logn1 = logN1;
-	long logn1 = 0;
+	long logn1 = logN1;
+//	long logn1 = 0;
 	timeutils.start("Key generating");
 	scheme->addBootKey(secretKey, logn0, logn1, logq + logI);
 	timeutils.stop("Key generated");
@@ -885,19 +884,6 @@ void TestScheme::test() {
 	scheme->normalizeAndEqual(cipher);
 	cipher->logq = logQ;
 	cipher->logp = logq + logI;
-
-	for (long i = n0; i < ring->N0h; i <<= 1) {
-		Ciphertext* rot = scheme->leftRotateFast(cipher, i, 0);
-		scheme->addAndEqual(cipher, rot);
-		delete rot;
-	}
-
-	for (long i = n1; i < ring->N1; i <<= 1) {
-		Ciphertext* rot = scheme->leftRotateFast(cipher, 0, i);
-		scheme->addAndEqual(cipher, rot);
-		delete rot;
-	}
-	scheme->reScaleByAndEqual(cipher, logN1 - logn1);
 
 	timeutils.start("Coeff to Slot");
 	scheme->coeffToSlotX1AndEqual(cipher);

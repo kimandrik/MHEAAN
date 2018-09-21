@@ -73,18 +73,12 @@ public:
 	void INTTPO2X1(uint64_t* a, long index);
 	void NTTX1(uint64_t* a, long index);
 	void INTTX1(uint64_t* a, long index);
-	void NTTX1Lazy(uint64_t* a, long index);
-	void INTTX1Lazy(uint64_t* a, long index);
 	void NTT(uint64_t* a, long index);
 	void INTT(uint64_t* a, long index);
-	void NTTLazy(uint64_t* a, long index);
-	void INTTLazy(uint64_t* a, long index);
 
 	uint64_t* toNTTX0(ZZ* a, long np);
 	uint64_t* toNTTX1(ZZ* a, long np);
-	uint64_t* toNTTX1Lazy(ZZ* a, long np);
 	uint64_t* toNTT(ZZ* a, long np);
-	uint64_t* toNTTLazy(ZZ* a, long np);
 
 	void addNTTAndEqual(uint64_t* ra, uint64_t* rb, long np);
 
@@ -100,16 +94,12 @@ public:
 	void multX1AndEqual(ZZ* a, ZZ* b, long np, ZZ& q);
 	void multNTTX1(ZZ* x, ZZ* a, uint64_t* rb, long np, ZZ& q);
 	void multNTTX1AndEqual(ZZ* a, uint64_t* rb, long np, ZZ& q);
-	void multNTTX1Lazy(ZZ* x, ZZ* a, uint64_t* rb, long np, ZZ& q);
-	void multNTTX1LazyAndEqual(ZZ* a, uint64_t* rb, long np, ZZ& q);
 	void multDNTTX1(ZZ* x, uint64_t* ra, uint64_t* rb, long np, ZZ& q);
 
 	void mult(ZZ* x, ZZ* a, ZZ* b, long np, ZZ& q);
 	void multAndEqual(ZZ* a, ZZ* b, long np, ZZ& q);
 	void multNTT(ZZ* x, ZZ* a, uint64_t* rb, long np, ZZ& q);
 	void multNTTAndEqual(ZZ* a, uint64_t* rb, long np, ZZ& q);
-	void multNTTLazy(ZZ* x, ZZ* a, uint64_t* rb, long np, ZZ& q);
-	void multNTTLazyAndEqual(ZZ* a, uint64_t* rb, long np, ZZ& q);
 	void multDNTT(ZZ* x, uint64_t* ra, uint64_t* rb, long np, ZZ& q);
 
 	void square(ZZ* x, ZZ* a, long np, ZZ& q);

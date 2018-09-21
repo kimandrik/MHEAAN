@@ -61,7 +61,6 @@ public:
 	complex<double>* ksiN1Pows; ///< storing ksi pows for fft calculation
 
 	complex<double>* dftomegaPows;
-	complex<double>* omegaPows;
 
 	map<pair<long, long>, BootContext*> bootContextMap;
 
@@ -112,9 +111,7 @@ public:
 
 	uint64_t* toNTTX0(ZZ* a, long np);
 	uint64_t* toNTTX1(ZZ* a, long np);
-	uint64_t* toNTTX1Lazy(ZZ* a, long np);
 	uint64_t* toNTT(ZZ* a, long np);
-	uint64_t* toNTTLazy(ZZ* a, long np);
 
 	void multX0(ZZ* x, ZZ* a, ZZ* b, long np, ZZ& q);
 	void multX0AndEqual(ZZ* a, ZZ* b, long np, ZZ& q);
@@ -130,8 +127,6 @@ public:
 	void multAndEqual(ZZ* a, ZZ* b, long np, ZZ& q);
 	void multNTT(ZZ* x, ZZ* a, uint64_t* rb, long np, ZZ& q);
 	void multNTTAndEqual(ZZ* a, uint64_t* rb, long np, ZZ& q);
-	void multNTTLazy(ZZ* x, ZZ* a, uint64_t* rb, long np, ZZ& q);
-	void multNTTLazyAndEqual(ZZ* a, uint64_t* rb, long np, ZZ& q);
 	void multDNTT(ZZ* x, uint64_t* ra, uint64_t* rb, long np, ZZ& q);
 
 	void square(ZZ* x, ZZ* a, long np, ZZ& q);

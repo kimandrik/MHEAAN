@@ -48,13 +48,10 @@ Ring::Ring(long logN0, long logN1, long logQ, double sigma, long h) :
 
 	gM1Pows = new uint64_t[M1];
 	dftomegaPows = new complex<double>[N1]();
-	omegaPows = new complex<double>[N1]();
 	uint64_t g1 = multiplier->findPrimitiveRoot(M1);
 	uint64_t g1Pow = 1;
 	for (long i = 0; i < N1; ++i) {
 		double angle = 2.0 * M_PI * g1Pow / M1;
-		omegaPows[i].real(cos(angle));
-		omegaPows[i].imag(sin(angle));
 		dftomegaPows[i].real(cos(angle));
 		dftomegaPows[i].imag(sin(angle));
 		gM1Pows[i] = g1Pow;
@@ -298,43 +295,19 @@ void Ring::IEMBX0(complex<double>* vals, long n0) {
 }
 
 void Ring::EMBX1(complex<double>* vals) {
-	complex<double>* tmp = new complex<double>[N1];
-	for (long i = 0; i < N1; ++i) {
-		tmp[i] = vals[gM1Pows[N1 - i] - 1];
-	}
-	for (long i = 0; i < N1; ++i) {
-		vals[i] = tmp[i];
-	}
-	delete[] tmp;
-
 	DFTX1(vals);
 	for (long i = 0; i < N1; ++i) {
 		vals[i] *= dftomegaPows[i];
 	}
 	IDFTX1(vals);
-	for (long i = 0; i < N1; ++i) {
-		vals[i] /= omegaPows[i];
-	}
 }
 
 void Ring::IEMBX1(complex<double>* vals) {
-	for (long i = 0; i < N1; ++i) {
-		vals[i] *= omegaPows[i];
-	}
 	DFTX1(vals);
 	for (long i = 0; i < N1; ++i) {
 		vals[i] /= dftomegaPows[i];
 	}
 	IDFTX1(vals);
-
-	complex<double>* tmp = new complex<double>[N1]();
-	for (long i = 0; i < N1; ++i) {
-		tmp[gM1Pows[N1 - i] - 1] = vals[i];
-	}
-	for (long i = 0; i < N1; ++i) {
-		vals[i] = tmp[i];
-	}
-	delete[] tmp;
 }
 
 void Ring::EMB(complex<double>* vals, long n0) {
@@ -357,16 +330,16 @@ void Ring::EMB(complex<double>* vals, long n0) {
 void Ring::IEMB(complex<double>* vals, long n0) {
 	complex<double>* tmp = new complex<double>[N1]();
 
-	for (long iy = 0; iy < N1; ++iy) {
-		IEMBX0(vals + (iy * n0), n0);
+	for (long i1 = 0; i1 < N1; ++i1) {
+		IEMBX0(vals + (i1 * n0), n0);
 	}
-	for (long ix = 0; ix < n0; ++ix) {
-		for (long iy = 0; iy < N1; ++iy) {
-			tmp[iy] = vals[ix + (iy * n0)];
+	for (long i0 = 0; i0 < n0; ++i0) {
+		for (long i1 = 0; i1 < N1; ++i1) {
+			tmp[i1] = vals[i0 + (i1 * n0)];
 		}
 		IEMBX1(tmp);
-		for (long iy = 0; iy < N1; ++iy) {
-			vals[ix + (iy * n0)] = tmp[iy];
+		for (long i1 = 0; i1 < N1; ++i1) {
+			vals[i0 + (i1 * n0)] = tmp[i1];
 		}
 	}
 
@@ -465,16 +438,8 @@ uint64_t* Ring::toNTTX1(ZZ* a, long np) {
 	return multiplier->toNTTX1(a, np);
 }
 
-uint64_t* Ring::toNTTX1Lazy(ZZ* a, long np) {
-	return multiplier->toNTTX1Lazy(a, np);
-}
-
 uint64_t* Ring::toNTT(ZZ* a, long np) {
 	return multiplier->toNTT(a, np);
-}
-
-uint64_t* Ring::toNTTLazy(ZZ* a, long np) {
-	return multiplier->toNTTLazy(a, np);
 }
 
 void Ring::addNTTAndEqual(uint64_t* ra, uint64_t* rb, long np) {
@@ -531,14 +496,6 @@ void Ring::multNTT(ZZ* x, ZZ* a, uint64_t* rb, long np, ZZ& q) {
 
 void Ring::multNTTAndEqual(ZZ* a, uint64_t* rb, long np, ZZ& q) {
 	multiplier->multNTTAndEqual(a, rb, np, q);
-}
-
-void Ring::multNTTLazy(ZZ* x, ZZ* a, uint64_t* rb, long np, ZZ& q) {
-	multiplier->multNTTLazy(x, a, rb, np, q);
-}
-
-void Ring::multNTTLazyAndEqual(ZZ* a, uint64_t* rb, long np, ZZ& q) {
-	multiplier->multNTTLazyAndEqual(a, rb, np, q);
 }
 
 void Ring::multDNTT(ZZ* x, uint64_t* ra, uint64_t* rb, long np, ZZ& q) {
@@ -620,24 +577,24 @@ ZZ* Ring::multByMonomial(ZZ* p, long deg0, long deg1, ZZ& q) {
 	ZZ* res = new ZZ[N];
 
 	for (long i = 0; i < N0; ++i) {
-		for (long j = 0; j < N1; ++j) {
+		for (long j = 1; j < M1; ++j) {
 			long resdeg0 = (deg0 + i) % M0;
 			long resdeg1 = (deg1 + j) % M1;
 
 			if(resdeg0 < N0) {
-				if(resdeg1 != N1) {
-					AddMod(res[resdeg0 + (resdeg1 << logN0)], res[resdeg0 + (resdeg1 << logN0)], p[i + (j << logN0)], q);
+				if(resdeg1 > 0) {
+					AddMod(res[resdeg0 + ((resdeg1-1) << logN0)], res[resdeg0 + ((resdeg1-1) << logN0)], p[i + ((j-1) << logN0)], q);
 				} else {
 					for (long k = 0; k < N1; ++k) {
-						AddMod(res[resdeg0 + (k << logN0)], res[resdeg0 + (k << logN0)], -p[i + (j << logN0)], q);
+						AddMod(res[resdeg0 + (k << logN0)], res[resdeg0 + (k << logN0)], -p[i + ((j-1) << logN0)], q);
 					}
 				}
 			} else {
-				if(resdeg1 != N1) {
-					AddMod(res[(resdeg0 - N0) + (resdeg1 << logN0)], res[(resdeg0 - N0) + (resdeg1 << logN0)], -p[i + (j << logN0)], q);
+				if(resdeg1 > 0) {
+					AddMod(res[(resdeg0 - N0) + ((resdeg1-1) << logN0)], res[(resdeg0 - N0) + ((resdeg1-1) << logN0)], -p[i + ((j-1) << logN0)], q);
 				} else {
 					for (long k = 0; k < N1; ++k) {
-						AddMod(res[(resdeg0 - N0) + (k << logN0)], res[(resdeg0 - N0) + (k << logN0)], p[i + (j << logN0)], q);
+						AddMod(res[(resdeg0 - N0) + (k << logN0)], res[(resdeg0 - N0) + (k << logN0)], p[i + ((j-1) << logN0)], q);
 					}
 				}
 			}
@@ -727,45 +684,27 @@ ZZ* Ring::leftRotate(ZZ* p, long r0, long r1) {
 	}
 
 	ZZ* res = new ZZ[N];
-	long degy = gM1Pows[r1];
 	for (long i = 0; i < N0; ++i) {
 		for (long j = 0; j < N1; ++j) {
-			long jpow = j * degy;
-			long shift = jpow % M1;
-			if (shift < N1) {
-				res[i + (shift << logN0)] += tmp[i + (j << logN0)];
-			} else {
-				for (long k = 0; k < N1; ++k) {
-					res[i + (k << logN0)] -= tmp[i + (j << logN0)];
-				}
-			}
+			res[i + (((j+N1-r1)%N1) << logN0)] = tmp[i + (j << logN0)];
 		}
 	}
-	delete[] tmp;
 	return res;
 }
 
 ZZ* Ring::conjugate(ZZ* p) {
-	ZZ* tmp = new ZZ[N];
-	for (long j = 0; j < N; j += N0) {
-		tmp[j] = p[j];
-		for (long i = 1; i < N0; ++i) {
-			tmp[N0 - i + j] = -p[i + j];
-		}
-	}
-
 	ZZ* res = new ZZ[N];
-	for (long i = 0; i < N0; ++i) {
-		res[i] += tmp[i];
-		for (long j = 2 * N0; j < N; j += N0) {
-			res[i + (N - j + N0)] += tmp[i + j];
-		}
-		for (long j = 0; j < N; j += N0) {
-			res[i + j] -= tmp[i + N0];
+	for (long j = 0; j < N; j += N0) {
+		res[j] = p[j];
+		for (long i = 1; i < N0; ++i) {
+			res[N0 - i + j] = -p[i + j];
 		}
 	}
-
-	delete[] tmp;
+	for (long i = 0; i < N0; ++i) {
+		for (long j = 0; j < Nh; j+=N0) {
+			swap(res[i+j], res[i+j+Nh]);
+		}
+	}
 	return res;
 }
 

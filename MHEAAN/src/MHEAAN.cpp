@@ -17,7 +17,7 @@ int main() {
 
 //	TestScheme::testEncrypt(8, 8, 1200, 50, 2, 2);
 //	TestScheme::testEncryptSingle(6, 8, 300, 30);
-//	TestScheme::testStandard(10, 4, 1200, 50, 1, 3);
+//	TestScheme::testStandard(8, 8, 1200, 50, 2, 2);
 //	TestScheme::testimult(8, 8, 300, 30, 2, 2);
 
 
@@ -26,9 +26,9 @@ int main() {
 //----------------------------------------------------------------------------------
 
 
-//	TestScheme::testRotateFast(8, 8, 1200, 50, 2, 3, 1, 2);
+//	TestScheme::testRotateFast(8, 8, 1200, 50, 3, 3, 1, 2);
 //	TestScheme::testRotate(8, 8, 300, 30, 2, 2, 1, 1);
-//	TestScheme::testConjugate(8, 8, 300, 30, 2, 2);
+//	TestScheme::testConjugate(8, 8, 1200, 30, 2, 2);
 
 
 //----------------------------------------------------------------------------------
