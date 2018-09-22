@@ -264,17 +264,17 @@ Plaintext* Scheme::encode(complex<double>* vals, long n0, long n1, long logp, lo
 }
 
 Plaintext* Scheme::encode(double* vals, long n0, long n1, long logp, long logq) {
-	ZZ* mxy = ring->encode(vals, n0, n1, logp + ring->logQ);
-	return new Plaintext(mxy, logp, logq, ring->N0, ring->N1, n0, n1);
+	ZZ* mx = ring->encode(vals, n0, n1, logp + ring->logQ);
+	return new Plaintext(mx, logp, logq, ring->N0, ring->N1, n0, n1);
 }
 
 Plaintext* Scheme::encodeSingle(complex<double> val, long logp, long logq) {
-	ZZ* mxy = new ZZ[ring->N];
+	ZZ* mx = new ZZ[ring->N];
 
-	mxy[0] = EvaluatorUtils::scaleUpToZZ(val.real(), logp + ring->logQ);
-	mxy[ring->Nh] = EvaluatorUtils::scaleUpToZZ(val.imag(), logp + ring->logQ);
+	mx[0] = EvaluatorUtils::scaleUpToZZ(val.real(), logp + ring->logQ);
+	mx[ring->Nh] = EvaluatorUtils::scaleUpToZZ(val.imag(), logp + ring->logQ);
 
-	return new Plaintext(mxy, logp, logq, ring->N0, ring->N1, 1, 1);
+	return new Plaintext(mx, logp, logq, ring->N0, ring->N1, 1, 1);
 }
 
 Plaintext* Scheme::encodeSingle(double val, long logp, long logq) {
@@ -1439,7 +1439,7 @@ void Scheme::coeffToSlotX1AndEqual(Ciphertext*& cipher) {
 
 	NTL_EXEC_RANGE(k1, first, last);
 	for (long j = first; j < last; ++j) {
-		complex<double> cnst = ring->ksiM1Pows[ring->M1 - ring->gM1Pows[j]] * 256./257.;
+		complex<double> cnst = conj(ring->dftM1Pows[logn1][j]) * (double)n1/(double)ring->M1;
 		tmpvec[j] = multConst(rotvec[j], cnst, bootContext->logp);
 	}
 	NTL_EXEC_RANGE_END;
@@ -1453,7 +1453,7 @@ void Scheme::coeffToSlotX1AndEqual(Ciphertext*& cipher) {
 	for (long ki = k1; ki < n1; ki += k1) {
 		NTL_EXEC_RANGE(k1, first, last);
 		for (long j = first; j < last; ++j) {
-			complex<double> cnst = ring->ksiM1Pows[ring->M1 - ring->gM1Pows[j + ki]] * 256./257.;
+			complex<double> cnst = conj(ring->dftM1Pows[logn1][j + ki]) * (double)n1/(double)ring->M1;
 			delete tmpvec[j];
 			tmpvec[j] = multConst(rotvec[j], cnst, bootContext->logp);
 		}
@@ -1465,7 +1465,7 @@ void Scheme::coeffToSlotX1AndEqual(Ciphertext*& cipher) {
 		addAndEqual(cipher, tmpvec[0]);
 	}
 
-	multConstAndEqual(rot, 256./257., bootContext->logp);
+	multConstAndEqual(rot, (double)ring->N1/(double)ring->M1, bootContext->logp);
 	subAndEqual(cipher, rot);
 	reScaleByAndEqual(cipher, bootContext->logp);
 	for (long i = 0; i < k1; ++i) {
@@ -1565,7 +1565,7 @@ void Scheme::slotToCoeffX1AndEqual(Ciphertext*& cipher) {
 
 	NTL_EXEC_RANGE(k1, first, last);
 	for (long j = first; j < last; ++j) {
-		complex<double> cnst = ring->ksiM1Pows[ring->gM1Pows[(ring->N1 - j)%ring->N1]];
+		complex<double> cnst = ring->dftM1Pows[logn1][n1-j];
 		tmpvec[j] = multConst(rotvec[j], cnst, bootContext->logp);
 	}
 	NTL_EXEC_RANGE_END;
@@ -1580,7 +1580,7 @@ void Scheme::slotToCoeffX1AndEqual(Ciphertext*& cipher) {
 	for (long ki = k1; ki < n1; ki+=k1) {
 		NTL_EXEC_RANGE(k1, first, last);
 		for (long j = first; j < last; ++j) {
-			complex<double> cnst = ring->ksiM1Pows[ring->gM1Pows[(ring->N1 - j - ki)%ring->N1]];
+			complex<double> cnst = ring->dftM1Pows[logn1][n1-j-ki];
 			delete tmpvec[j];
 			tmpvec[j] = multConst(rotvec[j], cnst, bootContext->logp);
 		}
@@ -1602,7 +1602,8 @@ void Scheme::slotToCoeffX1AndEqual(Ciphertext*& cipher) {
 	for (long i = 0; i < k1; ++i) {
 		delete tmpvec[i];
 	}
-	delete[] tmpvec;}
+	delete[] tmpvec;
+}
 
 void Scheme::slotToCoeffAndEqual(Ciphertext*& cipher) {
 	slotToCoeffX0AndEqual(cipher);
@@ -1674,8 +1675,8 @@ void Scheme::removeIPartAndEqual(Ciphertext* cipher, long logT, long logI) {
 	addAndEqual(cipher, tmp);
 	imultAndEqual(cipher);
 
-	divPo2AndEqual(cipher, logT + ring->logN);
-	divPo2AndEqual(cimag, logT + ring->logN);
+	divPo2AndEqual(cipher, logT + logn0 + logn1 + 1);
+	divPo2AndEqual(cimag, logT + logn0 + logn1 + 1);
 
 	exp2piAndEqual(cipher, bootContext->logp);
 	exp2piAndEqual(cimag, bootContext->logp);

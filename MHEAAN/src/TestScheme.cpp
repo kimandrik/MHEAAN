@@ -849,10 +849,10 @@ void TestScheme::test() {
 	SetNumThreads(8);
 
 	long logN0 = 8;
-	long logN1 = 8;
-	long logQ = 1000;
+	long logN1 = 4;
+	long logQ = 1200;
 	long logp = 40;
-	long logq = 50;
+	long logq = 45;
 	TimeUtils timeutils;
 
 	long logI = 4;
@@ -864,10 +864,9 @@ void TestScheme::test() {
 	Scheme* scheme = new Scheme(secretKey, ring);
 	timeutils.stop("Scheme generating");
 
-
 	long logn0 = logN0 - 1;
-	long logn1 = logN1;
-//	long logn1 = 0;
+//	long logn1 = logN1;
+	long logn1 = 0;
 	timeutils.start("Key generating");
 	scheme->addBootKey(secretKey, logn0, logn1, logq + logI);
 	timeutils.stop("Key generated");
@@ -882,8 +881,21 @@ void TestScheme::test() {
 
 	cout << "cipher logq before: " << cipher->logq << endl;
 	scheme->normalizeAndEqual(cipher);
+
 	cipher->logq = logQ;
 	cipher->logp = logq + logI;
+
+	for (long i = n0; i < ring->N0h; i <<= 1) {
+		Ciphertext* rot = scheme->leftRotateFast(cipher, i, 0);
+		scheme->addAndEqual(cipher, rot);
+		delete rot;
+	}
+	for (long i = n1; i < ring->N1; i <<= 1) {
+		Ciphertext* rot = scheme->leftRotateFast(cipher, 0, i);
+		scheme->addAndEqual(cipher, rot);
+		delete rot;
+	}
+	scheme->reScaleByAndEqual(cipher, logN0 + logN1 - logn0 - logn1 - 1);
 
 	timeutils.start("Coeff to Slot");
 	scheme->coeffToSlotX1AndEqual(cipher);

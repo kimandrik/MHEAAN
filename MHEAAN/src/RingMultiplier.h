@@ -31,8 +31,6 @@ public:
 	uint64_t* gM1PowsInv;
 	uint64_t** rootM1DFTPows;
 	uint64_t** rootM1DFTPowsInv;
-	uint64_t** rootM1Pows;
-	uint64_t** rootM1PowsInv;
 
 	uint64_t* pVec;
 	uint64_t* prVec;

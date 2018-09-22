@@ -47,13 +47,10 @@ Ring::Ring(long logN0, long logN1, long logQ, double sigma, long h) :
 	gM0Pows[N0h] = gM0Pows[0];
 
 	gM1Pows = new uint64_t[M1];
-	dftomegaPows = new complex<double>[N1]();
 	uint64_t g1 = multiplier->findPrimitiveRoot(M1);
 	uint64_t g1Pow = 1;
 	for (long i = 0; i < N1; ++i) {
 		double angle = 2.0 * M_PI * g1Pow / M1;
-		dftomegaPows[i].real(cos(angle));
-		dftomegaPows[i].imag(sin(angle));
 		gM1Pows[i] = g1Pow;
 		g1Pow *= g1;
 		g1Pow %= M1;
@@ -68,7 +65,7 @@ Ring::Ring(long logN0, long logN1, long logQ, double sigma, long h) :
 	}
 	ksiM0Pows[M0] = ksiM0Pows[0];
 
-	ksiN1Pows = new complex<double>[M1]();
+	ksiN1Pows = new complex<double>[N1 + 1]();
 	for (long j = 0; j < N1; ++j) {
 		double angle = 2.0 * M_PI * j / N1;
 		ksiN1Pows[j].real(cos(angle));
@@ -76,33 +73,36 @@ Ring::Ring(long logN0, long logN1, long logQ, double sigma, long h) :
 	}
 	ksiN1Pows[N1] = ksiN1Pows[0];
 
-	ksiM1Pows = new complex<double>[M1]();
+	ksiM1Pows = new complex<double>[M1 + 1]();
 	for (long j = 0; j < M1; ++j) {
 		double angle = 2.0 * M_PI * j / M1;
 		ksiM1Pows[j].real(cos(angle));
 		ksiM1Pows[j].imag(sin(angle));
 	}
+	ksiM1Pows[M1] = ksiM1Pows[0];
 
-	arrayBitReverse(dftomegaPows, N1);
-	for (long len = 2; len <= N1; len <<= 1) {
-		long lenh = len >> 1;
-		long gap = N1 / len;
-		for (long i = 0; i < N1; i += len) {
-			for (long j = 0; j < lenh; ++j) {
-				long idx = j * gap;
-				complex<double> u = dftomegaPows[i + j];
-				complex<double> v = dftomegaPows[i + j + lenh];
-				v *= ksiN1Pows[idx];
-				dftomegaPows[i + j] = u + v;
-				dftomegaPows[i + j + lenh] = u - v;
+	dftM1Pows = new complex<double>*[logN1 + 1]();
+	dftM1NTTPows = new complex<double>*[logN1 + 1]();
+	for (long logn1 = 0; logn1 < logN1 + 1; ++logn1) {
+		long n1 = 1 << logn1;
+		long gap = 1 << (logN1 - logn1);
+		dftM1NTTPows[logn1] = new complex<double>[n1+1];
+		dftM1Pows[logn1] = new complex<double>[n1+1];
+		for (long i = 0; i < n1; ++i) {
+			for (long k = 0; k < gap; ++k) {
+				dftM1Pows[logn1][i] += ksiM1Pows[gM1Pows[i + k * n1]];
 			}
+			dftM1NTTPows[logn1][i] = dftM1Pows[logn1][i];
 		}
+		DFTX1(dftM1NTTPows[logn1], n1);
+		dftM1Pows[logn1][n1] = dftM1Pows[logn1][0];
+		dftM1NTTPows[logn1][n1] = dftM1NTTPows[logn1][0];
 	}
 
 	qvec = new ZZ[logQQ + 1];
 	qvec[0] = ZZ(1);
 	for (long i = 1; i < logQQ + 1; ++i) {
-		qvec[i] = qvec[i-1] << 1;
+		qvec[i] = qvec[i - 1] << 1;
 	}
 }
 
@@ -214,12 +214,12 @@ void Ring::arrayBitReverse(complex<double>* vals, long n) {
 	}
 }
 
-void Ring::DFTX1(complex<double>* vals) {
-	arrayBitReverse(vals, N1);
-	for (long len = 2; len <= N1; len <<= 1) {
+void Ring::DFTX1(complex<double>* vals, long n1) {
+	arrayBitReverse(vals, n1);
+	for (long len = 2; len <= n1; len <<= 1) {
 		long lenh = len >> 1;
 		long gap = N1 / len;
-		for (long i = 0; i < N1; i += len) {
+		for (long i = 0; i < n1; i += len) {
 			for (long j = 0; j < lenh; ++j) {
 				long idx = j * gap;
 				complex<double> u = vals[i + j];
@@ -232,12 +232,12 @@ void Ring::DFTX1(complex<double>* vals) {
 	}
 }
 
-void Ring::IDFTX1(complex<double>* vals) {
-	arrayBitReverse(vals, N1);
-	for (long len = 2; len <= N1; len <<= 1) {
+void Ring::IDFTX1(complex<double>* vals, long n1) {
+	arrayBitReverse(vals, n1);
+	for (long len = 2; len <= n1; len <<= 1) {
 		long lenh = len >> 1;
 		long gap = N1 / len;
-		for (long i = 0; i < N1; i += len) {
+		for (long i = 0; i < n1; i += len) {
 			for (long j = 0; j < lenh; ++j) {
 				long idx = N1 - (j * gap);
 				complex<double> u = vals[i + j];
@@ -248,8 +248,8 @@ void Ring::IDFTX1(complex<double>* vals) {
 			}
 		}
 	}
-	for (long i = 0; i < N1; ++i) {
-		vals[i] /= N1;
+	for (long i = 0; i < n1; ++i) {
+		vals[i] /= n1;
 	}
 }
 
@@ -294,51 +294,53 @@ void Ring::IEMBX0(complex<double>* vals, long n0) {
 	}
 }
 
-void Ring::EMBX1(complex<double>* vals) {
-	DFTX1(vals);
-	for (long i = 0; i < N1; ++i) {
-		vals[i] *= dftomegaPows[i];
+void Ring::EMBX1(complex<double>* vals, long n1) {
+	long logn1 = (long)log2(n1);
+	DFTX1(vals, n1);
+	for (long i = 0; i < n1; ++i) {
+		vals[i] *= dftM1NTTPows[logn1][i];
 	}
-	IDFTX1(vals);
+	IDFTX1(vals, n1);
 }
 
-void Ring::IEMBX1(complex<double>* vals) {
-	DFTX1(vals);
-	for (long i = 0; i < N1; ++i) {
-		vals[i] /= dftomegaPows[i];
+void Ring::IEMBX1(complex<double>* vals, long n1) {
+	long logn1 = (long)log2(n1);
+	DFTX1(vals, n1);
+	for (long i = 0; i < n1; ++i) {
+		vals[i] /= dftM1NTTPows[logn1][i];
 	}
-	IDFTX1(vals);
+	IDFTX1(vals, n1);
 }
 
-void Ring::EMB(complex<double>* vals, long n0) {
-	complex<double>* tmp = new complex<double>[N1]();
-	for (long i = 0; i < N1; ++i) {
+void Ring::EMB(complex<double>* vals, long n0, long n1) {
+	complex<double>* tmp = new complex<double>[n1]();
+	for (long i = 0; i < n1; ++i) {
 		EMBX0(vals + (i * n0), n0);
 	}
 	for (long i = 0; i < n0; ++i) {
-		for (long j = 0; j < N1; ++j) {
+		for (long j = 0; j < n1; ++j) {
 			tmp[j] = vals[i + (j * n0)];
 		}
-		EMBX1(tmp);
-		for (long j = 0; j < N1; ++j) {
+		EMBX1(tmp, n1);
+		for (long j = 0; j < n1; ++j) {
 			vals[i + (j * n0)] = tmp[j];
 		}
 	}
 	delete[] tmp;
 }
 
-void Ring::IEMB(complex<double>* vals, long n0) {
-	complex<double>* tmp = new complex<double>[N1]();
+void Ring::IEMB(complex<double>* vals, long n0, long n1) {
+	complex<double>* tmp = new complex<double>[n1]();
 
-	for (long i1 = 0; i1 < N1; ++i1) {
+	for (long i1 = 0; i1 < n1; ++i1) {
 		IEMBX0(vals + (i1 * n0), n0);
 	}
 	for (long i0 = 0; i0 < n0; ++i0) {
-		for (long i1 = 0; i1 < N1; ++i1) {
+		for (long i1 = 0; i1 < n1; ++i1) {
 			tmp[i1] = vals[i0 + (i1 * n0)];
 		}
-		IEMBX1(tmp);
-		for (long i1 = 0; i1 < N1; ++i1) {
+		IEMBX1(tmp, n1);
+		for (long i1 = 0; i1 < n1; ++i1) {
 			vals[i0 + (i1 * n0)] = tmp[i1];
 		}
 	}
@@ -350,16 +352,18 @@ ZZ* Ring::encode(complex<double>* vals, long n0, long n1, long logp) {
 	long gap0 = N0h / n0;
 	long gap1 = N1 / n1;
 	ZZ* mx = new ZZ[N];
-	complex<double>* uvals = new complex<double>[n0 * N1];
-	for (long j = 0; j < gap1; ++j) {
-		copy(vals, vals + n0 * n1, uvals + j * n0 * n1);
+	complex<double>* uvals = new complex<double>[n0 * n1];
+	for (long i = 0; i < n0 * n1; ++i) {
+		uvals[i] = vals[i];
 	}
 
-	IEMB(uvals, n0);
+	IEMB(uvals, n0, n1);
 	for (long i = 0, ii = N0h, ir = 0; i < n0; ++i, ii += gap0, ir += gap0) {
-		for (long j = 0; j < N1; ++j) {
-			mx[ir + N0 * j] = EvaluatorUtils::scaleUpToZZ(uvals[i + n0 * j].real(), logp);
-			mx[ii + N0 * j] = EvaluatorUtils::scaleUpToZZ(uvals[i + n0 * j].imag(), logp);
+		for (long j = 0; j < n1; ++j) {
+			for (long g = 0; g < gap1; ++g) {
+				mx[ir + N0 * (j + g * n1)] = EvaluatorUtils::scaleUpToZZ(uvals[i + n0 * j].real(), logp);
+				mx[ii + N0 * (j + g * n1)] = EvaluatorUtils::scaleUpToZZ(uvals[i + n0 * j].imag(), logp);
+			}
 		}
 	}
 	delete[] uvals;
@@ -370,48 +374,46 @@ ZZ* Ring::encode(double* vals, long n0, long n1, long logp) {
 	long gap0 = N0h / n0;
 	long gap1 = N1 / n1;
 	ZZ* mx = new ZZ[N];
-	complex<double>* uvals = new complex<double>[n0 * N1];
+	complex<double>* uvals = new complex<double>[n0 * n1];
 	for (long i = 0; i < n0 * n1; ++i) {
-		for (long j = 0; j < gap1; ++j) {
-			uvals[i + j * n0 * n1].real(vals[i]);
-		}
+		uvals[i].real(vals[i]);
 	}
 
-	IEMB(uvals, n0);
-	for (long i = 0, ii = N0h, ir = 0; i < n0; ++i, ii += gap0, ir += gap0) {
-		for (long j = 0; j < N1; ++j) {
-			mx[ir + N0 * j] = EvaluatorUtils::scaleUpToZZ(uvals[i + n0 * j].real(), logp);
-			mx[ii + N0 * j] = EvaluatorUtils::scaleUpToZZ(uvals[i + n0 * j].imag(), logp);
+	IEMB(uvals, n0, n1);
+	for (long i0 = 0, ii0 = N0h, ir0 = 0; i0 < n0; ++i0, ii0 += gap0, ir0 += gap0) {
+		for (long i1 = 0; i1 < n1; ++i1) {
+			for (long g1 = 0; g1 < gap1; ++g1) {
+				mx[ir0 + N0 * (i1 + g1 * n1)] = EvaluatorUtils::scaleUpToZZ(uvals[i0 + n0 * i1].real(), logp);
+				mx[ii0 + N0 * (i1 + g1 * n1)] = EvaluatorUtils::scaleUpToZZ(uvals[i0 + n0 * i1].imag(), logp);
+			}
 		}
 	}
 	delete[] uvals;
 	return mx;
 }
 
-complex<double>* Ring::decode(ZZ* mxy, long n0, long n1, long logp, long logq) {
+complex<double>* Ring::decode(ZZ* mx, long n0, long n1, long logp, long logq) {
 	ZZ q = qvec[logq];
 	ZZ qh = qvec[logq - 1];
 	long gap0 = N0h / n0;
+	long gap1 = N1 / n1;
 	ZZ tmp;
 	complex<double>* vals = new complex<double>[n0 * n1];
-	complex<double>* fvals = new complex<double>[n0 * N1];
 	for (long i0 = 0, ii0 = N0h, ir0 = 0; i0 < n0; ++i0, ii0 += gap0, ir0 += gap0) {
-		for (long i1 = 0; i1 < N1; ++i1) {
-			rem(tmp, mxy[ir0 + N0 * i1], q);
+		for (long i1 = 0; i1 < n1; ++i1) {
+			rem(tmp, mx[ir0 + N0 * i1], q);
 			while (tmp < 0) tmp += q;
 			while (tmp > qh) tmp -= q;
-			fvals[i0 + n0 * i1].real(EvaluatorUtils::scaleDownToReal(tmp, logp));
+			vals[i0 + n0 * i1].real(EvaluatorUtils::scaleDownToReal(tmp, logp));
 
-			rem(tmp, mxy[ii0 + N0 * i1], q);
+			rem(tmp, mx[ii0 + N0 * i1], q);
 			while(tmp < 0) tmp += q;
 			while (tmp > qh) tmp -= q;
-			fvals[i0 + n0 * i1].imag(EvaluatorUtils::scaleDownToReal(tmp, logp));
+			vals[i0 + n0 * i1].imag(EvaluatorUtils::scaleDownToReal(tmp, logp));
 		}
 	}
 
-	EMB(fvals, n0);
-	copy(fvals, fvals + n0 * n1, vals);
-	delete[] fvals;
+	EMB(vals, n0, n1);
 	return vals;
 }
 
@@ -669,24 +671,34 @@ void Ring::rightShiftAndEqual(ZZ* p, long bits) {
 
 
 ZZ* Ring::leftRotate(ZZ* p, long r0, long r1) {
-	ZZ* tmp = new ZZ[N];
+	ZZ* res = new ZZ[N];
 	long deg0 = gM0Pows[r0];
 	for (long j = 0; j < N; j += N0) {
 		for (long i = 0; i < N0; ++i) {
 			long ipow = i * deg0;
 			long shift = ipow % M0;
 			if (shift < N0) {
-				tmp[shift + j] = p[i + j];
+				res[shift + j] = p[i + j];
 			} else {
-				tmp[shift - N0 + j] = -p[i + j];
+				res[shift - N0 + j] = -p[i + j];
 			}
 		}
 	}
 
-	ZZ* res = new ZZ[N];
-	for (long i = 0; i < N0; ++i) {
-		for (long j = 0; j < N1; ++j) {
-			res[i + (((j+N1-r1)%N1) << logN0)] = tmp[i + (j << logN0)];
+	r1 %= N1;
+	if(r1 != 0) {
+		long divisor = GCD(r1, N1);
+		long steps = N1 / divisor;
+		for (long i = 0; i < N0; ++i) {
+			for (long j = 0; j < divisor; ++j) {
+				ZZ tmp = res[i + (j << logN0)];
+				long idx = j;
+				for (long k = 0; k < steps - 1; ++k) {
+					res[i + (idx << logN0)] = res[i + (((idx + r1) % N1) << logN0)];
+					idx = (idx + r1) % N1;
+				}
+				res[i + (idx << logN0)] = tmp;
+			}
 		}
 	}
 	return res;

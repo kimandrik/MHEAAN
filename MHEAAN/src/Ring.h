@@ -60,7 +60,8 @@ public:
 	complex<double>* ksiM1Pows;
 	complex<double>* ksiN1Pows; ///< storing ksi pows for fft calculation
 
-	complex<double>* dftomegaPows;
+	complex<double>** dftM1Pows;
+	complex<double>** dftM1NTTPows;
 
 	map<pair<long, long>, BootContext*> bootContextMap;
 
@@ -85,17 +86,17 @@ public:
 
 
 	void arrayBitReverse(complex<double>* vals, long n);
-	void DFTX1(complex<double>* vals);
-	void IDFTX1(complex<double>* vals);
+	void DFTX1(complex<double>* vals, long n1);
+	void IDFTX1(complex<double>* vals, long n1);
 
 	void EMBX0(complex<double>* vals, long n0);
 	void IEMBX0(complex<double>* vals, long n0);
 
-	void EMBX1(complex<double>* vals);
-	void IEMBX1(complex<double>* vals);
+	void EMBX1(complex<double>* vals, long n1);
+	void IEMBX1(complex<double>* vals, long n1);
 
-	void EMB(complex<double>* vals, long n0);
-	void IEMB(complex<double>* vals, long n0);
+	void EMB(complex<double>* vals, long n0, long n1);
+	void IEMB(complex<double>* vals, long n0, long n1);
 
 	ZZ* encode(complex<double>* vals, long n0, long n1, long logp);
 	ZZ* encode(double* vals, long n0, long n1, long logp);

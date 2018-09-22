@@ -41,8 +41,6 @@ RingMultiplier::RingMultiplier(long logN0, long logN1, long nprimes) : logN0(log
 
 	rootM1DFTPows = new uint64_t*[nprimes]();
 	rootM1DFTPowsInv = new uint64_t*[nprimes]();
-	rootM1Pows = new uint64_t*[nprimes]();
-	rootM1PowsInv = new uint64_t*[nprimes]();
 
 	red_ss_array = new _ntl_general_rem_one_struct*[nprimes];
 
@@ -124,16 +122,10 @@ RingMultiplier::RingMultiplier(long logN0, long logN1, long nprimes) : logN0(log
 		uint64_t rootM1 = findMthRootOfUnity(M1, pVec[i]);
 		rootM1DFTPows[i] = new uint64_t[N1]();
 		rootM1DFTPowsInv[i] = new uint64_t[N1]();
-		rootM1Pows[i] = new uint64_t[N1]();
-		rootM1PowsInv[i] = new uint64_t[N1]();
 		for (long j = 0; j < N1; ++j) {
 			rootM1DFTPows[i][j] = powMod(rootM1, gM1Pows[j], pVec[i]);
-			rootM1Pows[i][j] = powMod(rootM1, gM1Pows[j], pVec[i]);
-			rootM1PowsInv[i][j] = powMod(rootM1, M1 - gM1Pows[j], pVec[i]);
 		}
-
 		NTTPO2X1(rootM1DFTPows[i], i);
-
 		for (long j = 0; j < N1; ++j) {
 			rootM1DFTPowsInv[i][j] = powMod(rootM1DFTPows[i][j], pVec[i] - 2, pVec[i]);
 		}
