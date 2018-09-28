@@ -86,8 +86,8 @@ Ring::Ring(long logN0, long logN1, long logQ, double sigma, long h) :
 	for (long logn1 = 0; logn1 < logN1 + 1; ++logn1) {
 		long n1 = 1 << logn1;
 		long gap = 1 << (logN1 - logn1);
-		dftM1NTTPows[logn1] = new complex<double>[n1+1];
 		dftM1Pows[logn1] = new complex<double>[n1+1];
+		dftM1NTTPows[logn1] = new complex<double>[n1+1];
 		for (long i = 0; i < n1; ++i) {
 			for (long k = 0; k < gap; ++k) {
 				dftM1Pows[logn1][i] += ksiM1Pows[gM1Pows[i + k * n1]];
@@ -95,6 +95,7 @@ Ring::Ring(long logN0, long logN1, long logQ, double sigma, long h) :
 			dftM1NTTPows[logn1][i] = dftM1Pows[logn1][i];
 		}
 		DFTX1(dftM1NTTPows[logn1], n1);
+
 		dftM1Pows[logn1][n1] = dftM1Pows[logn1][0];
 		dftM1NTTPows[logn1][n1] = dftM1NTTPows[logn1][0];
 	}

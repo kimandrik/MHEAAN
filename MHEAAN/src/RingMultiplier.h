@@ -28,7 +28,6 @@ public:
 	long N;
 
 	uint64_t* gM1Pows;
-	uint64_t* gM1PowsInv;
 	uint64_t** rootM1DFTPows;
 	uint64_t** rootM1DFTPowsInv;
 

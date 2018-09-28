@@ -395,9 +395,7 @@ Ciphertext** SchemeAlgo::inverseExtended(Ciphertext* cipher, const long logp, co
 
 Ciphertext* SchemeAlgo::function(Ciphertext* cipher, string& funcName, long logp, long degree) {
 	Ciphertext** cpows = powerExtended(cipher, logp, degree);
-
 	long dlogp = 2 * logp;
-
 	double* coeffs = taylorCoeffsMap.at(funcName);
 	Ciphertext* res = scheme->multConst(cpows[0], coeffs[1], logp);
 	scheme->addConstAndEqual(res, coeffs[0], dlogp);

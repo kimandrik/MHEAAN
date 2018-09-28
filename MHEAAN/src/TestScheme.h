@@ -93,6 +93,8 @@ public:
 
 	static void test();
 
+	static void test2();
+
 };
 
 #endif

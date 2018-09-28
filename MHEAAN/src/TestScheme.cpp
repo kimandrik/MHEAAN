@@ -865,8 +865,7 @@ void TestScheme::test() {
 	timeutils.stop("Scheme generating");
 
 	long logn0 = logN0 - 1;
-//	long logn1 = logN1;
-	long logn1 = 0;
+	long logn1 = logN1;
 	timeutils.start("Key generating");
 	scheme->addBootKey(secretKey, logn0, logn1, logq + logI);
 	timeutils.stop("Key generated");
@@ -890,21 +889,63 @@ void TestScheme::test() {
 		scheme->addAndEqual(cipher, rot);
 		delete rot;
 	}
+	scheme->reScaleByAndEqual(cipher, logN0 - logn0 - 1);
+
 	for (long i = n1; i < ring->N1; i <<= 1) {
 		Ciphertext* rot = scheme->leftRotateFast(cipher, 0, i);
 		scheme->addAndEqual(cipher, rot);
 		delete rot;
 	}
-	scheme->reScaleByAndEqual(cipher, logN0 + logN1 - logn0 - logn1 - 1);
+
+//	Ciphertext* x = scheme->divPo2(cipher, logq);
+//	scheme->multPo2AndEqual(x, logq);
+//	scheme->modDownByAndEqual(cipher, logq);
+//	scheme->subAndEqual(cipher, x);
+
+	Plaintext* ptxt = scheme->decryptMsg(secretKey, cipher);
+	ZZ q = ring->qvec[cipher->logq];
+	ZZ qh = ring->qvec[cipher->logq - 1];
+	long gap0 = ring->N0h / n0;
+	ZZ tmp;
+	complex<double>* vals = new complex<double>[n];
+	for (long ix = 0, iix = ring->N0h, irx = 0; ix < n0; ++ix, iix += gap0, irx += gap0) {
+		for (long iy = 0; iy < n1; ++iy) {
+			tmp = ptxt->mx[irx + ring->N0 * iy];
+			if (tmp > qh) {
+				tmp -= q;
+			} else if (tmp < -qh) {
+				tmp += q;
+			}
+			vals[ix + n0 * iy].real(EvaluatorUtils::scaleDownToReal(tmp, logq));
+
+			tmp = ptxt->mx[iix + ring->N0 * iy];
+			if (tmp > qh) {
+				tmp -= q;
+			} else if (tmp < -qh) {
+				tmp += q;
+			}
+			vals[ix + n0 * iy].imag(EvaluatorUtils::scaleDownToReal(tmp, logq));
+		}
+	}
+	delete ptxt;
+	StringUtils::showMat(vals, n0, n1);
 
 	timeutils.start("Coeff to Slot");
 	scheme->coeffToSlotX1AndEqual(cipher);
 	scheme->coeffToSlotX0AndEqual(cipher);
 	timeutils.stop("Coeff to Slot");
 
+
+	complex<double>* cx = scheme->decrypt(secretKey, cipher);
+	StringUtils::showMat(cx, n0, n1);
+
 	timeutils.start("Remove I Part");
 	scheme->removeIPartAndEqual(cipher, logT, logI);
 	timeutils.stop("Remove I Part");
+
+
+	complex<double>* cx1 = scheme->decrypt(secretKey, cipher);
+	StringUtils::showMat(cx1, n0, n1);
 
 	timeutils.start("Slot to Coeff");
 	scheme->slotToCoeffX0AndEqual(cipher);
@@ -913,7 +954,43 @@ void TestScheme::test() {
 
 	cipher->logp = logp;
 	complex<double>* dmat = scheme->decrypt(secretKey, cipher);
-	StringUtils::compare(mmat, dmat, 100, "boot");
+	StringUtils::compare(mmat, dmat, 10, "boot");
 
 	cout << "!!! END TEST BOOTSRTAP !!!" << endl;
 }
+
+void TestScheme::test2() {
+	srand(time(NULL));
+	SetNumThreads(8);
+
+	long logN0 = 8;
+	long logN1 = 4;
+	long logp = 40;
+	long logq = 1200;
+	TimeUtils timeutils;
+
+	timeutils.start("Scheme generating");
+	Ring* ring = new Ring(logN0, logN1, logq);
+	SecretKey* secretKey = new SecretKey(ring);
+	Scheme* scheme = new Scheme(secretKey, ring);
+	timeutils.stop("Scheme generating");
+
+	long logn0 = logN0 - 1;
+	long logn1 = 0;
+	timeutils.start("Key generating");
+	scheme->addBootKey(secretKey, logn0, logn1, logp);
+	timeutils.stop("Key generated");
+
+	long n0 = (1 << logn0);
+	long n1 = (1 << logn1);
+	long n = n0 * n1;
+
+	complex<double>* mmat = EvaluatorUtils::randomComplexSignedArray(n);
+	Ciphertext* cipher = scheme->encrypt(mmat, n0, n1, logp, logq);
+
+	scheme->coeffToSlotAndEqual(cipher);
+	scheme->slotToCoeffAndEqual(cipher);
+	scheme->divPo2AndEqual(cipher, logn0 + logn1);
+	complex<double>* dmat = scheme->decrypt(secretKey, cipher);
+	StringUtils::compare(mmat, dmat, 10, "xx");
+};

@@ -46,12 +46,10 @@ RingMultiplier::RingMultiplier(long logN0, long logN1, long nprimes) : logN0(log
 
 	long M1 = N1 + 1;
 	gM1Pows = new uint64_t[M1];
-	gM1PowsInv = new uint64_t[M1];
 	uint64_t g1 = findPrimitiveRoot(M1);
 	uint64_t gM1Pow = 1;
 	for (long i = 0; i < N1; ++i) {
 		gM1Pows[i] = gM1Pow;
-		gM1PowsInv[gM1Pow] = i;
 		gM1Pow *= g1;
 		gM1Pow %= M1;
 	}
