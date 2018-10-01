@@ -74,9 +74,9 @@ public:
 	void NTT(uint64_t* a, long index);
 	void INTT(uint64_t* a, long index);
 
-	uint64_t* toNTTX0(ZZ* a, long np);
-	uint64_t* toNTTX1(ZZ* a, long np);
-	uint64_t* toNTT(ZZ* a, long np);
+	void toNTTX0(uint64_t* ra, ZZ* a, long np);
+	void toNTTX1(uint64_t* ra, ZZ* a, long np);
+	void toNTT(uint64_t* ra, ZZ* a, long np);
 
 	void addNTTAndEqual(uint64_t* ra, uint64_t* rb, long np);
 

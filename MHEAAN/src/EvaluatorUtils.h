@@ -73,7 +73,7 @@ public:
 	//----------------------------------------------------------------------------------
 
 
-	static void squareMatMult(complex<double>* res, complex<double>* vals1, complex<double>* vals2, long n);
+	static complex<double>* squareMatMult(complex<double>* vals1, complex<double>* vals2, long n);
 
 	static void squareMatSquareAndEqual(complex<double>* vals, long n);
 };

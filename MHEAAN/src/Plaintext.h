@@ -31,9 +31,7 @@ public:
 
 	Plaintext(ZZ* mx = NULL, long logp = 0, long logq = 0, long N0 = 0, long N1 = 0, long n0 = 0, long n1 = 0);
 
-	Plaintext(const Plaintext& o);
-
-	Plaintext& operator=(const Plaintext &o);
+	Plaintext(const Plaintext* o);
 
 	~Plaintext();
 

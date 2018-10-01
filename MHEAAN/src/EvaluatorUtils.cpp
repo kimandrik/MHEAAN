@@ -161,7 +161,8 @@ void EvaluatorUtils::rightRotateAndEqual(complex<double>* vals, long n0, long n1
 //----------------------------------------------------------------------------------
 
 
-void EvaluatorUtils::squareMatMult(complex<double>* res, complex<double>* vals1, complex<double>* vals2, long n) {
+complex<double>* EvaluatorUtils::squareMatMult(complex<double>* vals1, complex<double>* vals2, long n) {
+	complex<double>* res = new complex<double>[n * n];
 	for (long i = 0; i < n; ++i) {
 		for (long j = 0; j < n; ++j) {
 			for (long k = 0; k < n; ++k) {
@@ -169,6 +170,7 @@ void EvaluatorUtils::squareMatMult(complex<double>* res, complex<double>* vals1,
 			}
 		}
 	}
+	return res;
 }
 
 void EvaluatorUtils::squareMatSquareAndEqual(complex<double>* vals, long n) {

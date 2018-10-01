@@ -669,7 +669,7 @@ void TestScheme::testSqrMatMult(long logN0, long logN1, long logQ, long logp, lo
 
 	TimeUtils timeutils;
 	Ring* ring = new Ring(logN0, logN1, logQ);
-	SecretKey*  secretKey = new SecretKey(ring);
+	SecretKey* secretKey = new SecretKey(ring);
 	Scheme* scheme = new Scheme(secretKey, ring);
 	SchemeAlgo algo(scheme);
 
@@ -680,8 +680,7 @@ void TestScheme::testSqrMatMult(long logN0, long logN1, long logQ, long logp, lo
 
 	complex<double>* mmat1 = EvaluatorUtils::randomComplexSignedArray(n2);
 	complex<double>* mmat2 = EvaluatorUtils::randomComplexSignedArray(n2);
-	complex<double>* mmatmult = new complex<double>[n2];
-	EvaluatorUtils::squareMatMult(mmatmult, mmat1, mmat2, n);
+	complex<double>* mmatmult = EvaluatorUtils::squareMatMult(mmat1, mmat2, n);
 
 	Ciphertext* cipher1 = scheme->encrypt(mmat1, n, n, logp, logQ);
 	Ciphertext* cipher2 = scheme->encrypt(mmat2, n, n, logp, logQ);
@@ -759,8 +758,7 @@ void TestScheme::testMatInv(long logN0, long logN1, long logQ, long logp, long l
 	timeutils.stop("Matrix Inv");
 
 	complex<double>* dmatinv = scheme->decrypt(secretKey, cmatinv);
-	complex<double>* imat = new complex<double>[n2];
-	EvaluatorUtils::squareMatMult(imat, mmat, dmatinv, n);
+	complex<double>* imat = EvaluatorUtils::squareMatMult(mmat, dmatinv, n);
 	StringUtils::showMat(imat, n, n);
 
 	cout << "!!! END TEST MATRIX INV !!!" << endl;

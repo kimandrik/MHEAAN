@@ -175,8 +175,6 @@ public:
 	Ciphertext* multPo2(Ciphertext* cipher, long bits);
 	void multPo2AndEqual(Ciphertext* cipher, long bits);
 
-	void doubleAndEqual(Ciphertext* cipher);
-
 	Ciphertext* divPo2(Ciphertext* cipher, long logd);
 	void divPo2AndEqual(Ciphertext* cipher, long logd);
 
