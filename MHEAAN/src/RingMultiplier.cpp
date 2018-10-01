@@ -961,8 +961,7 @@ void RingMultiplier::mult(ZZ* x, ZZ* a, ZZ* b, long np, ZZ& q) {
 		INTT(rxi, i);
 	}
 	NTL_EXEC_RANGE_END;
-	delete[] ra;
-	delete[] rb;
+	delete[] ra; delete[] rb;
 
 	reconstruct(x, rx, np, q);
 	delete[] rx;
