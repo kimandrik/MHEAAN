@@ -15,7 +15,7 @@ int main() {
 //   STANDARD TESTS
 //----------------------------------------------------------------------------------
 
-	TestScheme::testEncrypt(6, 8, 1200, 50, 2, 3);
+//	TestScheme::testEncrypt(6, 8, 1200, 50, 2, 3);
 //	TestScheme::testEncryptSingle(6, 8, 300, 30);
 //	TestScheme::testStandard(8, 8, 1200, 50, 2, 2);
 //	TestScheme::testimult(8, 8, 300, 30, 2, 2);
@@ -59,9 +59,9 @@ int main() {
 //----------------------------------------------------------------------------------
 
 
-//	TestScheme::testSqrMatMult(8, 8, 100, 30, 2);
-//	TestScheme::testSqrMatPow(8, 8, 300, 30, 2, 4);
-//	TestScheme::testMatInv(8, 8, 300, 25, 2, 4);
+//	TestScheme::testSqrMatMult(7, 8, 100, 30, 6);
+//	TestScheme::testSqrMatPow(7, 8, 300, 30, 6, 4);
+//	TestScheme::testMatInv(7, 8, 300, 25, 6, 4);
 
 
 //----------------------------------------------------------------------------------

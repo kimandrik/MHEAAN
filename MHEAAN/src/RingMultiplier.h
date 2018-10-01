@@ -11,6 +11,7 @@
 
 #include <NTL/BasicThreadPool.h>
 #include <NTL/ZZ.h>
+#include <vector>
 
 using namespace std;
 using namespace NTL;

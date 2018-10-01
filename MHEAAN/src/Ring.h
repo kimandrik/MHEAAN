@@ -14,6 +14,7 @@
 #include <complex>
 #include <map>
 #include <math.h>
+#include <vector>
 
 #include "BootContext.h"
 #include "RingMultiplier.h"

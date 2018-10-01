@@ -45,7 +45,7 @@ void TestScheme::testEncrypt(long logN0, long logN1, long logQ, long logp, long 
 	long n1 = (1 << logn1);
 	long n = n0 * n1;
 
-	complex<double>* mmat = EvaluatorUtils::randomComplexArray(n);
+	complex<double>* mmat = EvaluatorUtils::randomComplexSignedArray(n);
 
 	timeutils.start("Encode matrix");
 	Plaintext* msg = scheme->encode(mmat, n0, n1, logp, logQ);
@@ -79,7 +79,7 @@ void TestScheme::testEncryptSingle(long logN0, long logN1, long logQ, long logp)
 	SecretKey* secretKey = new SecretKey(ring);
 	Scheme* scheme = new Scheme(secretKey, ring);
 
-	complex<double> mval = EvaluatorUtils::randomComplex();
+	complex<double> mval = EvaluatorUtils::randomComplexSigned();
 
 	timeutils.start("Encrypt single");
 	Ciphertext* cipher = scheme->encryptSingle(mval, logp, logQ);
@@ -109,8 +109,8 @@ void TestScheme::testStandard(long logN0, long logN1, long logQ, long logp, long
 	long n1 = (1 << logn1);
 	long n = n0 * n1;
 
-	complex<double>* mmat1 = EvaluatorUtils::randomComplexArray(n);
-	complex<double>* mmat2 = EvaluatorUtils::randomComplexArray(n);
+	complex<double>* mmat1 = EvaluatorUtils::randomComplexSignedArray(n);
+	complex<double>* mmat2 = EvaluatorUtils::randomComplexSignedArray(n);
 	complex<double>* madd = new complex<double>[n];
 	complex<double>* mmult = new complex<double>[n];
 	for (long i = 0; i < n; ++i) {
@@ -153,7 +153,7 @@ void TestScheme::testimult(long logN0, long logN1, long logQ, long logp, long lo
 	long n1 = (1 << logn1);
 	long n = n0 * n1;
 
-	complex<double>* mmat = EvaluatorUtils::randomComplexArray(n);
+	complex<double>* mmat = EvaluatorUtils::randomComplexSignedArray(n);
 	complex<double>* mmatimult = new complex<double>[n];
 	for (long i = 0; i < n; ++i) {
 		mmatimult[i].real(-mmat[i].imag());
@@ -196,7 +196,7 @@ void TestScheme::testRotateFast(long logN0, long logN1, long logQ, long logp, lo
 	long n1 = (1 << logn1);
 	long n = n0 * n1;
 
-	complex<double>* mmat = EvaluatorUtils::randomComplexArray(n);
+	complex<double>* mmat = EvaluatorUtils::randomComplexSignedArray(n);
 	Ciphertext* cipher = scheme->encrypt(mmat, n0, n1, logp, logQ);
 
 	timeutils.start("Left rotate fast");
@@ -228,7 +228,7 @@ void TestScheme::testRotate(long logN0, long logN1, long logQ, long logp, long l
 	long n1 = (1 << logn1);
 	long n = n0 * n1;
 
-	complex<double>* mmat = EvaluatorUtils::randomComplexArray(n);
+	complex<double>* mmat = EvaluatorUtils::randomComplexSignedArray(n);
 	Ciphertext* cipher = scheme->encrypt(mmat, n0, n1, logp, logQ);
 
 	timeutils.start("Left rotate");
@@ -259,7 +259,7 @@ void TestScheme::testConjugate(long logN0, long logN1, long logQ, long logp, lon
 	long n1 = (1 << logn1);
 	long n = n0 * n1;
 
-	complex<double>* mmat = EvaluatorUtils::randomComplexArray(n);
+	complex<double>* mmat = EvaluatorUtils::randomComplexSignedArray(n);
 	complex<double>* mmatconj = new complex<double>[n];
 	for (long i = 0; i < n; ++i) {
 		mmatconj[i] = conj(mmat[i]);
@@ -535,7 +535,7 @@ void TestScheme::testExponent(long logN0, long logN1, long logQ, long logp, long
 	long n1 = (1 << logn1);
 	long n = n0 * n1;
 
-	complex<double>* mmat = EvaluatorUtils::randomComplexArray(n);
+	complex<double>* mmat = EvaluatorUtils::randomComplexSignedArray(n);
 	complex<double>* mexp = new complex<double>[n];
 	for (long i = 0; i < n; ++i) {
 		mexp[i] = exp(mmat[i]);
@@ -569,7 +569,7 @@ void TestScheme::testExponentLazy(long logN0, long logN1, long logQ, long logp, 
 	long n1 = (1 << logn1);
 	long n = n0 * n1;
 
-	complex<double>* mmat = EvaluatorUtils::randomComplexArray(n);
+	complex<double>* mmat = EvaluatorUtils::randomComplexSignedArray(n);
 	complex<double>* mexp = new complex<double>[n];
 	for (long i = 0; i < n; ++i) {
 		mexp[i] = exp(mmat[i]);
@@ -603,7 +603,7 @@ void TestScheme::testSigmoid(long logN0, long logN1, long logQ, long logp, long 
 	long n1 = (1 << logn1);
 	long n = n0 * n1;
 
-	complex<double>* mmat = EvaluatorUtils::randomComplexArray(n);
+	complex<double>* mmat = EvaluatorUtils::randomComplexSignedArray(n);
 	complex<double>* msig = new complex<double>[n];
 	for (long i = 0; i < n; ++i) {
 		msig[i] = exp(mmat[i]) / (1. + exp(mmat[i]));
@@ -637,7 +637,7 @@ void TestScheme::testSigmoidLazy(long logN0, long logN1, long logQ, long logp, l
 	long n1 = (1 << logn1);
 	long n = n0 * n1;
 
-	complex<double>* mmat = EvaluatorUtils::randomComplexArray(n);
+	complex<double>* mmat = EvaluatorUtils::randomComplexSignedArray(n);
 	complex<double>* msig = new complex<double>[n];
 	for (long i = 0; i < n; ++i) {
 		msig[i] = exp(mmat[i]) / (1. + exp(mmat[i]));
@@ -678,8 +678,8 @@ void TestScheme::testSqrMatMult(long logN0, long logN1, long logQ, long logp, lo
 	long n = (1 << logn);
 	long n2 = n * n;
 
-	complex<double>* mmat1 = EvaluatorUtils::randomComplexArray(n2);
-	complex<double>* mmat2 = EvaluatorUtils::randomComplexArray(n2);
+	complex<double>* mmat1 = EvaluatorUtils::randomComplexSignedArray(n2);
+	complex<double>* mmat2 = EvaluatorUtils::randomComplexSignedArray(n2);
 	complex<double>* mmatmult = new complex<double>[n2];
 	EvaluatorUtils::squareMatMult(mmatmult, mmat1, mmat2, n);
 
@@ -712,7 +712,7 @@ void TestScheme::testSqrMatPow(long logN0, long logN1, long logQ, long logp, lon
 	long n = (1 << logn);
 	long n2 = n * n;
 
-	complex<double>* mmat = EvaluatorUtils::randomComplexArray(n2, 1.0/n);
+	complex<double>* mmat = EvaluatorUtils::randomComplexSignedArray(n2, 1.0/n);
 
 	Ciphertext* cipher = scheme->encrypt(mmat, n, n, logp, logQ);
 
@@ -747,7 +747,7 @@ void TestScheme::testMatInv(long logN0, long logN1, long logQ, long logp, long l
 	long n = (1 << logn);
 	long n2 = n * n;
 
-	complex<double>* mmat = EvaluatorUtils::randomComplexArray(n2, 0.01/n);
+	complex<double>* mmat = EvaluatorUtils::randomComplexSignedArray(n2, 0.01/n);
 	for (long i = 0; i < n; ++i) {
 		mmat[i + i * n] += 1.0 - EvaluatorUtils::randomReal(0.3);
 	}
