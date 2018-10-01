@@ -16,7 +16,7 @@
 #include <type_traits>
 #include <vector>
 
-RingMultiplier::RingMultiplier(long logN0, long logN1, long nprimes) : logN0(logN0), logN1(logN1) {
+RingMultiplier::RingMultiplier(long logN0, long logN1, long nprimes, long pbnd) : logN0(logN0), logN1(logN1) {
 	N0 = 1 << logN0;
 	N1 = 1 << logN1;
 
@@ -55,11 +55,11 @@ RingMultiplier::RingMultiplier(long logN0, long logN1, long nprimes) : logN0(log
 	}
 	gM1Pows[N1] = 1;
 
-	long M = M1 * M0;
-	uint64_t primetest = (1ULL << (59-logN1)) * M1 + 1;
+	long step = M1 * max(M0, N1);
+	uint64_t primetest = (1ULL << (pbnd-logN1)) * M1 + 1;
 	for (long i = 0; i < nprimes; ++i) {
 		while(true) {
-			primetest += M;
+			primetest += step;
 			if(primeTest(primetest)) {
 				pVec[i] = primetest;
 				break;

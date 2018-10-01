@@ -960,37 +960,4 @@ void TestScheme::test() {
 }
 
 void TestScheme::test2() {
-	srand(time(NULL));
-	SetNumThreads(8);
-
-	long logN0 = 8;
-	long logN1 = 4;
-	long logp = 40;
-	long logq = 1200;
-	TimeUtils timeutils;
-
-	timeutils.start("Scheme generating");
-	Ring* ring = new Ring(logN0, logN1, logq);
-	SecretKey* secretKey = new SecretKey(ring);
-	Scheme* scheme = new Scheme(secretKey, ring);
-	timeutils.stop("Scheme generating");
-
-	long logn0 = logN0 - 1;
-	long logn1 = 0;
-	timeutils.start("Key generating");
-	scheme->addBootKey(secretKey, logn0, logn1, logp);
-	timeutils.stop("Key generated");
-
-	long n0 = (1 << logn0);
-	long n1 = (1 << logn1);
-	long n = n0 * n1;
-
-	complex<double>* mmat = EvaluatorUtils::randomComplexSignedArray(n);
-	Ciphertext* cipher = scheme->encrypt(mmat, n0, n1, logp, logq);
-
-	scheme->coeffToSlotAndEqual(cipher);
-	scheme->slotToCoeffAndEqual(cipher);
-	scheme->divPo2AndEqual(cipher, logn0 + logn1);
-	complex<double>* dmat = scheme->decrypt(secretKey, cipher);
-	StringUtils::compare(mmat, dmat, 10, "xx");
 };

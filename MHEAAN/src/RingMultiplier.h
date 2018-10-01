@@ -53,7 +53,7 @@ public:
 	ZZ** pHat;
 	uint64_t** pHatInvModp;
 
-	RingMultiplier(long logN0 = 0, long logN1 = 0, long nprimes = 0);
+	RingMultiplier(long logN0 = 0, long logN1 = 0, long nprimes = 0, long pbnd = 0);
 
 	bool primeTest(uint64_t p);
 

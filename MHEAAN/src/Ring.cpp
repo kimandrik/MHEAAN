@@ -28,8 +28,9 @@ Ring::Ring(long logN0, long logN1, long logQ, double sigma, long h) :
 	N = (1 << logN);
 	Nh = N >> 1;
 
-	long nprimes = ceil((2 + 2 * logN + 4 * logQ) / 59.0);
-	multiplier = new RingMultiplier(logN0, logN1, nprimes);
+	pbnd = 59;
+	long nprimes = ceil((3 + logN + 4 * logQ) / (double)pbnd);
+	multiplier = new RingMultiplier(logN0, logN1, nprimes, pbnd);
 
 	logQQ = 2 * logQ;
 
@@ -352,6 +353,7 @@ void Ring::IEMB(complex<double>* vals, long n0, long n1) {
 ZZ* Ring::encode(complex<double>* vals, long n0, long n1, long logp) {
 	long gap0 = N0h / n0;
 	long gap1 = N1 / n1;
+
 	ZZ* mx = new ZZ[N];
 	complex<double>* uvals = new complex<double>[n0 * n1];
 	for (long i = 0; i < n0 * n1; ++i) {
@@ -374,6 +376,7 @@ ZZ* Ring::encode(complex<double>* vals, long n0, long n1, long logp) {
 ZZ* Ring::encode(double* vals, long n0, long n1, long logp) {
 	long gap0 = N0h / n0;
 	long gap1 = N1 / n1;
+
 	ZZ* mx = new ZZ[N];
 	complex<double>* uvals = new complex<double>[n0 * n1];
 	for (long i = 0; i < n0 * n1; ++i) {
@@ -396,8 +399,10 @@ ZZ* Ring::encode(double* vals, long n0, long n1, long logp) {
 complex<double>* Ring::decode(ZZ* mx, long n0, long n1, long logp, long logq) {
 	ZZ q = qvec[logq];
 	ZZ qh = qvec[logq - 1];
+
 	long gap0 = N0h / n0;
 	long gap1 = N1 / n1;
+
 	ZZ tmp;
 	complex<double>* vals = new complex<double>[n0 * n1];
 	for (long i0 = 0, ii0 = N0h, ir0 = 0; i0 < n0; ++i0, ii0 += gap0, ir0 += gap0) {
@@ -408,7 +413,7 @@ complex<double>* Ring::decode(ZZ* mx, long n0, long n1, long logp, long logq) {
 			vals[i0 + n0 * i1].real(EvaluatorUtils::scaleDownToReal(tmp, logp));
 
 			rem(tmp, mx[ii0 + N0 * i1], q);
-			while(tmp < 0) tmp += q;
+			while (tmp < 0) tmp += q;
 			while (tmp > qh) tmp -= q;
 			vals[i0 + n0 * i1].imag(EvaluatorUtils::scaleDownToReal(tmp, logp));
 		}

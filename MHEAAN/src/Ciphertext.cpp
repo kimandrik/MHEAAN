@@ -23,6 +23,12 @@ Ciphertext::Ciphertext(const Ciphertext* o) : logp(o->logp), logq(o->logq), N0(o
 }
 
 Ciphertext::~Ciphertext() {
-	if(ax) delete[] ax;
-	if(bx) delete[] bx;
+	if(ax) {
+		delete[] ax;
+		ax = NULL;
+	}
+	if(bx) {
+		delete[] bx;
+		bx = NULL;
+	}
 }

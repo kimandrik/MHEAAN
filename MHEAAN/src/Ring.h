@@ -41,6 +41,8 @@ public:
 	long N1;
 	long M1;
 
+	long pbnd;
+
 	long logQ; ///< log of Q
 	long logQQ; ///< log of PQ
 
