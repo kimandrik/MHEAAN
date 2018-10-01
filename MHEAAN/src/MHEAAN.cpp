@@ -15,7 +15,7 @@ int main() {
 //   STANDARD TESTS
 //----------------------------------------------------------------------------------
 
-//	TestScheme::testEncrypt(8, 8, 1200, 50, 0, 8);
+//	TestScheme::testEncrypt(8, 8, 1200, 50, 2, 3);
 //	TestScheme::testEncryptSingle(6, 8, 300, 30);
 //	TestScheme::testStandard(8, 8, 1200, 50, 2, 2);
 //	TestScheme::testimult(8, 8, 300, 30, 2, 2);
@@ -73,7 +73,7 @@ int main() {
 
 //	TestScheme::testCiphertextWriteAndRead(10, 65, 30, 2);
 
-	TestScheme::test();
+//	TestScheme::test();
 
 //	TestScheme::test2();
 

@@ -20,8 +20,8 @@ using namespace NTL;
 class Ciphertext {
 public:
 
-	ZZ* ax;
-	ZZ* bx;
+	ZZ* ax = NULL;
+	ZZ* bx = NULL;
 
 	long logp;
 	long logq;
