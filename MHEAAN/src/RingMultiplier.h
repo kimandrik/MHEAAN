@@ -54,16 +54,11 @@ public:
 	ZZ** pHat;
 	uint64_t** pHatInvModp;
 
-	RingMultiplier(long logN0 = 0, long logN1 = 0, long nprimes = 0, long pbnd = 0);
+	RingMultiplier(long logN0, long logN1, long nprimes, long pbnd);
 
 	bool primeTest(uint64_t p);
 
 	void arrayBitReverse(uint64_t* a, long n);
-
-	void butt1(uint64_t& a1, uint64_t& a2, uint64_t& p, uint64_t& pInv, uint64_t& W);
-	void butt2(uint64_t& a1, uint64_t& a2, uint64_t& p, uint64_t& pInv, uint64_t& W);
-
-	void divByN(uint64_t& a, uint64_t& p, uint64_t& pInv, uint64_t& NScaleInv);
 
 	void NTTX0(uint64_t* a, long index);
 	void INTTX0(uint64_t* a, long index);
@@ -104,9 +99,12 @@ public:
 	void squareAndEqual(ZZ* a, long np, ZZ& q);
 	void squareNTT(ZZ* x, uint64_t* ra, long np, ZZ& q);
 
+	void butt1(uint64_t& a1, uint64_t& a2, uint64_t p, uint64_t pInv, uint64_t W);
+	void butt2(uint64_t& a1, uint64_t& a2, uint64_t p, uint64_t pInv, uint64_t W);
+	void divByN(uint64_t& a, uint64_t p, uint64_t pInv, uint64_t NScaleInv);
 	void mulMod(uint64_t& r, uint64_t a, uint64_t b, uint64_t p);
-
 	void mulModBarrett(uint64_t& r, uint64_t a, uint64_t b, uint64_t p, uint64_t pr, long twok);
+	void mulModBarrettAndEqual(uint64_t& r, uint64_t b, uint64_t p, uint64_t pr, long twok);
 
 	uint64_t powMod(uint64_t x, uint64_t y, uint64_t p);
 

@@ -12,13 +12,14 @@
 #include <NTL/ZZ.h>
 
 using namespace NTL;
+
 class SqrMatContext {
 public:
 
-	//will be changed
 	ZZ** mvec;
 	long logp;
-	SqrMatContext(ZZ** mvec = NULL, long logp = 0);
+
+	SqrMatContext(ZZ** mvec, long logp);
 };
 
 #endif /* MATRIXCONTEXT_H_ */

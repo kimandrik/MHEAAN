@@ -183,22 +183,24 @@ void Ring::addBootContext(long logn0, long logn1, long logp) {
 
 void Ring::addSqrMatContext(long logn, long logp) {
 	if (sqrMatContextMap.find(logn) == sqrMatContextMap.end()) {
-		long n = 1 << logn;
-		ZZ** pvec = new ZZ*[n];
+		long n = (1 << logn);
 
-		long gap = (N0h >> logn);
-		long powsum = N0h - gap;
-		pvec[0] = new ZZ[N];
-		for (long i = 0; i < N0h; i += gap) {
-			pvec[0][i + (powsum - i) * N0] = ZZ(1);
+		ZZ** mvec = new ZZ*[n];
+		double* tmp = new double[n * n]();
+		for (long i = 0; i < n; ++i) {
+			for (long j = 0; j < n; ++j) {
+				tmp[j + ((j - i + n) % n) * n] = 1.0;
+			}
+
+			mvec[i] = encode(tmp, n, n, logp);
+
+			for (long j = 0; j < n; ++j) {
+				tmp[j + ((j - i + n) % n) * n] = 0.0;
+			}
 		}
-
-		multByMonomialAndEqual(pvec[0], M0 - powsum, 0, Q);
-
-		for (long i = 1; i < n; ++i) {
-			pvec[i] = leftRotate(pvec[0], 0, i);
-		}
-		sqrMatContextMap.insert(pair<long, SqrMatContext*>(logn, new SqrMatContext(pvec, logp)));
+		delete[] tmp;
+		SqrMatContext* sqrMatContext = new SqrMatContext(mvec, logp);
+		sqrMatContextMap.insert(pair<long, SqrMatContext*>(logn, sqrMatContext));
 	}
 }
 
@@ -428,13 +430,13 @@ complex<double>* Ring::decode(ZZ* mx, long n0, long n1, long logp, long logq) {
 //----------------------------------------------------------------------------------
 
 
-long Ring::MaxBits(const ZZ* f, long n) {
-   long i, m;
-   m = 0;
-   for (i = 0; i < n; i++) {
-      m = max(m, NumBits(f[i]));
-   }
-   return m;
+long Ring::MaxBits(ZZ* f, long n) {
+	long i, m;
+	m = 0;
+	for (i = 0; i < n; i++) {
+		m = max(m, NumBits(f[i]));
+	}
+	return m;
 }
 
 void Ring::toNTTX0(uint64_t* ra, ZZ* a, long np) {

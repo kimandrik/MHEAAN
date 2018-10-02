@@ -665,7 +665,7 @@ void TestScheme::testSqrMatMult(long logN0, long logN1, long logQ, long logp, lo
 	cout << "!!! START TEST SQUARE MATRIX !!!" << endl;
 
 	srand(time(NULL));
-	SetNumThreads(8);
+	SetNumThreads(1);
 
 	TimeUtils timeutils;
 	Ring* ring = new Ring(logN0, logN1, logQ);

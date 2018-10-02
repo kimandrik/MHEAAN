@@ -8,13 +8,9 @@
 
 #include "RingMultiplier.h"
 
-#include <NTL/lip.h>
-#include <NTL/sp_arith.h>
-#include <NTL/tools.h>
+#include <NTL/ZZ.h>
 #include <cmath>
 #include <cstdint>
-#include <type_traits>
-#include <vector>
 
 RingMultiplier::RingMultiplier(long logN0, long logN1, long nprimes, long pbnd) : logN0(logN0), logN1(logN1) {
 	N0 = 1 << logN0;
@@ -190,45 +186,6 @@ void RingMultiplier::arrayBitReverse(uint64_t* vals, long n) {
 	}
 }
 
-void RingMultiplier::butt1(uint64_t& a1, uint64_t& a2, uint64_t& p, uint64_t& pInv, uint64_t& W) {
-	uint64_t U = a1 + a2;
-	if (U > p) U -= p;
-	uint64_t T = a1 < a2 ? a1 + p - a2 : a1 - a2;
-	unsigned __int128 UU = static_cast<unsigned __int128>(T) * W;
-	uint64_t U0 = static_cast<uint64_t>(UU);
-	uint64_t U1 = UU >> 64;
-	uint64_t Q = U0 * pInv;
-	unsigned __int128 Hx = static_cast<unsigned __int128>(Q) * p;
-	uint64_t H = Hx >> 64;
-	a1 = U;
-	a2 = (U1 < H) ? U1 + p - H : U1 - H;
-}
-
-void RingMultiplier::butt2(uint64_t& a1, uint64_t& a2, uint64_t& p, uint64_t& pInv, uint64_t& W) {
-	uint64_t T = a2;
-	unsigned __int128 U = static_cast<unsigned __int128>(T) * W;
-	uint64_t U0 = static_cast<uint64_t>(U);
-	uint64_t U1 = U >> 64;
-	uint64_t Q = U0 * pInv;
-	unsigned __int128 Hx = static_cast<unsigned __int128>(Q) * p;
-	uint64_t H = Hx >> 64;
-	uint64_t V = U1 < H ? U1 + p - H : U1 - H;
-	a2 = a1 < V ? a1 + p - V : a1 - V;
-	a1 += V;
-	if (a1 > p) a1 -= p;
-}
-
-void RingMultiplier::divByN(uint64_t& a, uint64_t& p, uint64_t& pInv, uint64_t& NScaleInv) {
-	uint64_t T = a;
-	unsigned __int128 U = static_cast<unsigned __int128>(T) * NScaleInv;
-	uint64_t U0 = static_cast<uint64_t>(U);
-	uint64_t U1 = U >> 64;
-	uint64_t Q = U0 * pInv;
-	unsigned __int128 Hx = static_cast<unsigned __int128>(Q) * p;
-	uint64_t H = Hx >> 64;
-	a = (U1 < H) ? U1 + p - H : U1 - H;
-}
-
 void RingMultiplier::NTTX0(uint64_t* a, long index) {
 	long t = N0;
 	long logt1 = logN0 + 1;
@@ -320,12 +277,14 @@ void RingMultiplier::INTTPO2X1(uint64_t* a, long index) {
 void RingMultiplier::NTTX1(uint64_t* a, long index) {
 	uint64_t pi = pVec[index];
 	uint64_t pri = prVec[index];
-	uint64_t pti = pTwok[index];
+	long pti = pTwok[index];
 	uint64_t* rootM1DFTPowsi = rootM1DFTPows[index];
 
 	NTTPO2X1(a, index);
 	for (long i = 0; i < N1; ++i) {
-		mulModBarrett(a[i], a[i], rootM1DFTPowsi[i], pi, pri, pti);
+//		mulModBarrett(a[i], a[i], rootM1DFTPowsi[i], pi, pri, pti);
+		mulModBarrettAndEqual(a[i], rootM1DFTPowsi[i], pi, pri, pti);
+//		mulModBarrettAndEqual(a[i], rootM1DFTPows[index][i], pVec[index], prVec[index], pTwok[index]);
 	}
 	INTTPO2X1(a, index);
 }
@@ -333,12 +292,12 @@ void RingMultiplier::NTTX1(uint64_t* a, long index) {
 void RingMultiplier::INTTX1(uint64_t* a, long index) {
 	uint64_t pi = pVec[index];
 	uint64_t pri = prVec[index];
-	uint64_t pti = pTwok[index];
-	uint64_t* dftomegaPowsInvi = rootM1DFTPowsInv[index];
+	long pti = pTwok[index];
+	uint64_t* rootM1DFTPowsInvi = rootM1DFTPowsInv[index];
 
 	NTTPO2X1(a, index);
 	for (long i = 0; i < N1; ++i) {
-		mulModBarrett(a[i], a[i], dftomegaPowsInvi[i], pi, pri, pti);
+		mulModBarrett(a[i], a[i], rootM1DFTPowsInvi[i], pi, pri, pti);
 	}
 	INTTPO2X1(a, index);
 }
@@ -432,7 +391,7 @@ void RingMultiplier::addNTTAndEqual(uint64_t* ra, uint64_t* rb, long np) {
 		uint64_t pi = pVec[i];
 		for (long n = 0; n < N; ++n) {
 			rai[n] += rbi[n];
-			if(rai[n] > pi) rai[n] -= pi;
+			rai[n]%=pi;
 		}
 	}
 }
@@ -456,8 +415,10 @@ void RingMultiplier::reconstruct(ZZ* x, uint64_t* rx, long np, ZZ& q) {
 			QuickAccumMulAdd(acc, pHatnp[i], s);
 		}
 		QuickAccumEnd(acc);
+//		QuickRem(x[n], pProdnp);
 		rem(x[n], x[n], pProdnp);
 		if (x[n] > pProdhnp) x[n] -= pProdnp;
+//		QuickRem(x[n], q);
 		x[n] %= q;
 	}
 	NTL_EXEC_RANGE_END;
@@ -646,8 +607,6 @@ void RingMultiplier::multDNTTX0(ZZ* x, uint64_t* ra, uint64_t* rb, long np, ZZ& 
 		uint64_t pi = pVec[i];
 		uint64_t pri = prVec[i];
 		long pTwoki = pTwok[i];
-
-		_ntl_general_rem_one_struct* red_ss = red_ss_array[i];
 
 		uint64_t* rxi = rx + (i << logN);
 		for (long ix = 0; ix < N0; ++ix) {
@@ -1164,6 +1123,45 @@ void RingMultiplier::squareNTT(ZZ* x, uint64_t* ra, long np, ZZ& q) {
 	delete[] rx;
 }
 
+void RingMultiplier::butt1(uint64_t& a1, uint64_t& a2, uint64_t p, uint64_t pInv, uint64_t W) {
+	uint64_t U = a1 + a2;
+	if (U > p) U -= p;
+	uint64_t T = a1 < a2 ? a1 + p - a2 : a1 - a2;
+	unsigned __int128 UU = static_cast<unsigned __int128>(T) * W;
+	uint64_t U0 = static_cast<uint64_t>(UU);
+	uint64_t U1 = UU >> 64;
+	uint64_t Q = U0 * pInv;
+	unsigned __int128 Hx = static_cast<unsigned __int128>(Q) * p;
+	uint64_t H = Hx >> 64;
+	a1 = U;
+	a2 = (U1 < H) ? U1 + p - H : U1 - H;
+}
+
+void RingMultiplier::butt2(uint64_t& a1, uint64_t& a2, uint64_t p, uint64_t pInv, uint64_t W) {
+	uint64_t T = a2;
+	unsigned __int128 U = static_cast<unsigned __int128>(T) * W;
+	uint64_t U0 = static_cast<uint64_t>(U);
+	uint64_t U1 = U >> 64;
+	uint64_t Q = U0 * pInv;
+	unsigned __int128 Hx = static_cast<unsigned __int128>(Q) * p;
+	uint64_t H = Hx >> 64;
+	uint64_t V = U1 < H ? U1 + p - H : U1 - H;
+	a2 = a1 < V ? a1 + p - V : a1 - V;
+	a1 += V;
+	if (a1 > p) a1 -= p;
+}
+
+void RingMultiplier::divByN(uint64_t& a, uint64_t p, uint64_t pInv, uint64_t NScaleInv) {
+	uint64_t T = a;
+	unsigned __int128 U = static_cast<unsigned __int128>(T) * NScaleInv;
+	uint64_t U0 = static_cast<uint64_t>(U);
+	uint64_t U1 = U >> 64;
+	uint64_t Q = U0 * pInv;
+	unsigned __int128 Hx = static_cast<unsigned __int128>(Q) * p;
+	uint64_t H = Hx >> 64;
+	a = (U1 < H) ? U1 + p - H : U1 - H;
+}
+
 void RingMultiplier::mulMod(uint64_t &r, uint64_t a, uint64_t b, uint64_t m) {
 	unsigned __int128
 	mul = static_cast<unsigned __int128>(a) * b;
@@ -1174,6 +1172,25 @@ void RingMultiplier::mulMod(uint64_t &r, uint64_t a, uint64_t b, uint64_t m) {
 void RingMultiplier::mulModBarrett(uint64_t& r, uint64_t a, uint64_t b, uint64_t p, uint64_t pr, long twok) {
 	unsigned __int128
 	mul = static_cast<unsigned __int128>(a) * b;
+	uint64_t atop, abot;
+	abot = static_cast<uint64_t>(mul);
+	atop = static_cast<uint64_t>(mul >> 64);
+	unsigned __int128
+	tmp = static_cast<unsigned __int128>(abot) * pr;
+	tmp >>= 64;
+	tmp += static_cast<unsigned __int128>(atop) * pr;
+	tmp >>= twok - 64;
+	tmp *= p;
+	tmp = mul - tmp;
+	r = static_cast<uint64_t>(tmp);
+	if (r >= p) {
+		r -= p;
+	}
+}
+
+void RingMultiplier::mulModBarrettAndEqual(uint64_t& r, uint64_t b, uint64_t p, uint64_t pr, long twok) {
+	unsigned __int128
+	mul = static_cast<unsigned __int128>(r) * b;
 	uint64_t atop, abot;
 	abot = static_cast<uint64_t>(mul);
 	atop = static_cast<uint64_t>(mul >> 64);

@@ -11,7 +11,6 @@
 #include "StringUtils.h"
 #include "SerializationUtils.h"
 
-
 Scheme::Scheme(SecretKey* secretKey, Ring* ring, bool isSerialized) : ring(ring), isSerialized(isSerialized) {
 	addEncKey(secretKey);
 	addMultKey(secretKey);
@@ -218,7 +217,7 @@ void Scheme::addBootKey(SecretKey* secretKey, long logn0, long logn1, long logp)
 
 void Scheme::addSqrMatKeys(SecretKey* secretKey, long logn, long logp) {
 	ring->addSqrMatContext(logn, logp);
-	long n = 1 << logn;
+	long n = (1 << logn);
 	for (long i = 1; i < n; ++i) {
 		long idx = ring->N0h - i;
 		if(leftRotKeyMap.find({idx, 0}) == leftRotKeyMap.end() && serLeftRotKeyMap.find({idx, 0}) == serLeftRotKeyMap.end()) {
@@ -852,7 +851,7 @@ Ciphertext* Scheme::multPoly(Ciphertext* cipher, ZZ* poly, long logp) {
 	ZZ q = ring->qvec[cipher->logq];
 
 	long bnd = ring->MaxBits(poly, ring->N);
-	long np = ceil((cipher->logq + bnd + ring->logN + 3)/(double)ring->pbnd);
+	long np = ceil((cipher->logq + logp + ring->logN + 3)/(double)ring->pbnd);
 	uint64_t* rpoly = ring->toNTT(poly, np);
 	ZZ* ax = ring->multNTT(cipher->ax, rpoly, np, q);
 	ZZ* bx = ring->multNTT(cipher->bx, rpoly, np, q);

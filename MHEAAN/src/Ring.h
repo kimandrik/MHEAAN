@@ -110,7 +110,7 @@ public:
 	//   MULTIPLICATION
 	//----------------------------------------------------------------------------------
 
-	long MaxBits(const ZZ* f, long n);
+	long MaxBits(ZZ* f, long n);
 	void addNTTAndEqual(uint64_t* ra, uint64_t* rb, long np);
 
 	void toNTTX0(uint64_t* ra, ZZ* a, long np);

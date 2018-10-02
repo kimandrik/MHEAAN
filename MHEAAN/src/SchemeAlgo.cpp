@@ -205,26 +205,22 @@ Ciphertext* SchemeAlgo::sqrMatMult(Ciphertext* cipher1, Ciphertext* cipher2, lon
 	long logn = log2(n);
 
 	SqrMatContext* sqrMatContext = scheme->ring->sqrMatContextMap.at(logn);
-
-	Ciphertext** cipherP = new Ciphertext*[n];
 	Ciphertext** cipherR = new Ciphertext*[n];
-
 	NTL_EXEC_RANGE(n, first, last);
 	for (long i = first; i < last; ++i) {
 		cipherR[i] = (i == 0) ? new Ciphertext(cipher1) : scheme->rightRotateFast(cipher1, i, 0);
-		scheme->modDownByAndEqual(cipherR[i], logn);
-
-		cipherP[i] = scheme->multPoly(cipher2, sqrMatContext->mvec[i], sqrMatContext->logp);
-		scheme->reScaleByAndEqual(cipherP[i], logn);
+		scheme->modDownByAndEqual(cipherR[i], sqrMatContext->logp);
+		Ciphertext* tmp = scheme->multPoly(cipher2, sqrMatContext->mvec[i], sqrMatContext->logp);
+		scheme->reScaleByAndEqual(tmp, sqrMatContext->logp);
 		for (long j = 0; j < logn; ++j) {
-			Ciphertext* rot = scheme->leftRotateFast(cipherP[i], 0, (1 << j));
-			scheme->addAndEqual(cipherP[i], rot);
+			Ciphertext* rot = scheme->leftRotateFast(tmp, 0, (1 << j));
+			scheme->addAndEqual(tmp, rot);
 			delete rot;
 		}
-		scheme->multAndEqual(cipherR[i], cipherP[i]);
+		scheme->multAndEqual(cipherR[i], tmp);
+		delete tmp;
 	}
 	NTL_EXEC_RANGE_END;
-
 	for (long i = 1; i < n; ++i) {
 		scheme->addAndEqual(cipherR[0], cipherR[i]);
 	}
@@ -234,10 +230,6 @@ Ciphertext* SchemeAlgo::sqrMatMult(Ciphertext* cipher1, Ciphertext* cipher2, lon
 		delete cipherR[i];
 	}
 	delete[] cipherR;
-	for (long i = 0; i < n; ++i) {
-		delete cipherP[i];
-	}
-	delete[] cipherP;
 	return res;
 }
 
@@ -246,7 +238,6 @@ void SchemeAlgo::sqrMatMultAndEqual(Ciphertext*& cipher1, Ciphertext* cipher2, l
 
 	SqrMatContext* sqrMatContext = scheme->ring->sqrMatContextMap.at(logn);
 
-	Ciphertext** cipherP = new Ciphertext*[n];
 	Ciphertext** cipherR = new Ciphertext*[n];
 
 	NTL_EXEC_RANGE(n, first, last);
@@ -254,14 +245,15 @@ void SchemeAlgo::sqrMatMultAndEqual(Ciphertext*& cipher1, Ciphertext* cipher2, l
 		cipherR[i] = (i == 0) ? new Ciphertext(cipher1) : scheme->rightRotateFast(cipher1, i, 0);
 		scheme->modDownByAndEqual(cipherR[i], logn);
 
-		cipherP[i] = scheme->multPoly(cipher2, sqrMatContext->mvec[i], sqrMatContext->logp);
-		scheme->reScaleByAndEqual(cipherP[i], logn);
+		Ciphertext* tmp = scheme->multPoly(cipher2, sqrMatContext->mvec[i], sqrMatContext->logp);
+		scheme->reScaleByAndEqual(tmp, logn);
 		for (long j = 0; j < logn; ++j) {
-			Ciphertext* rot = scheme->leftRotateFast(cipherP[i], 0, (1 << j));
-			scheme->addAndEqual(cipherP[i], rot);
+			Ciphertext* rot = scheme->leftRotateFast(tmp, 0, (1 << j));
+			scheme->addAndEqual(tmp, rot);
 			delete rot;
 		}
-		scheme->multAndEqual(cipherR[i], cipherP[i]);
+		scheme->multAndEqual(cipherR[i], tmp);
+		delete tmp;
 	}
 	NTL_EXEC_RANGE_END;
 
@@ -275,10 +267,6 @@ void SchemeAlgo::sqrMatMultAndEqual(Ciphertext*& cipher1, Ciphertext* cipher2, l
 		delete cipherR[i];
 	}
 	delete[] cipherR;
-	for (long i = 0; i < n; ++i) {
-		delete cipherP[i];
-	}
-	delete[] cipherP;
 }
 
 void SchemeAlgo::sqrMatSqrAndEqual(Ciphertext*& cipher, long logp, long n) {
