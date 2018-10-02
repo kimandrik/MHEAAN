@@ -9,6 +9,7 @@
 #ifndef MPHEAAN_PLAINTEXT_H_
 #define MPHEAAN_PLAINTEXT_H_
 
+#include "Params.h"
 #include <NTL/ZZ.h>
 
 using namespace std;
@@ -17,21 +18,15 @@ using namespace NTL;
 class Plaintext {
 public:
 
-	ZZ* mx;
+	ZZ mx[N];
 
 	long logp;
 	long logq;
 
-	long N0;
-	long N1;
-
 	long n0;
 	long n1;
 
-
-	Plaintext(ZZ* mx = NULL, long logp = 0, long logq = 0, long N0 = 0, long N1 = 0, long n0 = 0, long n1 = 0);
-
-	Plaintext(const Plaintext* o);
+	Plaintext(long logp, long logq, long n0, long n1);
 
 	~Plaintext();
 

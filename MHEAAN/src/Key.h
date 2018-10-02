@@ -9,6 +9,7 @@
 #ifndef MPHEAAN_KEY_H_
 #define MPHEAAN_KEY_H_
 
+#include "Params.h"
 #include <NTL/ZZ.h>
 
 using namespace NTL;
@@ -16,12 +17,10 @@ using namespace NTL;
 class Key {
 public:
 
-	long N;
-	long np;
-	uint64_t* rax;
-	uint64_t* rbx;
+	uint64_t rax[Nnprimes];
+	uint64_t rbx[Nnprimes];
 
-	Key(uint64_t* rax, uint64_t* rbx, long N, long np);
+	Key();
 
 	virtual ~Key();
 };

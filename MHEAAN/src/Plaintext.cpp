@@ -8,23 +8,11 @@
 
 #include "Plaintext.h"
 
-Plaintext::Plaintext(ZZ* mx, long logp, long logq, long N0, long N1, long n0, long n1)
-		: mx(mx), logp(logp), logq(logq), N0(N0), N1(N1), n0(n0), n1(n1) {
+Plaintext::Plaintext(long logp, long logq, long n0, long n1) : logp(logp), logq(logq), n0(n0), n1(n1) {
 }
 
-Plaintext::Plaintext(const Plaintext* o) : mx(o->mx), logp(o->logp), logq(o->logq), N0(o->N0), N1(o->N1), n0(o->n0), n1(o->n1) {
-	long N = N0 * N1;
-	if(!mx) mx = new ZZ[N];
-	for (long i = 0; i < N; ++i) {
-		mx[i] = o->mx[i];
-	}
-}
 
 Plaintext::~Plaintext() {
-	if(mx){
-		delete[] mx;
-		mx = NULL;
-	}
 }
 
 

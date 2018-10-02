@@ -8,8 +8,6 @@
 
 #include "SecretKey.h"
 
-SecretKey::SecretKey(Ring* ring) {
-	N0 = ring->N0;
-	N1 = ring->N1;
-	sx = ring->sampleHWT();
+SecretKey::SecretKey(Ring& ring) {
+	ring.sampleHWT(sx);
 }

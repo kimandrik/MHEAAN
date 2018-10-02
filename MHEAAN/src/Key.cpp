@@ -8,11 +8,8 @@
 
 #include "Key.h"
 
-Key::Key(uint64_t* rax, uint64_t* rbx, long N, long np) : rax(rax), rbx(rbx), N(N), np(np) {
-
+Key::Key() {
 }
 
 Key::~Key() {
-	if(rax) delete[] rax;
-	if(rbx) delete[] rbx;
 }

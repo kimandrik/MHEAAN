@@ -12,6 +12,7 @@
 #include <NTL/BasicThreadPool.h>
 #include <NTL/ZZ.h>
 #include <vector>
+#include "Params.h"
 
 using namespace std;
 using namespace NTL;
@@ -19,42 +20,33 @@ using namespace NTL;
 class RingMultiplier {
 public:
 
-	long logN0;
-	long N0;
+	uint64_t gM1Pows[M1];
+	uint64_t* rootM1DFTPows[nprimes];
+	uint64_t* rootM1DFTPowsInv[nprimes];
 
-	long logN1;
-	long N1;
+	uint64_t pVec[nprimes];
+	uint64_t prVec[nprimes];
+	long pTwok[nprimes];
 
-	long logN;
-	long N;
+	uint64_t pInvVec[nprimes];
 
-	uint64_t* gM1Pows;
-	uint64_t** rootM1DFTPows;
-	uint64_t** rootM1DFTPowsInv;
+	uint64_t* scaledRootM0Pows[nprimes];
+	uint64_t* scaledRootN1Pows[nprimes];
 
-	uint64_t* pVec;
-	uint64_t* prVec;
-	long* pTwok;
+	uint64_t* scaledRootM0PowsInv[nprimes];
+	uint64_t* scaledRootN1PowsInv[nprimes];
 
-	uint64_t* pInvVec;
+	uint64_t scaledN0Inv[nprimes];
+	uint64_t scaledN1Inv[nprimes];
 
-	uint64_t** scaledRootM0Pows;
-	uint64_t** scaledRootN1Pows;
+	_ntl_general_rem_one_struct* red_ss_array[nprimes];
+	mulmod_precon_t* coeffpinv_array[nprimes];
+	ZZ pProd[nprimes];
+	ZZ pProdh[nprimes];
+	ZZ* pHat[nprimes];
+	uint64_t* pHatInvModp[nprimes];
 
-	uint64_t** scaledRootM0PowsInv;
-	uint64_t** scaledRootN1PowsInv;
-
-	uint64_t* scaledN0Inv;
-	uint64_t* scaledN1Inv;
-
-	_ntl_general_rem_one_struct** red_ss_array;
-	mulmod_precon_t** coeffpinv_array;
-	ZZ* pProd;
-	ZZ* pProdh;
-	ZZ** pHat;
-	uint64_t** pHatInvModp;
-
-	RingMultiplier(long logN0, long logN1, long nprimes, long pbnd);
+	RingMultiplier();
 
 	bool primeTest(uint64_t p);
 
@@ -75,29 +67,29 @@ public:
 
 	void addNTTAndEqual(uint64_t* ra, uint64_t* rb, long np);
 
-	void reconstruct(ZZ* x, uint64_t* rx, long np, ZZ& q);
+	void reconstruct(ZZ* x, uint64_t* rx, long np, const ZZ& q);
 
-	void multX0(ZZ* x, ZZ* a, ZZ* b, long np, ZZ& q);
-	void multX0AndEqual(ZZ* a, ZZ* b, long np, ZZ& q);
-	void multNTTX0(ZZ* x, ZZ* a, uint64_t* rb, long np, ZZ& q);
-	void multNTTX0AndEqual(ZZ* a, uint64_t* rb, long np, ZZ& q);
-	void multDNTTX0(ZZ* x, uint64_t* ra, uint64_t* rb, long np, ZZ& q);
+	void multX0(ZZ* x, ZZ* a, ZZ* b, long np, const ZZ& q);
+	void multX0AndEqual(ZZ* a, ZZ* b, long np, const ZZ& q);
+	void multNTTX0(ZZ* x, ZZ* a, uint64_t* rb, long np, const ZZ& q);
+	void multNTTX0AndEqual(ZZ* a, uint64_t* rb, long np, const ZZ& q);
+	void multDNTTX0(ZZ* x, uint64_t* ra, uint64_t* rb, long np, const ZZ& q);
 
-	void multX1(ZZ* x, ZZ* a, ZZ* b, long np, ZZ& q);
-	void multX1AndEqual(ZZ* a, ZZ* b, long np, ZZ& q);
-	void multNTTX1(ZZ* x, ZZ* a, uint64_t* rb, long np, ZZ& q);
-	void multNTTX1AndEqual(ZZ* a, uint64_t* rb, long np, ZZ& q);
-	void multDNTTX1(ZZ* x, uint64_t* ra, uint64_t* rb, long np, ZZ& q);
+	void multX1(ZZ* x, ZZ* a, ZZ* b, long np, const ZZ& q);
+	void multX1AndEqual(ZZ* a, ZZ* b, long np, const ZZ& q);
+	void multNTTX1(ZZ* x, ZZ* a, uint64_t* rb, long np, const ZZ& q);
+	void multNTTX1AndEqual(ZZ* a, uint64_t* rb, long np, const ZZ& q);
+	void multDNTTX1(ZZ* x, uint64_t* ra, uint64_t* rb, long np, const ZZ& q);
 
-	void mult(ZZ* x, ZZ* a, ZZ* b, long np, ZZ& q);
-	void multAndEqual(ZZ* a, ZZ* b, long np, ZZ& q);
-	void multNTT(ZZ* x, ZZ* a, uint64_t* rb, long np, ZZ& q);
-	void multNTTAndEqual(ZZ* a, uint64_t* rb, long np, ZZ& q);
-	void multDNTT(ZZ* x, uint64_t* ra, uint64_t* rb, long np, ZZ& q);
+	void mult(ZZ* x, ZZ* a, ZZ* b, long np, const ZZ& q);
+	void multAndEqual(ZZ* a, ZZ* b, long np, const ZZ& q);
+	void multNTT(ZZ* x, ZZ* a, uint64_t* rb, long np, const ZZ& q);
+	void multNTTAndEqual(ZZ* a, uint64_t* rb, long np, const ZZ& q);
+	void multDNTT(ZZ* x, uint64_t* ra, uint64_t* rb, long np, const ZZ& q);
 
-	void square(ZZ* x, ZZ* a, long np, ZZ& q);
-	void squareAndEqual(ZZ* a, long np, ZZ& q);
-	void squareNTT(ZZ* x, uint64_t* ra, long np, ZZ& q);
+	void square(ZZ* x, ZZ* a, long np, const ZZ& q);
+	void squareAndEqual(ZZ* a, long np, const ZZ& q);
+	void squareNTT(ZZ* x, uint64_t* ra, long np, const ZZ& q);
 
 	void butt1(uint64_t& a1, uint64_t& a2, uint64_t p, uint64_t pInv, uint64_t W);
 	void butt2(uint64_t& a1, uint64_t& a2, uint64_t p, uint64_t pInv, uint64_t W);

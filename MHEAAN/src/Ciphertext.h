@@ -10,29 +10,24 @@
 #define MPHEAAN_CIPHERTEXT_H_
 
 #include <NTL/ZZ.h>
+#include "Params.h"
 
 using namespace std;
 using namespace NTL;
 
-/**
- * Ciphertext if MRLWE(RLWE) instanc
- */
 class Ciphertext {
 public:
 
-	ZZ* ax = NULL;
-	ZZ* bx = NULL;
+	ZZ ax[N];
+	ZZ bx[N];
 
 	long logp;
 	long logq;
 
-	long N0;
-	long N1;
-
 	long n0;
 	long n1;
 
-	Ciphertext(ZZ* ax, ZZ* bx, long logp, long logq, long N0, long N1, long n0, long n1);
+	Ciphertext(long logp, long logq, long n0, long n1);
 
 	Ciphertext(const Ciphertext* o);
 

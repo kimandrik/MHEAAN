@@ -8,14 +8,10 @@
 
 #include "Ciphertext.h"
 
-Ciphertext::Ciphertext(ZZ* ax, ZZ* bx, long logp, long logq, long N0, long N1, long n0, long n1) :
-		ax(ax), bx(bx), logp(logp), logq(logq), N0(N0), N1(N1), n0(n0), n1(n1) {
+Ciphertext::Ciphertext(long logp, long logq, long n0, long n1) : logp(logp), logq(logq), n0(n0), n1(n1) {
 }
 
-Ciphertext::Ciphertext(const Ciphertext* o) : logp(o->logp), logq(o->logq), N0(o->N0), N1(o->N1), n0(o->n0), n1(o->n1) {
-	long N = N0 * N1;
-	if(!ax) ax = new ZZ[N];
-	if(!bx) bx = new ZZ[N];
+Ciphertext::Ciphertext(const Ciphertext* o) : logp(o->logp), logq(o->logq), n0(o->n0), n1(o->n1) {
 	for (long i = 0; i < N; ++i) {
 		ax[i] = o->ax[i];
 		bx[i] = o->bx[i];
@@ -23,12 +19,4 @@ Ciphertext::Ciphertext(const Ciphertext* o) : logp(o->logp), logq(o->logq), N0(o
 }
 
 Ciphertext::~Ciphertext() {
-	if(ax) {
-		delete[] ax;
-		ax = NULL;
-	}
-	if(bx) {
-		delete[] bx;
-		bx = NULL;
-	}
 }

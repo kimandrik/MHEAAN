@@ -9,6 +9,8 @@
 #ifndef MHEAAN_Ring2XY_H_
 #define MHEAAN_Ring2XY_H_
 
+#include "Params.h"
+
 #include <NTL/ZZ.h>
 #include <NTL/RR.h>
 #include <complex>
@@ -20,6 +22,7 @@
 #include "RingMultiplier.h"
 #include "SqrMatContext.h"
 
+
 using namespace std;
 using namespace NTL;
 
@@ -27,50 +30,25 @@ static RR Pi = ComputePi_RR();
 
 class Ring {
 public:
+	RingMultiplier multiplier;
 
-	long logN0;
-	long N0;
-	long M0;
-	long logN0h;
-	long N0h;
+	ZZ qvec[logQQ + 1];
 
-	long logN;
-	long N;
-	long Nh;
+	uint64_t gM0Pows[N0h + 1]; ///< auxiliary information about rotation group indexes for batch encoding
+	uint64_t gM1Pows[M1]; ///< auxiliary information about rotation group indexes for batch encoding
 
-	long logN1;
-	long N1;
-	long M1;
+	complex<double> ksiM0Pows[M0 + 1]; ///< storing ksi pows for fft calculation
+	complex<double> ksiM1Pows[M1 + 1];
+	complex<double> ksiN1Pows[N1 + 1]; ///< storing ksi pows for fft calculation
 
-	long pbnd;
+	complex<double>* dftM1Pows[logN1 + 1];
+	complex<double>* dftM1NTTPows[logN1 + 1];
 
-	long logQ; ///< log of Q
-	long logQQ; ///< log of PQ
+	map<pair<long, long>, BootContext&> bootContextMap;
 
-	ZZ Q; ///< Q corresponds to the highest modulus
-	ZZ QQ; ///< PQ = Q * Q
-	ZZ* qvec;
+	map<long, SqrMatContext&> sqrMatContextMap;
 
-	double sigma; ///< standard deviation for Gaussian distribution
-	long h; ///< parameter for HWT distribution
-
-	RingMultiplier* multiplier;
-
-	uint64_t* gM0Pows; ///< auxiliary information about rotation group indexes for batch encoding
-	uint64_t* gM1Pows; ///< auxiliary information about rotation group indexes for batch encoding
-
-	complex<double>* ksiM0Pows; ///< storing ksi pows for fft calculation
-	complex<double>* ksiM1Pows;
-	complex<double>* ksiN1Pows; ///< storing ksi pows for fft calculation
-
-	complex<double>** dftM1Pows;
-	complex<double>** dftM1NTTPows;
-
-	map<pair<long, long>, BootContext*> bootContextMap;
-
-	map<long, SqrMatContext*> sqrMatContextMap;
-
-	Ring(long logN0, long logN1, long logQ, double sigma = 3.2, long h = 64);
+	Ring();
 
 
 	//----------------------------------------------------------------------------------
@@ -101,57 +79,43 @@ public:
 	void EMB(complex<double>* vals, long n0, long n1);
 	void IEMB(complex<double>* vals, long n0, long n1);
 
-	ZZ* encode(complex<double>* vals, long n0, long n1, long logp);
-	ZZ* encode(double* vals, long n0, long n1, long logp);
-	complex<double>* decode(ZZ* mxy, long n0, long n1, long logp, long logq);
+	void encode(ZZ mx[], complex<double>* vals, long n0, long n1, long logp);
+	void encode(ZZ mx[], double* vals, long n0, long n1, long logp);
+	void decode(complex<double>* vals, ZZ mx[], long n0, long n1, long logp, long logq);
 
 
 	//----------------------------------------------------------------------------------
 	//   MULTIPLICATION
 	//----------------------------------------------------------------------------------
 
-	long MaxBits(ZZ* f, long n);
+	long MaxBits(ZZ f[], long n);
 	void addNTTAndEqual(uint64_t* ra, uint64_t* rb, long np);
 
-	void toNTTX0(uint64_t* ra, ZZ* a, long np);
-	uint64_t* toNTTX0(ZZ* a, long np);
-	void toNTTX1(uint64_t* ra, ZZ* a, long np);
-	uint64_t* toNTTX1(ZZ* a, long np);
-	void toNTT(uint64_t* ra, ZZ* a, long np);
-	uint64_t* toNTT(ZZ* a, long np);
+	void toNTTX0(uint64_t* ra, ZZ a[], long np);
+	void toNTTX1(uint64_t* ra, ZZ a[], long np);
+	void toNTT(uint64_t* ra, ZZ a[], long np);
 
-	void multX0(ZZ* x, ZZ* a, ZZ* b, long np, ZZ& q);
-	ZZ* multX0(ZZ* a, ZZ* b, long np, ZZ& q);
-	void multX0AndEqual(ZZ* a, ZZ* b, long np, ZZ& q);
-	void multNTTX0(ZZ* x, ZZ* a, uint64_t* rb, long np, ZZ& q);
-	ZZ* multNTTX0(ZZ* a, uint64_t* rb, long np, ZZ& q);
-	void multNTTX0AndEqual(ZZ* a, uint64_t* rb, long np, ZZ& q);
-	void multDNTTX0(ZZ* x, uint64_t* ra, uint64_t* rb, long np, ZZ& q);
-	ZZ* multDNTTX0(uint64_t* ra, uint64_t* rb, long np, ZZ& q);
+	void multX0(ZZ x[], ZZ a[], ZZ b[], long np, const ZZ& q);
+	void multX0AndEqual(ZZ a[], ZZ b[], long np, const ZZ& q);
+	void multNTTX0(ZZ x[], ZZ a[], uint64_t* rb, long np, const ZZ& q);
+	void multNTTX0AndEqual(ZZ a[], uint64_t* rb, long np, const ZZ& q);
+	void multDNTTX0(ZZ x[], uint64_t* ra, uint64_t* rb, long np, const ZZ& q);
 
-	void multX1(ZZ* x, ZZ* a, ZZ* b, long np, ZZ& q);
-	ZZ* multX1(ZZ* a, ZZ* b, long np, ZZ& q);
-	void multX1AndEqual(ZZ* a, ZZ* b, long np, ZZ& q);
-	void multNTTX1(ZZ* x, ZZ* a, uint64_t* rb, long np, ZZ& q);
-	ZZ* multNTTX1(ZZ* a, uint64_t* rb, long np, ZZ& q);
-	void multNTTX1AndEqual(ZZ* a, uint64_t* rb, long np, ZZ& q);
-	void multDNTTX1(ZZ* x, uint64_t* ra, uint64_t* rb, long np, ZZ& q);
-	ZZ* multDNTTX1(uint64_t* ra, uint64_t* rb, long np, ZZ& q);
+	void multX1(ZZ x[], ZZ a[], ZZ b[], long np, const ZZ& q);
+	void multX1AndEqual(ZZ a[], ZZ b[], long np, const ZZ& q);
+	void multNTTX1(ZZ x[], ZZ a[], uint64_t* rb, long np, const ZZ& q);
+	void multNTTX1AndEqual(ZZ a[], uint64_t* rb, long np, const ZZ& q);
+	void multDNTTX1(ZZ x[], uint64_t* ra, uint64_t* rb, long np, const ZZ& q);
 
-	void mult(ZZ* x, ZZ* a, ZZ* b, long np, ZZ& q);
-	ZZ* mult(ZZ* a, ZZ* b, long np, ZZ& q);
-	void multAndEqual(ZZ* a, ZZ* b, long np, ZZ& q);
-	void multNTT(ZZ* x, ZZ* a, uint64_t* rb, long np, ZZ& q);
-	ZZ* multNTT(ZZ* a, uint64_t* rb, long np, ZZ& q);
-	void multNTTAndEqual(ZZ* a, uint64_t* rb, long np, ZZ& q);
-	void multDNTT(ZZ* x, uint64_t* ra, uint64_t* rb, long np, ZZ& q);
-	ZZ* multDNTT(uint64_t* ra, uint64_t* rb, long np, ZZ& q);
+	void mult(ZZ x[], ZZ a[], ZZ b[], long np, const ZZ& q);
+	void multAndEqual(ZZ a[], ZZ b[], long np, const ZZ& q);
+	void multNTT(ZZ x[], ZZ a[], uint64_t* rb, long np, const ZZ& q);
+	void multNTTAndEqual(ZZ a[], uint64_t* rb, long np, const ZZ& q);
+	void multDNTT(ZZ x[], uint64_t* ra, uint64_t* rb, long np, const ZZ& q);
 
-	void square(ZZ* x, ZZ* a, long np, ZZ& q);
-	ZZ* square(ZZ* a, long np, ZZ& q);
-	void squareAndEqual(ZZ* a, long np, ZZ& q);
-	void squareNTT(ZZ* x, uint64_t* ra, long np, ZZ& q);
-	ZZ* squareNTT(uint64_t* ra, long np, ZZ& q);
+	void square(ZZ x[], ZZ a[], long np, const ZZ& q);
+	void squareAndEqual(ZZ a[], long np, const ZZ& q);
+	void squareNTT(ZZ x[], uint64_t* ra, long np, const ZZ& q);
 
 
 	//----------------------------------------------------------------------------------
@@ -159,30 +123,25 @@ public:
 	//----------------------------------------------------------------------------------
 
 
-	void mod(ZZ* res, ZZ* p, ZZ& q);
-	ZZ* mod(ZZ* p, ZZ& q);
-	void modAndEqual(ZZ* p, ZZ& q);
+	void mod(ZZ res[], ZZ p[], const ZZ& q);
+	void modAndEqual(ZZ p[], const ZZ& q);
 
-	void negate(ZZ* res, ZZ* p);
-	ZZ* negate(ZZ* p);
-	void negateAndEqual(ZZ* p);
+	void negate(ZZ res[], ZZ p[]);
+	void negateAndEqual(ZZ p[]);
 
-	void add(ZZ* res, ZZ* p1, ZZ* p2, ZZ& q);
-	ZZ* add(ZZ* p1, ZZ* p2, ZZ& q);
-	void addAndEqual(ZZ* p1, ZZ* p2, ZZ& q);
+	void add(ZZ res[], ZZ p1[], ZZ p2[], const ZZ& q);
+	void addAndEqual(ZZ p1[], ZZ p2[], const ZZ& q);
 
-	void sub(ZZ* res, ZZ* p1, ZZ* p2, ZZ& q);
-	ZZ* sub(ZZ* p1, ZZ* p2, ZZ& q);
-	void subAndEqual(ZZ* p1, ZZ* p2, ZZ& q);
-	void subAndEqual2(ZZ* p1, ZZ* p2, ZZ& q);
+	void sub(ZZ res[], ZZ p1[], ZZ p2[], const ZZ& q);
+	void subAndEqual(ZZ p1[], ZZ p2[], const ZZ& q);
+	void subAndEqual2(ZZ p1[], ZZ p2[], const ZZ& q);
 
-	void multByMonomial(ZZ* res, ZZ* p, long deg0, long deg1, ZZ& q);
-	ZZ* multByMonomial(ZZ* p, long deg0, long deg1, ZZ& q);
-	void multByMonomialAndEqual(ZZ* p, long deg0, long deg1, ZZ& q);
+	void multByMonomial(ZZ res[], ZZ p[], long deg0, long deg1, const ZZ& q);
 
-	void multByConst(ZZ* res, ZZ* p, ZZ& cnst, ZZ& q);
-	ZZ* multByConst(ZZ* p, ZZ& cnst, ZZ& q);
-	void multByConstAndEqual(ZZ* p, ZZ& cnst, ZZ& q);
+	void multByMonomialAndEqual(ZZ p[], long deg0, long deg1, const ZZ& q);
+
+	void multByConst(ZZ res[], ZZ p[], ZZ& cnst, const ZZ& q);
+	void multByConstAndEqual(ZZ p[], ZZ& cnst, const ZZ& q);
 
 
 	//----------------------------------------------------------------------------------
@@ -190,13 +149,11 @@ public:
 	//----------------------------------------------------------------------------------
 
 
-	void leftShift(ZZ* res, ZZ* p, long bits, ZZ& q);
-	ZZ* leftShift(ZZ* p, long bits, ZZ& q);
-	void leftShiftAndEqual(ZZ* p, long bits, ZZ& q);
+	void leftShift(ZZ res[], ZZ p[], long bits, const ZZ& q);
+	void leftShiftAndEqual(ZZ p[], long bits, const ZZ& q);
 
-	void rightShift(ZZ* res, ZZ* p, long bits);
-	ZZ* rightShift(ZZ* p, long bits);
-	void rightShiftAndEqual(ZZ* p, long bits);
+	void rightShift(ZZ res[], ZZ p[], long bits);
+	void rightShiftAndEqual(ZZ p[], long bits);
 
 
 	//----------------------------------------------------------------------------------
@@ -204,11 +161,9 @@ public:
 	//----------------------------------------------------------------------------------
 
 
-	void leftRotate(ZZ* res, ZZ* p, long r0, long r1);
-	ZZ* leftRotate(ZZ* p, long r0, long r1);
+	void leftRotate(ZZ res[], ZZ p[], long r0, long r1);
 
-	void conjugate(ZZ* res, ZZ* p);
-	ZZ* conjugate(ZZ* p);
+	void conjugate(ZZ res[], ZZ p[]);
 
 
 	//----------------------------------------------------------------------------------
@@ -216,14 +171,10 @@ public:
 	//----------------------------------------------------------------------------------
 
 
-	void sampleGauss(ZZ* res);
-	ZZ* sampleGauss();
-	void sampleHWT(ZZ* res);
-	ZZ* sampleHWT();
-	void sampleZO(ZZ* res);
-	ZZ* sampleZO();
-	void sampleUniform(ZZ* res, long bits);
-	ZZ* sampleUniform(long bits);
+	void sampleGauss(ZZ res[]);
+	void sampleHWT(ZZ res[]);
+	void sampleZO(ZZ res[]);
+	void sampleUniform(ZZ res[], long bits);
 
 };
 

@@ -13,30 +13,8 @@
 #include "StringUtils.h"
 
 
-Ring::Ring(long logN0, long logN1, long logQ, double sigma, long h) :
-		logN0(logN0), logN1(logN1), logQ(logQ), sigma(sigma), h(h) {
+Ring::Ring() {
 
-	N0 = (1 << logN0);
-	M0 = 1 << (logN0 + 1);
-	N0h = N0 >> 1;
-	logN0h = logN0 - 1;
-
-	N1 = 1 << logN1;
-	M1 = N1 + 1;
-
-	logN = logN0 + logN1;
-	N = (1 << logN);
-	Nh = N >> 1;
-
-	pbnd = 59;
-	long nprimes = ceil((3 + logN + 4 * logQ) / (double)pbnd);
-	multiplier = new RingMultiplier(logN0, logN1, nprimes, pbnd);
-	logQQ = 2 * logQ;
-
-	Q = power2_ZZ(logQ);
-	QQ = power2_ZZ(logQQ);
-
-	gM0Pows = new uint64_t[N0h + 1];
 	uint64_t g0 = 5;
 	uint64_t g0Pow = 1;
 	for (long i = 0; i < N0h; ++i) {
@@ -46,8 +24,7 @@ Ring::Ring(long logN0, long logN1, long logQ, double sigma, long h) :
 	}
 	gM0Pows[N0h] = gM0Pows[0];
 
-	gM1Pows = new uint64_t[M1];
-	uint64_t g1 = multiplier->findPrimitiveRoot(M1);
+	uint64_t g1 = multiplier.findPrimitiveRoot(M1);
 	uint64_t g1Pow = 1;
 	for (long i = 0; i < N1; ++i) {
 		double angle = 2.0 * M_PI * g1Pow / M1;
@@ -57,7 +34,6 @@ Ring::Ring(long logN0, long logN1, long logQ, double sigma, long h) :
 	}
 	gM1Pows[N1] = gM1Pows[0];
 
-	ksiM0Pows = new complex<double>[M0 + 1]();
 	for (long j = 0; j < M0; ++j) {
 		double angle = 2.0 * M_PI * j / M0;
 		ksiM0Pows[j].real(cos(angle));
@@ -65,7 +41,6 @@ Ring::Ring(long logN0, long logN1, long logQ, double sigma, long h) :
 	}
 	ksiM0Pows[M0] = ksiM0Pows[0];
 
-	ksiN1Pows = new complex<double>[N1 + 1]();
 	for (long j = 0; j < N1; ++j) {
 		double angle = 2.0 * M_PI * j / N1;
 		ksiN1Pows[j].real(cos(angle));
@@ -73,7 +48,6 @@ Ring::Ring(long logN0, long logN1, long logQ, double sigma, long h) :
 	}
 	ksiN1Pows[N1] = ksiN1Pows[0];
 
-	ksiM1Pows = new complex<double>[M1 + 1]();
 	for (long j = 0; j < M1; ++j) {
 		double angle = 2.0 * M_PI * j / M1;
 		ksiM1Pows[j].real(cos(angle));
@@ -81,8 +55,6 @@ Ring::Ring(long logN0, long logN1, long logQ, double sigma, long h) :
 	}
 	ksiM1Pows[M1] = ksiM1Pows[0];
 
-	dftM1Pows = new complex<double>*[logN1 + 1]();
-	dftM1NTTPows = new complex<double>*[logN1 + 1]();
 	for (long logn1 = 0; logn1 < logN1 + 1; ++logn1) {
 		long n1 = 1 << logn1;
 		long gap = 1 << (logN1 - logn1);
@@ -100,7 +72,6 @@ Ring::Ring(long logN0, long logN1, long logQ, double sigma, long h) :
 		dftM1NTTPows[logn1][n1] = dftM1NTTPows[logn1][0];
 	}
 
-	qvec = new ZZ[logQQ + 1];
 	qvec[0] = ZZ(1);
 	for (long i = 1; i < logQQ + 1; ++i) {
 		qvec[i] = qvec[i - 1] << 1;
@@ -125,7 +96,7 @@ void Ring::addBootContext(long logn0, long logn1, long logp) {
 
 		long np;
 		complex<double>* pvals = new complex<double>[n0];
-		ZZ* pVec = new ZZ[N0];
+		ZZ pVec[N0];
 
 		long gap0 = N0h >> logn0;
 		long deg;
@@ -146,8 +117,9 @@ void Ring::addBootContext(long logn0, long logn1, long logp) {
 					pVec[jd] = EvaluatorUtils::scaleUpToZZ(pvals[i].imag(), logp);
 				}
 				bndVec[pos] = MaxBits(pVec, N0);
-				np = ceil((logQ + bndVec[pos] + logN0 + 3)/59.0);
-				rpVec[pos] = toNTTX0(pVec, np);
+				np = ceil((logQ + bndVec[pos] + logN0 + 3)/(double)pbnd);
+				rpVec[pos] = new uint64_t[np << logN0];
+				toNTTX0(rpVec[pos], pVec, np);
 			}
 		}
 
@@ -168,16 +140,16 @@ void Ring::addBootContext(long logn0, long logn1, long logp) {
 					pVec[jd] = EvaluatorUtils::scaleUpToZZ(pvals[i].imag(), logp);
 				}
 				bndInvVec[pos] = MaxBits(pVec, N0);
-				np = ceil((logQ + bndInvVec[pos] + logN0 + 3)/59.0);
-				rpInvVec[pos] = toNTTX0(pVec, np);
+				np = ceil((logQ + bndInvVec[pos] + logN0 + 3)/(double)pbnd);
+				rpInvVec[pos] = new uint64_t[np << logN0];
+				toNTTX0(rpInvVec[pos], pVec, np);
 			}
 		}
 
 		delete[] pvals;
-		delete[] pVec;
 
-		bootContextMap.insert(pair<pair<long, long>, BootContext*>({logn0, logn1}, new BootContext(rpVec, rpInvVec, rp1, rp2,
-				bndVec, bndInvVec, bnd1, bnd2, logp)));
+		BootContext* bootContext = new BootContext(rpVec, rpInvVec, rp1, rp2, bndVec, bndInvVec, bnd1, bnd2, logp);
+		bootContextMap.insert(pair<pair<long, long>, BootContext&>({logn0, logn1}, *bootContext));
 	}
 }
 
@@ -189,18 +161,20 @@ void Ring::addSqrMatContext(long logn, long logp) {
 		double* tmp = new double[n * n]();
 		for (long i = 0; i < n; ++i) {
 			for (long j = 0; j < n; ++j) {
-				tmp[j + ((j - i + n) % n) * n] = 1.0;
+				tmp[((j + n - i) % n) + j * n] = 1.0;
 			}
 
-			mvec[i] = encode(tmp, n, n, logp);
+			mvec[i] = new ZZ[N];
+			encode(mvec[i], tmp, n, n, logp);
 
 			for (long j = 0; j < n; ++j) {
-				tmp[j + ((j - i + n) % n) * n] = 0.0;
+				tmp[((j + n - i) % n) + j * n] = 0.0;
 			}
 		}
 		delete[] tmp;
+
 		SqrMatContext* sqrMatContext = new SqrMatContext(mvec, logp);
-		sqrMatContextMap.insert(pair<long, SqrMatContext*>(logn, sqrMatContext));
+		sqrMatContextMap.insert(pair<long, SqrMatContext&>(logn, *sqrMatContext));
 	}
 }
 
@@ -351,11 +325,10 @@ void Ring::IEMB(complex<double>* vals, long n0, long n1) {
 	delete[] tmp;
 }
 
-ZZ* Ring::encode(complex<double>* vals, long n0, long n1, long logp) {
+void Ring::encode(ZZ mx[], complex<double>* vals, long n0, long n1, long logp) {
 	long gap0 = N0h / n0;
 	long gap1 = N1 / n1;
 
-	ZZ* mx = new ZZ[N];
 	complex<double>* uvals = new complex<double>[n0 * n1];
 	for (long i = 0; i < n0 * n1; ++i) {
 		uvals[i] = vals[i];
@@ -371,14 +344,12 @@ ZZ* Ring::encode(complex<double>* vals, long n0, long n1, long logp) {
 		}
 	}
 	delete[] uvals;
-	return mx;
 }
 
-ZZ* Ring::encode(double* vals, long n0, long n1, long logp) {
+void Ring::encode(ZZ mx[], double* vals, long n0, long n1, long logp) {
 	long gap0 = N0h / n0;
 	long gap1 = N1 / n1;
 
-	ZZ* mx = new ZZ[N];
 	complex<double>* uvals = new complex<double>[n0 * n1];
 	for (long i = 0; i < n0 * n1; ++i) {
 		uvals[i].real(vals[i]);
@@ -394,10 +365,9 @@ ZZ* Ring::encode(double* vals, long n0, long n1, long logp) {
 		}
 	}
 	delete[] uvals;
-	return mx;
 }
 
-complex<double>* Ring::decode(ZZ* mx, long n0, long n1, long logp, long logq) {
+void Ring::decode(complex<double>* vals, ZZ* mx, long n0, long n1, long logp, long logq) {
 	ZZ q = qvec[logq];
 	ZZ qh = qvec[logq - 1];
 
@@ -405,7 +375,6 @@ complex<double>* Ring::decode(ZZ* mx, long n0, long n1, long logp, long logq) {
 	long gap1 = N1 / n1;
 
 	ZZ tmp;
-	complex<double>* vals = new complex<double>[n0 * n1];
 	for (long i0 = 0, ii0 = N0h, ir0 = 0; i0 < n0; ++i0, ii0 += gap0, ir0 += gap0) {
 		for (long i1 = 0; i1 < n1; ++i1) {
 			rem(tmp, mx[ir0 + N0 * i1], q);
@@ -421,7 +390,6 @@ complex<double>* Ring::decode(ZZ* mx, long n0, long n1, long logp, long logq) {
 	}
 
 	EMB(vals, n0, n1);
-	return vals;
 }
 
 
@@ -439,252 +407,151 @@ long Ring::MaxBits(ZZ* f, long n) {
 	return m;
 }
 
-void Ring::toNTTX0(uint64_t* ra, ZZ* a, long np) {
-	multiplier->toNTTX0(ra, a, np);
+void Ring::toNTTX0(uint64_t* ra, ZZ a[], long np) {
+	multiplier.toNTTX0(ra, a, np);
 }
 
-uint64_t* Ring::toNTTX0(ZZ* a, long np) {
-	uint64_t* ra = new uint64_t[np << logN0];
-	multiplier->toNTTX0(ra, a, np);
-	return ra;
+void Ring::toNTTX1(uint64_t* ra, ZZ a[], long np) {
+	multiplier.toNTTX1(ra, a, np);
 }
 
-void Ring::toNTTX1(uint64_t* ra, ZZ* a, long np) {
-	multiplier->toNTTX1(ra, a, np);
-}
-
-uint64_t* Ring::toNTTX1(ZZ* a, long np) {
-	uint64_t* ra = new uint64_t[np << logN1];
-	multiplier->toNTTX1(ra, a, np);
-	return ra;
-}
-
-void Ring::toNTT(uint64_t* ra, ZZ* a, long np) {
-	multiplier->toNTT(ra, a, np);
-}
-
-uint64_t* Ring::toNTT(ZZ* a, long np) {
-	uint64_t* ra = new uint64_t[np << logN];
-	multiplier->toNTT(ra, a, np);
-	return ra;
+void Ring::toNTT(uint64_t* ra, ZZ a[], long np) {
+	multiplier.toNTT(ra, a, np);
 }
 
 void Ring::addNTTAndEqual(uint64_t* ra, uint64_t* rb, long np) {
-	multiplier->addNTTAndEqual(ra, rb, np);
+	multiplier.addNTTAndEqual(ra, rb, np);
 }
 
-void Ring::multX0(ZZ* x, ZZ* a, ZZ* b, long np, ZZ& q) {
-	multiplier->multX0(x, a, b, np, q);
+void Ring::multX0(ZZ x[], ZZ a[], ZZ b[], long np, const ZZ& q) {
+	multiplier.multX0(x, a, b, np, q);
 }
 
-ZZ* Ring::multX0(ZZ* a, ZZ* b, long np, ZZ& q) {
-	ZZ* x = new ZZ[N];
-	multiplier->multX0(x, a, b, np, q);
-	return x;
+void Ring::multX0AndEqual(ZZ a[], ZZ b[], long np, const ZZ& q) {
+	multiplier.multX0AndEqual(a, b, np, q);
 }
 
-void Ring::multX0AndEqual(ZZ* a, ZZ* b, long np, ZZ& q) {
-	multiplier->multX0AndEqual(a, b, np, q);
+void Ring::multNTTX0(ZZ x[], ZZ a[], uint64_t* rb, long np, const ZZ& q) {
+	multiplier.multNTTX0(x, a, rb, np, q);
 }
 
-void Ring::multNTTX0(ZZ* x, ZZ* a, uint64_t* rb, long np, ZZ& q) {
-	multiplier->multNTTX0(x, a, rb, np, q);
+void Ring::multNTTX0AndEqual(ZZ a[], uint64_t* rb, long np, const ZZ& q) {
+	multiplier.multNTTX0AndEqual(a, rb, np, q);
 }
 
-ZZ* Ring::multNTTX0(ZZ* a, uint64_t* rb, long np, ZZ& q) {
-	ZZ* x = new ZZ[N];
-	multiplier->multNTTX0(x, a, rb, np, q);
-	return x;
+void Ring::multDNTTX0(ZZ x[], uint64_t* ra, uint64_t* rb, long np, const ZZ& q) {
+	multiplier.multDNTTX0(x, ra, rb, np, q);
 }
 
-void Ring::multNTTX0AndEqual(ZZ* a, uint64_t* rb, long np, ZZ& q) {
-	multiplier->multNTTX0AndEqual(a, rb, np, q);
+void Ring::multX1(ZZ x[], ZZ a[], ZZ b[], long np, const ZZ& q) {
+	multiplier.multX1(x, a, b, np, q);
 }
 
-void Ring::multDNTTX0(ZZ* x, uint64_t* ra, uint64_t* rb, long np, ZZ& q) {
-	multiplier->multDNTTX0(x, ra, rb, np, q);
+void Ring::multX1AndEqual(ZZ a[], ZZ b[], long np, const ZZ& q) {
+	multiplier.multX1AndEqual(a, b, np, q);
 }
 
-ZZ* Ring::multDNTTX0(uint64_t* ra, uint64_t* rb, long np, ZZ& q) {
-	ZZ* x = new ZZ[N];
-	multiplier->multDNTTX0(x, ra, rb, np, q);
-	return x;
+void Ring::multNTTX1(ZZ x[], ZZ a[], uint64_t* b, long np, const ZZ& q) {
+	multiplier.multNTTX1(x, a, b, np, q);
 }
 
-void Ring::multX1(ZZ* x, ZZ* a, ZZ* b, long np, ZZ& q) {
-	multiplier->multX1(x, a, b, np, q);
+void Ring::multNTTX1AndEqual(ZZ a[], uint64_t* b, long np, const ZZ& q) {
+	multiplier.multNTTX1AndEqual(a, b, np, q);
 }
 
-ZZ* Ring::multX1(ZZ* a, ZZ* b, long np, ZZ& q) {
-	ZZ* x = new ZZ[N];
-	multiplier->multX1(x, a, b, np, q);
-	return x;
+void Ring::mult(ZZ x[], ZZ a[], ZZ b[], long np, const ZZ& q) {
+	multiplier.mult(x, a, b, np, q);
 }
 
-void Ring::multX1AndEqual(ZZ* a, ZZ* b, long np, ZZ& q) {
-	multiplier->multX1AndEqual(a, b, np, q);
+void Ring::multAndEqual(ZZ a[], ZZ b[], long np, const ZZ& q) {
+	multiplier.multAndEqual(a, b, np, q);
 }
 
-void Ring::multNTTX1(ZZ* x, ZZ* a, uint64_t* b, long np, ZZ& q) {
-	multiplier->multNTTX1(x, a, b, np, q);
+void Ring::multNTT(ZZ x[], ZZ a[], uint64_t* rb, long np, const ZZ& q) {
+	multiplier.multNTT(x, a, rb, np, q);
 }
 
-ZZ* Ring::multNTTX1(ZZ* a, uint64_t* b, long np, ZZ& q) {
-	ZZ* x = new ZZ[N];
-	multiplier->multNTTX1(x, a, b, np, q);
-	return x;
+void Ring::multNTTAndEqual(ZZ a[], uint64_t* rb, long np, const ZZ& q) {
+	multiplier.multNTTAndEqual(a, rb, np, q);
 }
 
-void Ring::multNTTX1AndEqual(ZZ* a, uint64_t* b, long np, ZZ& q) {
-	multiplier->multNTTX1AndEqual(a, b, np, q);
+void Ring::multDNTT(ZZ x[], uint64_t* ra, uint64_t* rb, long np, const ZZ& q) {
+	multiplier.multDNTT(x, ra, rb, np, q);
 }
 
-void Ring::mult(ZZ* x, ZZ* a, ZZ* b, long np, ZZ& q) {
-	multiplier->mult(x, a, b, np, q);
+void Ring::square(ZZ x[], ZZ a[], long np, const ZZ& q) {
+	multiplier.square(x, a, np, q);
 }
 
-ZZ* Ring::mult(ZZ* a, ZZ* b, long np, ZZ& q) {
-	ZZ* x = new ZZ[N];
-	multiplier->mult(x, a, b, np, q);
-	return x;
+void Ring::squareAndEqual(ZZ a[], long np, const ZZ& q) {
+	multiplier.squareAndEqual(a, np, q);
 }
 
-void Ring::multAndEqual(ZZ* a, ZZ* b, long np, ZZ& q) {
-	multiplier->multAndEqual(a, b, np, q);
+void Ring::squareNTT(ZZ x[], uint64_t* ra, long np, const ZZ& q) {
+	multiplier.squareNTT(x, ra, np, q);
 }
 
-void Ring::multNTT(ZZ* x, ZZ* a, uint64_t* rb, long np, ZZ& q) {
-	multiplier->multNTT(x, a, rb, np, q);
-}
-
-ZZ* Ring::multNTT(ZZ* a, uint64_t* rb, long np, ZZ& q) {
-	ZZ* x = new ZZ[N];
-	multiplier->multNTT(x, a, rb, np, q);
-	return x;
-}
-
-void Ring::multNTTAndEqual(ZZ* a, uint64_t* rb, long np, ZZ& q) {
-	multiplier->multNTTAndEqual(a, rb, np, q);
-}
-
-void Ring::multDNTT(ZZ* x, uint64_t* ra, uint64_t* rb, long np, ZZ& q) {
-	multiplier->multDNTT(x, ra, rb, np, q);
-}
-
-ZZ* Ring::multDNTT(uint64_t* ra, uint64_t* rb, long np, ZZ& q) {
-	ZZ* x = new ZZ[N];
-	multiplier->multDNTT(x, ra, rb, np, q);
-	return x;
-}
-
-void Ring::square(ZZ* x, ZZ* a, long np, ZZ& q) {
-	multiplier->square(x, a, np, q);
-}
-
-ZZ* Ring::square(ZZ* a, long np, ZZ& q) {
-	ZZ* x = new ZZ[N];
-	multiplier->square(x, a, np, q);
-	return x;
-}
-
-void Ring::squareAndEqual(ZZ* a, long np, ZZ& q) {
-	multiplier->squareAndEqual(a, np, q);
-}
-
-void Ring::squareNTT(ZZ* x, uint64_t* ra, long np, ZZ& q) {
-	multiplier->squareNTT(x, ra, np, q);
-}
-
-ZZ* Ring::squareNTT(uint64_t* ra, long np, ZZ& q) {
-	ZZ* x = new ZZ[N];
-	multiplier->squareNTT(x, ra, np, q);
-	return x;
-}
 
 //----------------------------------------------------------------------------------
 //   OTHER
 //----------------------------------------------------------------------------------
 
 
-void Ring::mod(ZZ* res, ZZ* p, ZZ& q) {
+void Ring::mod(ZZ res[], ZZ p[], const ZZ& q) {
 	for (long i = 0; i < N; ++i) {
 		rem(res[i], p[i], q);
 	}
 }
 
-ZZ* Ring::mod(ZZ* p, ZZ& q) {
-	ZZ* res = new ZZ[N];
-	mod(res, p, q);
-	return res;
-}
-
-void Ring::modAndEqual(ZZ* p, ZZ& q) {
+void Ring::modAndEqual(ZZ p[], const ZZ& q) {
 	for (long i = 0; i < N; ++i) {
 		rem(p[i], p[i], q);
 	}
 }
 
-void Ring::negate(ZZ* res, ZZ* p) {
+void Ring::negate(ZZ res[], ZZ p[]) {
 	for (long i = 0; i < N; ++i) {
 		res[i] = -p[i];
 	}
 }
 
-ZZ* Ring::negate(ZZ* p) {
-	ZZ* res = new ZZ[N];
-	negate(res, p);
-	return res;
-}
-
-void Ring::negateAndEqual(ZZ* p) {
+void Ring::negateAndEqual(ZZ p[]) {
 	for (long i = 0; i < N; ++i) {
 		p[i] = -p[i];
 	}
 }
 
-void Ring::add(ZZ* res, ZZ* p1, ZZ* p2, ZZ& q) {
+void Ring::add(ZZ res[], ZZ p1[], ZZ p2[], const ZZ& q) {
 	for (long i = 0; i < N; ++i) {
 		AddMod(res[i], p1[i], p2[i], q);
 	}
 }
 
-ZZ* Ring::add(ZZ* p1, ZZ* p2, ZZ& q) {
-	ZZ* res = new ZZ[N];
-	add(res, p1, p2, q);
-	return res;
-}
-
-void Ring::addAndEqual(ZZ* p1, ZZ* p2, ZZ& q) {
+void Ring::addAndEqual(ZZ p1[], ZZ p2[], const ZZ& q) {
 	for (long i = 0; i < N; ++i) {
 		AddMod(p1[i], p1[i], p2[i], q);
 	}
 }
 
-void Ring::sub(ZZ* res, ZZ* p1, ZZ* p2, ZZ& q) {
+void Ring::sub(ZZ res[], ZZ p1[], ZZ p2[], const ZZ& q) {
 	for (long i = 0; i < N; ++i) {
 		AddMod(res[i], p1[i], -p2[i], q);
 	}
 }
 
-ZZ* Ring::sub(ZZ* p1, ZZ* p2, ZZ& q) {
-	ZZ* res = new ZZ[N];
-	sub(res, p1, p2, q);
-	return res;
-}
-
-void Ring::subAndEqual(ZZ* p1, ZZ* p2, ZZ& q) {
+void Ring::subAndEqual(ZZ p1[], ZZ p2[], const ZZ& q) {
 	for (long i = 0; i < N; ++i) {
 		AddMod(p1[i], p1[i], -p2[i], q);
 	}
 }
 
-void Ring::subAndEqual2(ZZ* p1, ZZ* p2, ZZ& q) {
+void Ring::subAndEqual2(ZZ p1[], ZZ p2[], const ZZ& q) {
 	for (long i = 0; i < N; ++i) {
 		AddMod(p2[i], p1[i], -p2[i], q);
 	}
 }
 
-void Ring::multByMonomial(ZZ* res, ZZ* p, long deg0, long deg1, ZZ& q) {
+void Ring::multByMonomial(ZZ res[], ZZ p[], long deg0, long deg1, const ZZ& q) {
 	for (long i = 0; i < N0; ++i) {
 		for (long j = 1; j < M1; ++j) {
 			long resdeg0 = (deg0 + i) % M0;
@@ -711,33 +578,17 @@ void Ring::multByMonomial(ZZ* res, ZZ* p, long deg0, long deg1, ZZ& q) {
 	}
 }
 
-ZZ* Ring::multByMonomial(ZZ* p, long deg0, long deg1, ZZ& q) {
-	ZZ* res = new ZZ[N];
-	multByMonomial(res, p, deg0, deg1, q);
-	return res;
+void Ring::multByMonomialAndEqual(ZZ p[], long deg0, long deg1, const ZZ& q) {
+
 }
 
-void Ring::multByMonomialAndEqual(ZZ* p, long deg0, long deg1, ZZ& q) {
-	ZZ* res = multByMonomial(p, deg0, deg1, q);
-	for (long i = 0; i < N; ++i) {
-		p[i] = res[i];
-	}
-	delete[] res;
-}
-
-void Ring::multByConst(ZZ* res, ZZ* p, ZZ& cnst, ZZ& q) {
+void Ring::multByConst(ZZ res[], ZZ p[], ZZ& cnst, const ZZ& q) {
 	for (long i = 0; i < N; ++i) {
 		MulMod(res[i], p[i], cnst, q);
 	}
 }
 
-ZZ* Ring::multByConst(ZZ* p, ZZ& cnst, ZZ& q) {
-	ZZ* res = new ZZ[N];
-	multByConst(res, p, cnst, q);
-	return res;
-}
-
-void Ring::multByConstAndEqual(ZZ* p, ZZ& cnst, ZZ& q) {
+void Ring::multByConstAndEqual(ZZ p[], ZZ& cnst, const ZZ& q) {
 	for (long i = 0; i < N; ++i) {
 		MulMod(p[i], p[i], cnst, q);
 	}
@@ -749,39 +600,27 @@ void Ring::multByConstAndEqual(ZZ* p, ZZ& cnst, ZZ& q) {
 //----------------------------------------------------------------------------------
 
 
-void Ring::leftShift(ZZ* res, ZZ* p, long bits, ZZ& q) {
+void Ring::leftShift(ZZ res[], ZZ p[], long bits, const ZZ& q) {
 	for (long i = 0; i < N; ++i) {
 		res[i] = p[i] << bits;
 		res[i] %= q;
 	}
 }
 
-ZZ* Ring::leftShift(ZZ* p, long bits, ZZ& q) {
-	ZZ* res = new ZZ[N];
-	leftShift(res, p, bits, q);
-	return res;
-}
-
-void Ring::leftShiftAndEqual(ZZ* p, long bits, ZZ& q) {
+void Ring::leftShiftAndEqual(ZZ p[], long bits, const ZZ& q) {
 	for (long i = 0; i < N; ++i) {
 		p[i] <<= bits;
 		p[i] %= q;
 	}
 }
 
-void Ring::rightShift(ZZ* res, ZZ* p, long bits) {
+void Ring::rightShift(ZZ res[], ZZ p[], long bits) {
 	for (long i = 0; i < N; ++i) {
 		res[i] = p[i] >> bits;
 	}
 }
 
-ZZ* Ring::rightShift(ZZ* p, long bits) {
-	ZZ* res = new ZZ[N];
-	rightShift(res, p, bits);
-	return res;
-}
-
-void Ring::rightShiftAndEqual(ZZ* p, long bits) {
+void Ring::rightShiftAndEqual(ZZ p[], long bits) {
 	for (long i = 0; i < N; ++i) {
 		p[i] >>= bits;
 	}
@@ -793,7 +632,7 @@ void Ring::rightShiftAndEqual(ZZ* p, long bits) {
 //----------------------------------------------------------------------------------
 
 
-void Ring::leftRotate(ZZ* res, ZZ* p, long r0, long r1) {
+void Ring::leftRotate(ZZ res[], ZZ p[], long r0, long r1) {
 	long deg0 = gM0Pows[r0];
 	for (long j = 0; j < N; j += N0) {
 		for (long i = 0; i < N0; ++i) {
@@ -825,13 +664,7 @@ void Ring::leftRotate(ZZ* res, ZZ* p, long r0, long r1) {
 	}
 }
 
-ZZ* Ring::leftRotate(ZZ* p, long r0, long r1) {
-	ZZ* res = new ZZ[N];
-	leftRotate(res, p, r0, r1);
-	return res;
-}
-
-void Ring::conjugate(ZZ* res, ZZ* p) {
+void Ring::conjugate(ZZ res[], ZZ p[]) {
 	for (long j = 0; j < N; j += N0) {
 		res[j] = p[j];
 		for (long i = 1; i < N0; ++i) {
@@ -845,18 +678,12 @@ void Ring::conjugate(ZZ* res, ZZ* p) {
 	}
 }
 
-ZZ* Ring::conjugate(ZZ* p) {
-	ZZ* res = new ZZ[N];
-	conjugate(res, p);
-	return res;
-}
-
 //----------------------------------------------------------------------------------
 //   SAMPLING
 //----------------------------------------------------------------------------------
 
 
-void Ring::sampleGauss(ZZ* res) {
+void Ring::sampleGauss(ZZ res[]) {
 	static double Pi = 4.0 * atan(1.0);
 	static long const bignum = 0xfffffff;
 
@@ -871,13 +698,7 @@ void Ring::sampleGauss(ZZ* res) {
 	}
 }
 
-ZZ* Ring::sampleGauss() {
-	ZZ* res = new ZZ[N];
-	sampleGauss(res);
-	return res;
-}
-
-void Ring::sampleHWT(ZZ* res) {
+void Ring::sampleHWT(ZZ res[]) {
 	long idx = 0;
 	while(idx < h) {
 		long i = RandomBnd(N);
@@ -888,33 +709,14 @@ void Ring::sampleHWT(ZZ* res) {
 	}
 }
 
-ZZ* Ring::sampleHWT() {
-	ZZ* res = new ZZ[N];
-	sampleHWT(res);
-	return res;
-}
-
-void Ring::sampleZO(ZZ* res) {
+void Ring::sampleZO(ZZ res[]) {
 	for (long i = 0; i < N; ++i) {
 		res[i] = (rand()&1) ? ZZ(0) : (rand()&1) ? ZZ(1) : ZZ(-1);
 	}
 }
 
-ZZ* Ring::sampleZO() {
-	ZZ* res = new ZZ[N];
-	sampleZO(res);
-	return res;
-}
-
-
-void Ring::sampleUniform(ZZ* res, long bits) {
+void Ring::sampleUniform(ZZ res[], long bits) {
 	for (long i = 0; i < N; i++) {
 		res[i] = RandomBits_ZZ(bits);
 	}
-}
-
-ZZ* Ring::sampleUniform(long bits) {
-	ZZ* res = new ZZ[N];
-	sampleUniform(res, bits);
-	return res;
 }

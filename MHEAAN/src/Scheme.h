@@ -32,16 +32,16 @@ public:
 
 	bool isSerialized;
 
-	Ring* ring;
+	Ring& ring;
 
-	map<long, Key*> keyMap;
-	map<pair<long, long>, Key*> leftRotKeyMap;
+	map<long, Key&> keyMap;
+	map<pair<long, long>, Key&> leftRotKeyMap;
 
 	map<long, string> serKeyMap;
 	map<pair<long, long>, string> serLeftRotKeyMap;
 
 
-	Scheme(SecretKey* secretKey, Ring* ring, bool isSerialized = false);
+	Scheme(SecretKey& secretKey, Ring& ring, bool isSerialized = false);
 
 
 	//----------------------------------------------------------------------------------
@@ -49,25 +49,25 @@ public:
 	//----------------------------------------------------------------------------------
 
 
-	void addEncKey(SecretKey* secretKey);
+	void addEncKey(SecretKey& secretKey);
 
-	void addMultKey(SecretKey* secretKey);
+	void addMultKey(SecretKey& secretKey);
 
-	void addConjKey(SecretKey* secretKey);
+	void addConjKey(SecretKey& secretKey);
 
-	void addLeftRotKey(SecretKey* secretKey, long r0, long r1);
+	void addLeftRotKey(SecretKey& secretKey, long r0, long r1);
 
-	void addLeftX0RotKeys(SecretKey* secretKey);
+	void addLeftX0RotKeys(SecretKey& secretKey);
 
-	void addLeftX1RotKeys(SecretKey* secretKey);
+	void addLeftX1RotKeys(SecretKey& secretKey);
 
-	void addRightX0RotKeys(SecretKey* secretKey);
+	void addRightX0RotKeys(SecretKey& secretKey);
 
-	void addRightX1RotKeys(SecretKey* secretKey);
+	void addRightX1RotKeys(SecretKey& secretKey);
 
-	void addBootKey(SecretKey* secretKey, long logn0, long logn1, long logp);
+	void addBootKey(SecretKey& secretKey, long logn0, long logn1, long logp);
 
-	void addSqrMatKeys(SecretKey* secretKey, long n, long logp);
+	void addSqrMatKeys(SecretKey& secretKey, long n, long logp);
 
 
 	//----------------------------------------------------------------------------------
@@ -105,11 +105,11 @@ public:
 
 	Ciphertext* encryptZeros(long n0, long n1, long logp, long logq);
 
-	Plaintext* decryptMsg(SecretKey* secretKey, Ciphertext* cipher);
+	Plaintext* decryptMsg(SecretKey& secretKey, Ciphertext* cipher);
 
-	complex<double>* decrypt(SecretKey* secretKey, Ciphertext* cipher);
+	complex<double>* decrypt(SecretKey& secretKey, Ciphertext* cipher);
 
-	complex<double> decryptSingle(SecretKey* secretKey, Ciphertext* cipher);
+	complex<double> decryptSingle(SecretKey& secretKey, Ciphertext* cipher);
 
 
 	//----------------------------------------------------------------------------------
@@ -166,7 +166,8 @@ public:
 
 	Ciphertext* multPoly(Ciphertext* cipher, ZZ* poly, long logp);
 	void multPolyAndEqual(Ciphertext* cipher, ZZ* poly, long logp);
-	Ciphertext multPolyNTT(Ciphertext* cipher, uint64_t* rpoly, long bnd, long logp);
+
+	Ciphertext* multPolyNTT(Ciphertext* cipher, uint64_t* rpoly, long bnd, long logp);
 	void multPolyNTTAndEqual(Ciphertext* cipher, uint64_t* rpoly, long bnd, long logp);
 
 	Ciphertext* multByMonomial(Ciphertext* cipher, const long d0, const long d1);
@@ -200,12 +201,6 @@ public:
 	//----------------------------------------------------------------------------------
 	//   ROTATIONS & CONJUGATIONS
 	//----------------------------------------------------------------------------------
-
-	Ciphertext* leftRotateFast(Ciphertext* cipher, long r0, long r1);
-	Ciphertext* rightRotateFast(Ciphertext* cipher, long r0, long r1);
-
-	void leftRotateFastAndEqual(Ciphertext* cipher, long r0, long r1);
-	void rightRotateFastAndEqual(Ciphertext* cipher, long r0, long r1);
 
 	Ciphertext* leftRotate(Ciphertext* cipher, long r0, long r1);
 	Ciphertext* rightRotate(Ciphertext* cipher, long r0, long r1);

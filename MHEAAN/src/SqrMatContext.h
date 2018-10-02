@@ -17,6 +17,7 @@ class SqrMatContext {
 public:
 
 	ZZ** mvec;
+	long* bndVec;
 	long logp;
 
 	SqrMatContext(ZZ** mvec, long logp);

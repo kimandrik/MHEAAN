@@ -14,10 +14,10 @@ int main() {
 //   STANDARD TESTS
 //----------------------------------------------------------------------------------
 
-//	TestScheme::testEncrypt(6, 8, 1200, 50, 2, 3);
-//	TestScheme::testEncryptSingle(6, 8, 300, 30);
-//	TestScheme::testStandard(8, 8, 1200, 50, 2, 2);
-//	TestScheme::testimult(8, 8, 300, 30, 2, 2);
+//	TestScheme::testEncrypt(1200, 50, 2, 3);
+//	TestScheme::testEncryptSingle(300, 30);
+//	TestScheme::testStandard(1200, 50, 2, 2);
+//	TestScheme::testimult(300, 30, 2, 2);
 
 
 //----------------------------------------------------------------------------------
@@ -25,9 +25,8 @@ int main() {
 //----------------------------------------------------------------------------------
 
 
-//	TestScheme::testRotateFast(8, 8, 1200, 50, 3, 3, 1, 2);
-//	TestScheme::testRotate(8, 8, 300, 30, 2, 2, 1, 1);
-//	TestScheme::testConjugate(8, 8, 1200, 30, 2, 2);
+//	TestScheme::testRotateFast(300, 50, 3, 3, 1, 0);
+//	TestScheme::testConjugate(1200, 30, 2, 2);
 
 
 //----------------------------------------------------------------------------------
@@ -35,10 +34,10 @@ int main() {
 //----------------------------------------------------------------------------------
 
 
-//	TestScheme::testPowerOf2(8, 8, 300, 30, 2, 2, 4);
-//	TestScheme::testPower(8, 8, 300, 30, 2, 2, 13);
-//	TestScheme::testProdOfPo2(8, 8, 300, 30, 2, 2, 4);
-//	TestScheme::testProd(8, 8, 300, 30, 2, 2, 13);
+//	TestScheme::testPowerOf2(300, 30, 2, 2, 4);
+//	TestScheme::testPower(300, 30, 2, 2, 13);
+//	TestScheme::testProdOfPo2(300, 30, 2, 2, 4);
+//	TestScheme::testProd(300, 30, 2, 2, 13);
 
 
 //----------------------------------------------------------------------------------
@@ -46,11 +45,11 @@ int main() {
 //----------------------------------------------------------------------------------
 
 
-//	TestScheme::testInverse(8, 8, 300, 25, 2, 2, 5);
-//	TestScheme::testLogarithm(8, 8, 300, 30, 2, 2, 7);
-//	TestScheme::testExponent(8, 8, 300, 30, 2, 2, 7);
-//	TestScheme::testSigmoid(8, 8, 300, 30, 2, 2, 7);
-//	TestScheme::testSigmoidLazy(8, 8, 300, 30, 2, 2, 7);
+//	TestScheme::testInverse(300, 25, 2, 2, 5);
+//	TestScheme::testLogarithm(300, 30, 2, 2, 7);
+//	TestScheme::testExponent(300, 30, 2, 2, 7);
+//	TestScheme::testSigmoid(300, 30, 2, 2, 7);
+//	TestScheme::testSigmoidLazy(300, 30, 2, 2, 7);
 
 
 //----------------------------------------------------------------------------------
@@ -58,9 +57,9 @@ int main() {
 //----------------------------------------------------------------------------------
 
 
-	TestScheme::testSqrMatMult(8, 8, 200, 30, 2);
-//	TestScheme::testSqrMatPow(7, 8, 300, 30, 6, 4);
-//	TestScheme::testMatInv(7, 8, 300, 25, 6, 4);
+	TestScheme::testSqrMatMult(300, 50, 1);
+//	TestScheme::testSqrMatPow(300, 30, 6, 4);
+//	TestScheme::testMatInv(300, 30, 6, 4);
 
 
 //----------------------------------------------------------------------------------
@@ -68,12 +67,9 @@ int main() {
 //----------------------------------------------------------------------------------
 
 
-//	TestScheme::testBootstrap(8, 8, 41, 1240, 31, 7, 8, 7, 4);
-
+//	TestScheme::testBootstrap(41, 31, 7, 8, 3, 4);
 //	TestScheme::testCiphertextWriteAndRead(10, 65, 30, 2);
-
 //	TestScheme::test();
-
 //	TestScheme::test2();
 
 	return 0;

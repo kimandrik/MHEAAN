@@ -10,7 +10,7 @@
 #define MHEAAN_SECRETKEY_H_
 
 #include <NTL/ZZ.h>
-
+#include "Params.h"
 #include "Ring.h"
 
 using namespace std;
@@ -19,12 +19,9 @@ using namespace NTL;
 class SecretKey {
 public:
 
-	long N0;
-	long N1;
+	ZZ sx[N]; ///< secret key
 
-	ZZ* sx; ///< secret key
-
-	SecretKey(Ring* ring);
+	SecretKey(Ring& ring);
 
 };
 
