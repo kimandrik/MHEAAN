@@ -161,14 +161,14 @@ void Ring::addSqrMatContext(long logn, long logp) {
 		double* tmp = new double[n * n]();
 		for (long i = 0; i < n; ++i) {
 			for (long j = 0; j < n; ++j) {
-				tmp[((j + n - i) % n) + j * n] = 1.0;
+				tmp[j + (((j + n - i) % n) * n)] = 1.0;
 			}
 
 			mvec[i] = new ZZ[N];
 			encode(mvec[i], tmp, n, n, logp);
 
 			for (long j = 0; j < n; ++j) {
-				tmp[((j + n - i) % n) + j * n] = 0.0;
+				tmp[j + (((j + n - i) % n) * n)] = 0.0;
 			}
 		}
 		delete[] tmp;

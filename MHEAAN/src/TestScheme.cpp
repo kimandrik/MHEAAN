@@ -679,7 +679,7 @@ void TestScheme::testSqrMatPow(long logq, long logp, long logn, long logDegree) 
 	long n = (1 << logn);
 	long n2 = n * n;
 
-	complex<double>* mmat = EvaluatorUtils::randomComplexSignedArray(n2, 1.0/n);
+	complex<double>* mmat = EvaluatorUtils::randomComplexSignedArray(n2);
 
 	Ciphertext* cipher = scheme.encrypt(mmat, n, n, logp, logq);
 

@@ -56,9 +56,8 @@ int main() {
 //   MATRIX TESTS
 //----------------------------------------------------------------------------------
 
-
-	TestScheme::testSqrMatMult(300, 50, 1);
-//	TestScheme::testSqrMatPow(300, 30, 6, 4);
+//	TestScheme::testSqrMatMult(300, 50, 1);
+	TestScheme::testSqrMatPow(300, 30, 4, 4);
 //	TestScheme::testMatInv(300, 30, 6, 4);
 
 
@@ -67,7 +66,7 @@ int main() {
 //----------------------------------------------------------------------------------
 
 
-//	TestScheme::testBootstrap(41, 31, 7, 8, 3, 4);
+//	TestScheme::testBootstrap(40, 35, 7, 8, 3, 4);
 //	TestScheme::testCiphertextWriteAndRead(10, 65, 30, 2);
 //	TestScheme::test();
 //	TestScheme::test2();

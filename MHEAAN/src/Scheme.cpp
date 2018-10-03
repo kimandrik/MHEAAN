@@ -1082,7 +1082,7 @@ Ciphertext* Scheme::leftRotate(Ciphertext* cipher, long r0, long r1) {
 }
 
 Ciphertext* Scheme::rightRotate(Ciphertext* cipher, long rx, long ry) {
-	Ciphertext* res = new Ciphertext(cipher->logp, cipher->logq, cipher->n0, cipher->n1);
+	Ciphertext* res = new Ciphertext(cipher);
 	rightRotateAndEqual(res, rx, ry);
 	return res;
 }
