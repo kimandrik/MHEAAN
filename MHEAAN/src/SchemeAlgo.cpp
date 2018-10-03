@@ -198,6 +198,25 @@ Ciphertext* SchemeAlgo::innerProd(Ciphertext** ciphers1, Ciphertext** ciphers2, 
 	return cip;
 }
 
+Ciphertext* SchemeAlgo::transpose(Ciphertext* cipher, long logp, long n) {
+	long logn = log2(n);
+	mutex m;
+	SqrMatContext& sqrMatContext = scheme.ring.sqrMatContextMap.at(logn);
+	Ciphertext* res = new Ciphertext(cipher->logp + sqrMatContext.logp, cipher->logq, cipher->n0, cipher->n1);
+	NTL_EXEC_RANGE(n, first, last);
+	for (long i = first; i < last; ++i) {
+		Ciphertext* tmp = scheme.multPoly(cipher, sqrMatContext.mvec[i], sqrMatContext.logp);
+		if(i > 0) scheme.leftRotateAndEqual(tmp,i, N1 - i);
+		m.lock();
+		scheme.addAndEqual(res, tmp);
+		m.unlock();
+		delete tmp;
+	}
+	NTL_EXEC_RANGE_END;
+	scheme.reScaleByAndEqual(res, sqrMatContext.logp);
+	return res;
+}
+
 Ciphertext* SchemeAlgo::sqrMatMult(Ciphertext* cipher1, Ciphertext* cipher2, long logp, long n) {
 	long logn = log2(n);
 

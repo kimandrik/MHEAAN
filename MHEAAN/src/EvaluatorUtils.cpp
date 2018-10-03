@@ -161,6 +161,16 @@ void EvaluatorUtils::rightRotateAndEqual(complex<double>* vals, long n0, long n1
 //----------------------------------------------------------------------------------
 
 
+complex<double>* EvaluatorUtils::transpose(complex<double>* vals, long n) {
+	complex<double>* res = new complex<double>[n * n];
+	for (long i = 0; i < n; ++i) {
+		for (long j = 0; j < n; ++j) {
+			res[i + j * n] = vals[j + i * n];
+		}
+	}
+	return res;
+}
+
 complex<double>* EvaluatorUtils::squareMatMult(complex<double>* vals1, complex<double>* vals2, long n) {
 	complex<double>* res = new complex<double>[n * n];
 	for (long i = 0; i < n; ++i) {

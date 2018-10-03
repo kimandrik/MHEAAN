@@ -628,6 +628,38 @@ void TestScheme::testSigmoidLazy(long logq, long logp, long logn0, long logn1, l
 //   MATRIX TESTS
 //----------------------------------------------------------------------------------
 
+void TestScheme::testTranspose(long logq, long logp, long logn) {
+	cout << "!!! START TEST TRANSPOSE !!!" << endl;
+
+	srand(time(NULL));
+	SetNumThreads(8);
+
+	TimeUtils timeutils;
+	Ring ring;
+	SecretKey secretKey(ring);
+	Scheme scheme(secretKey, ring);
+	SchemeAlgo algo(scheme);
+
+	scheme.addTransposeKeys(secretKey, logn, logp);
+
+	long n = (1 << logn);
+	long n2 = n * n;
+
+	complex<double>* mmat = EvaluatorUtils::randomComplexArray(n2);
+	complex<double>* mt = EvaluatorUtils::transpose(mmat, n);
+	Ciphertext* cipher = scheme.encrypt(mmat, n, n, logp, logq);
+
+	timeutils.start("Transpose");
+	Ciphertext* ct = algo.transpose(cipher, logp, n);
+	timeutils.stop("Transpose");
+
+	complex<double>* dt = scheme.decrypt(secretKey, ct);
+	StringUtils::compare(mt, dt, n2, "matrix");
+
+	cout << ct->logq << endl;
+
+	cout << "!!! END TEST TRANSPOSE !!!" << endl;
+}
 
 void TestScheme::testSqrMatMult(long logq, long logp, long logn) {
 	cout << "!!! START TEST SQUARE MATRIX !!!" << endl;
@@ -660,6 +692,7 @@ void TestScheme::testSqrMatMult(long logq, long logp, long logn) {
 	complex<double>* dmatmult = scheme.decrypt(secretKey, cmatmult);
 	StringUtils::compare(mmatmult, dmatmult, n2, "matrix");
 
+	cout << cmatmult->logq << endl;
 	cout << "!!! END TEST SQUARE MATRIX !!!" << endl;
 }
 
@@ -772,20 +805,6 @@ void TestScheme::testBootstrap(long logq, long logp, long logn0, long logn1, lon
 	cipher->logq = logQ;
 	cipher->logp = logq + logI;
 
-	timeutils.start("Sub Sum");
-	for (long i = logn0; i < logN0h; ++i) {
-		Ciphertext* rot = scheme.leftRotate(cipher, (1 << i), 0);
-		scheme.addAndEqual(cipher, rot);
-		delete rot;
-	}
-
-	for (long i = logn1; i < logN1; ++i) {
-		Ciphertext* rot = scheme.leftRotate(cipher, 0, (1 << i));
-		scheme.addAndEqual(cipher, rot);
-		delete rot;
-	}
-	timeutils.stop("Sub Sum");
-
 	timeutils.start("Coeff to Slot");
 	scheme.coeffToSlotAndEqual(cipher);
 	timeutils.stop("Coeff to Slot");
@@ -798,9 +817,10 @@ void TestScheme::testBootstrap(long logq, long logp, long logn0, long logn1, lon
 	scheme.slotToCoeffAndEqual(cipher);
 	timeutils.stop("Slot to Coeff");
 
-	cout << cipher->logp << endl;
-	cipher->logp = logp;
+	cout << "cipher logp after: " << cipher->logp << endl;
 	cout << "cipher logq after: " << cipher->logq << endl;
+
+	cipher->logp = logp;
 
 	complex<double>* dmat = scheme.decrypt(secretKey, cipher);
 	StringUtils::compare(mmat, dmat, 10, "boot");
@@ -814,88 +834,4 @@ void TestScheme::testCiphertextWriteAndRead(long logq, long logp, long logn0, lo
 }
 
 void TestScheme::test() {
-
-	srand(time(NULL));
-	SetNumThreads(8);
-
-	long logq = 50;
-	long logp = 40;
-	TimeUtils timeutils;
-
-	long logI = 4;
-	long logT = 3;
-
-	timeutils.start("Scheme generating");
-	Ring ring;
-	SecretKey secretKey(ring);
-	Scheme scheme(secretKey, ring);
-	timeutils.stop("Scheme generating");
-
-	long logn0 = logN0 - 1;
-	long logn1 = logN1;
-
-	timeutils.start("Key generating");
-	scheme.addBootKey(secretKey, logn0, logn1, logq + logI);
-	timeutils.stop("Key generated");
-
-	long n0 = (1 << logn0);
-	long n1 = (1 << logn1);
-	long n = n0 * n1;
-
-	complex<double>* mmat = EvaluatorUtils::randomComplexSignedArray(n);
-
-	Ciphertext* cipher = scheme.encrypt(mmat, n0, n1, logp, logq);
-
-	cout << "cipher logq before: " << cipher->logq << endl;
-	scheme.normalizeAndEqual(cipher);
-
-	cipher->logq = logQ;
-	cipher->logp = logq + logI;
-
-	for (long i = n0; i < N0h; i <<= 1) {
-		Ciphertext* rot = scheme.leftRotate(cipher, i, 0);
-		scheme.addAndEqual(cipher, rot);
-		delete rot;
-	}
-	scheme.reScaleByAndEqual(cipher, logN0 - logn0 - 1);
-
-	for (long i = n1; i < N1; i <<= 1) {
-		Ciphertext* rot = scheme.leftRotate(cipher, 0, i);
-		scheme.addAndEqual(cipher, rot);
-		delete rot;
-	}
-
-	timeutils.start("Coeff to Slot");
-	scheme.coeffToSlotX1AndEqual(cipher);
-	scheme.coeffToSlotX0AndEqual(cipher);
-	timeutils.stop("Coeff to Slot");
-
-	long tmplogp = cipher->logp;
-	cipher->logp = tmplogp + 11;
-	complex<double>* cx = scheme.decrypt(secretKey, cipher);
-	StringUtils::showMat(cx, n0, 1);
-	cipher->logp = tmplogp;
-
-	timeutils.start("Remove I Part");
-	scheme.removeIPartAndEqual(cipher, logT, logI);
-	timeutils.stop("Remove I Part");
-
-	cipher->logp = tmplogp + 11;
-	complex<double>* cx1 = scheme.decrypt(secretKey, cipher);
-	StringUtils::showMat(cx1, n0, 1);
-	cipher->logp = tmplogp;
-
-	timeutils.start("Slot to Coeff");
-	scheme.slotToCoeffX0AndEqual(cipher);
-	scheme.slotToCoeffX1AndEqual(cipher);
-	timeutils.stop("Slot to Coeff");
-
-	cipher->logp = logp;
-	complex<double>* dmat = scheme.decrypt(secretKey, cipher);
-	StringUtils::compare(mmat, dmat, 10, "boot");
-	cout << cipher->logq << endl;
-	cout << "!!! END TEST BOOTSRTAP !!!" << endl;
 }
-
-void TestScheme::test2() {
-};

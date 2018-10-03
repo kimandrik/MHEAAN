@@ -579,7 +579,35 @@ void Ring::multByMonomial(ZZ res[], ZZ p[], long deg0, long deg1, const ZZ& q) {
 }
 
 void Ring::multByMonomialAndEqual(ZZ p[], long deg0, long deg1, const ZZ& q) {
+	ZZ res[N];
+	for (long i = 0; i < N0; ++i) {
+		for (long j = 1; j < M1; ++j) {
+			long resdeg0 = (deg0 + i) % M0;
+			long resdeg1 = (deg1 + j) % M1;
 
+			if(resdeg0 < N0) {
+				if(resdeg1 > 0) {
+					AddMod(res[resdeg0 + ((resdeg1-1) << logN0)], res[resdeg0 + ((resdeg1-1) << logN0)], p[i + ((j-1) << logN0)], q);
+				} else {
+					for (long k = 0; k < N1; ++k) {
+						AddMod(res[resdeg0 + (k << logN0)], res[resdeg0 + (k << logN0)], -p[i + ((j-1) << logN0)], q);
+					}
+				}
+			} else {
+				if(resdeg1 > 0) {
+					AddMod(res[(resdeg0 - N0) + ((resdeg1-1) << logN0)], res[(resdeg0 - N0) + ((resdeg1-1) << logN0)], -p[i + ((j-1) << logN0)], q);
+				} else {
+					for (long k = 0; k < N1; ++k) {
+						AddMod(res[(resdeg0 - N0) + (k << logN0)], res[(resdeg0 - N0) + (k << logN0)], p[i + ((j-1) << logN0)], q);
+					}
+				}
+			}
+		}
+	}
+
+	for (long i = 0; i < N; ++i) {
+		p[i] = res[i];
+	}
 }
 
 void Ring::multByConst(ZZ res[], ZZ p[], ZZ& cnst, const ZZ& q) {

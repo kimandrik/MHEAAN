@@ -67,8 +67,9 @@ public:
 
 	void addBootKey(SecretKey& secretKey, long logn0, long logn1, long logp);
 
-	void addSqrMatKeys(SecretKey& secretKey, long n, long logp);
+	void addSqrMatKeys(SecretKey& secretKey, long logn, long logp);
 
+	void addTransposeKeys(SecretKey& secretKey, long logn, long logp);
 
 	//----------------------------------------------------------------------------------
 	//   ENCODING & DECODING

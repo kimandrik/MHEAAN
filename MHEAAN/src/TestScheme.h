@@ -73,6 +73,7 @@ public:
 	//   MATRIX TESTS
 	//----------------------------------------------------------------------------------
 
+	static void testTranspose(long logq, long logp, long logn);
 
 	static void testSqrMatMult(long logq, long logp, long logn);
 
@@ -90,8 +91,6 @@ public:
 	static void testCiphertextWriteAndRead(long logq, long logp, long logn0, long logn1);
 
 	static void test();
-
-	static void test2();
 
 };
 

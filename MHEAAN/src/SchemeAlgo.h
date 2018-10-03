@@ -103,6 +103,8 @@ public:
 	//----------------------------------------------------------------------------------
 
 
+	Ciphertext* transpose(Ciphertext* cipher, long logp, long size);
+
 	Ciphertext* sqrMatMult(Ciphertext* cipher1, Ciphertext* cipher2, long logp, long size);
 
 	Ciphertext* sqrMatSqr(Ciphertext* cipher, long logp, long size);

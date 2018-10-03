@@ -72,6 +72,7 @@ public:
 	//   MATRIX
 	//----------------------------------------------------------------------------------
 
+	static complex<double>* transpose(complex<double>* vals, long n);
 
 	static complex<double>* squareMatMult(complex<double>* vals1, complex<double>* vals2, long n);
 
