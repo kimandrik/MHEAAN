@@ -55,7 +55,7 @@ int main() {
 //----------------------------------------------------------------------------------
 
 //	TestScheme::testTranspose(65, 30, 6);
-//	TestScheme::testSqrMatMult(300, 30, 4);
+//	TestScheme::testSqrMatMult(300, 30, 6);
 //	TestScheme::testSqrMatPow(300, 30, 6, 4);
 //	TestScheme::testMatInv(300, 30, 6, 4);
 

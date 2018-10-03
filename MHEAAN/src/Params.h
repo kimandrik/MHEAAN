@@ -4,9 +4,9 @@
 #include <NTL/ZZ.h>
 using namespace NTL;
 
-static const long logN0 = 7;
-static const long logN1 = 4;
-static const long logQ = 400;
+static const long logN0 = 8;
+static const long logN1 = 8;
+static const long logQ = 1200;
 static const double sigma = 3.2;
 static const long h = 64;
 static const long pbnd = 59;
@@ -27,7 +27,7 @@ static const long N0nprimes = (nprimes << logN0);
 static const long N1nprimes = (nprimes << logN1);
 static const long Nnprimes = (nprimes << logN);
 
-static const long cbnd = (logQ + NTL_ZZ_NBITS - 1) / NTL_ZZ_NBITS;
+static const long cbnd = (logQQ + NTL_ZZ_NBITS - 1) / NTL_ZZ_NBITS;
 
 static const ZZ Q = power2_ZZ(logQ);
 static const ZZ QQ = power2_ZZ(logQQ);
