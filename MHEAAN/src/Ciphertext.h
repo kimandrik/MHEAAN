@@ -27,9 +27,15 @@ public:
 	long n0;
 	long n1;
 
-	Ciphertext(long logp, long logq, long n0, long n1);
+	Ciphertext(long logp = 0, long logq = 0, long n0 = 0, long n1 = 0);
 
 	Ciphertext(const Ciphertext* o);
+
+	void copyParams(Ciphertext* o);
+
+	void copy(Ciphertext* o);
+
+	void free();
 
 	virtual ~Ciphertext();
 };

@@ -118,66 +118,66 @@ public:
 	//----------------------------------------------------------------------------------
 
 
-	Ciphertext* negate(Ciphertext* cipher);
+	void negate(Ciphertext* res, Ciphertext* cipher);
 	void negateAndEqual(Ciphertext* cipher);
 
-	Ciphertext* add(Ciphertext* cipher1, Ciphertext* cipher2);
+	void add(Ciphertext* res, Ciphertext* cipher1, Ciphertext* cipher2);
 	void addAndEqual(Ciphertext* cipher1, Ciphertext* cipher2);
 
-	Ciphertext* addConst(Ciphertext* cipher, double cnst, long logp = -1);
-	Ciphertext* addConst(Ciphertext* cipher, RR& cnst, long logp = -1);
+	void addConst(Ciphertext* res, Ciphertext* cipher, double cnst, long logp = -1);
+	void addConst(Ciphertext* res, Ciphertext* cipher, RR& cnst, long logp = -1);
 
 	void addConstAndEqual(Ciphertext* cipher, RR& cnst, long logp = -1);
 	void addConstAndEqual(Ciphertext* cipher, double cnst, long logp = -1);
 
-	Ciphertext* addPoly(Ciphertext* cipher, ZZ* poly, long logp);
+	void addPoly(Ciphertext* res, Ciphertext* cipher, ZZ* poly, long logp);
 	void addPolyAndEqual(Ciphertext* cipher, ZZ* poly, long logp);
 
-	Ciphertext* sub(Ciphertext* cipher1, Ciphertext* cipher2);
+	void sub(Ciphertext* res, Ciphertext* cipher1, Ciphertext* cipher2);
 	void subAndEqual(Ciphertext* cipher1, Ciphertext* cipher2);
 	void subAndEqual2(Ciphertext* cipher1, Ciphertext* cipher2);
 
-	Ciphertext* imult(Ciphertext* cipher);
+	void imult(Ciphertext* res, Ciphertext* cipher);
 	void imultAndEqual(Ciphertext* cipher);
 
-	Ciphertext* idiv(Ciphertext* cipher);
+	void idiv(Ciphertext* res, Ciphertext* cipher);
 	void idivAndEqual(Ciphertext* cipher);
 
-	Ciphertext* mult(Ciphertext* cipher1, Ciphertext* cipher2);
+	void mult(Ciphertext* res, Ciphertext* cipher1, Ciphertext* cipher2);
 	void multAndEqual(Ciphertext* cipher1, Ciphertext* cipher2);
 
-	Ciphertext* square(Ciphertext* cipher);
+	void square(Ciphertext* res, Ciphertext* cipher);
 	void squareAndEqual(Ciphertext* cipher);
 
-	Ciphertext* multConst(Ciphertext* cipher, RR& cnst, long logp);
-	Ciphertext* multConst(Ciphertext* cipher, double cnst, long logp);
-	Ciphertext* multConst(Ciphertext* cipher, complex<double> cnst, long logp);
+	void multConst(Ciphertext* res, Ciphertext* cipher, RR& cnst, long logp);
+	void multConst(Ciphertext* res, Ciphertext* cipher, double cnst, long logp);
+	void multConst(Ciphertext* res, Ciphertext* cipher, complex<double> cnst, long logp);
 
 	void multConstAndEqual(Ciphertext* cipher, RR& cnst, long logp);
 	void multConstAndEqual(Ciphertext* cipher, double cnst, long logp);
 	void multConstAndEqual(Ciphertext* cipher, complex<double> cnst, long logp);
 
-	Ciphertext* multPolyX0(Ciphertext* cipher, ZZ* poly, long logp);
+	void multPolyX0(Ciphertext* res, Ciphertext* cipher, ZZ* poly, long logp);
 	void multPolyX0AndEqual(Ciphertext* cipher, ZZ* poly, long logp);
-	Ciphertext* multPolyNTTX0(Ciphertext* cipher, uint64_t* rpoly, long bnd, long logp);
+	void multPolyNTTX0(Ciphertext* res, Ciphertext* cipher, uint64_t* rpoly, long bnd, long logp);
 	void multPolyNTTX0AndEqual(Ciphertext* cipher, uint64_t* rpoly, long bnd, long logp);
 
-	Ciphertext* multPolyX1(Ciphertext* cipher, ZZ* rpoly, ZZ* ipoly, long logp);
+	void multPolyX1(Ciphertext* res, Ciphertext* cipher, ZZ* rpoly, ZZ* ipoly, long logp);
 	void multPolyX1AndEqual(Ciphertext* cipher, ZZ* rpoly, ZZ* ipoly, long logp);
 
-	Ciphertext* multPoly(Ciphertext* cipher, ZZ* poly, long logp);
+	void multPoly(Ciphertext* res, Ciphertext* cipher, ZZ* poly, long logp);
 	void multPolyAndEqual(Ciphertext* cipher, ZZ* poly, long logp);
 
-	Ciphertext* multPolyNTT(Ciphertext* cipher, uint64_t* rpoly, long bnd, long logp);
+	void multPolyNTT(Ciphertext* res, Ciphertext* cipher, uint64_t* rpoly, long bnd, long logp);
 	void multPolyNTTAndEqual(Ciphertext* cipher, uint64_t* rpoly, long bnd, long logp);
 
-	Ciphertext* multByMonomial(Ciphertext* cipher, const long d0, const long d1);
+	void multByMonomial(Ciphertext* res, Ciphertext* cipher, const long d0, const long d1);
 	void multByMonomialAndEqual(Ciphertext* cipher, const long d0, const long d1);
 
-	Ciphertext* multPo2(Ciphertext* cipher, long bits);
+	void multPo2(Ciphertext* res, Ciphertext* cipher, long bits);
 	void multPo2AndEqual(Ciphertext* cipher, long bits);
 
-	Ciphertext* divPo2(Ciphertext* cipher, long logd);
+	void divPo2(Ciphertext* res, Ciphertext* cipher, long logd);
 	void divPo2AndEqual(Ciphertext* cipher, long logd);
 
 
@@ -186,14 +186,14 @@ public:
 	//----------------------------------------------------------------------------------
 
 
-	Ciphertext* reScaleBy(Ciphertext* cipher, long dlogq);
-	Ciphertext* reScaleTo(Ciphertext* cipher, long logq);
+	void reScaleBy(Ciphertext* res, Ciphertext* cipher, long dlogq);
+	void reScaleTo(Ciphertext* res, Ciphertext* cipher, long logq);
 
 	void reScaleByAndEqual(Ciphertext* cipher, long dlogq);
 	void reScaleToAndEqual(Ciphertext* cipher, long logq);
 
-	Ciphertext* modDownBy(Ciphertext* cipher, long dlogq);
-	Ciphertext* modDownTo(Ciphertext* cipher, long logq);
+	void modDownBy(Ciphertext* res, Ciphertext* cipher, long dlogq);
+	void modDownTo(Ciphertext* res, Ciphertext* cipher, long logq);
 
 	void modDownByAndEqual(Ciphertext* cipher, long dlogq);
 	void modDownToAndEqual(Ciphertext* cipher, long logq);
@@ -203,13 +203,13 @@ public:
 	//   ROTATIONS & CONJUGATIONS
 	//----------------------------------------------------------------------------------
 
-	Ciphertext* leftRotate(Ciphertext* cipher, long r0, long r1);
-	Ciphertext* rightRotate(Ciphertext* cipher, long r0, long r1);
+	void leftRotate(Ciphertext* res, Ciphertext* cipher, long r0, long r1);
+	void rightRotate(Ciphertext* res, Ciphertext* cipher, long r0, long r1);
 
 	void leftRotateAndEqual(Ciphertext* cipher, long r0, long r1);
 	void rightRotateAndEqual(Ciphertext* cipher, long r0, long r1);
 
-	Ciphertext* conjugate(Ciphertext* cipher);
+	void conjugate(Ciphertext* res, Ciphertext* cipher);
 	void conjugateAndEqual(Ciphertext* cipher);
 
 
@@ -220,21 +220,21 @@ public:
 
 	void normalizeAndEqual(Ciphertext* cipher);
 
-	void coeffToSlotX0AndEqual(Ciphertext*& cipher);
-	void coeffToSlotX1AndEqual(Ciphertext*& cipher);
-	void coeffToSlotAndEqual(Ciphertext*& cipher);
+	void coeffToSlotX0AndEqual(Ciphertext* cipher);
+	void coeffToSlotX1AndEqual(Ciphertext* cipher);
+	void coeffToSlotAndEqual(Ciphertext* cipher);
 
-	void slotToCoeffX0AndEqual(Ciphertext*& cipher);
-	void slotToCoeffX1AndEqual(Ciphertext*& cipher);
-	void slotToCoeffAndEqual(Ciphertext*& cipher);
+	void slotToCoeffX0AndEqual(Ciphertext* cipher);
+	void slotToCoeffX1AndEqual(Ciphertext* cipher);
+	void slotToCoeffAndEqual(Ciphertext* cipher);
 
 	void exp2piAndEqual(Ciphertext* cipher, long logp);
 
 	void removeIPartAndEqual(Ciphertext* cipher, long logT, long logI = 4);
 
-	void bootstrapX0AndEqual(Ciphertext*& cipher, long logq, long logQ, long logT, long logI = 4);
-	void bootstrapX1AndEqual(Ciphertext*& cipher, long logq, long logQ, long logT, long logI = 4);
-	void bootstrapAndEqual(Ciphertext*& cipher, long logq, long logQ, long logT, long logI = 4);
+	void bootstrapX0AndEqual(Ciphertext* cipher, long logq, long logQ, long logT, long logI = 4);
+	void bootstrapX1AndEqual(Ciphertext* cipher, long logq, long logQ, long logT, long logI = 4);
+	void bootstrapAndEqual(Ciphertext* cipher, long logq, long logQ, long logT, long logI = 4);
 
 };
 

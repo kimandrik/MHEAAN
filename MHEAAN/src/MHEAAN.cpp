@@ -14,9 +14,9 @@ int main() {
 //   STANDARD TESTS
 //----------------------------------------------------------------------------------
 
-//	TestScheme::testEncrypt(300, 50, 7, 8);
+//	TestScheme::testEncrypt(300, 30, 7, 8);
 //	TestScheme::testEncryptSingle(300, 30);
-//	TestScheme::testStandard(1200, 50, 2, 2);
+//	TestScheme::testStandard(300, 30, 2, 2);
 //	TestScheme::testimult(300, 30, 2, 2);
 
 
@@ -25,8 +25,8 @@ int main() {
 //----------------------------------------------------------------------------------
 
 
-//	TestScheme::testRotateFast(300, 50, 3, 3, 1, 0);
-//	TestScheme::testConjugate(1200, 30, 2, 2);
+//	TestScheme::testRotateFast(300, 30, 3, 3, 1, 0);
+//	TestScheme::testConjugate(300, 30, 2, 2);
 
 
 //----------------------------------------------------------------------------------
@@ -36,8 +36,6 @@ int main() {
 
 //	TestScheme::testPowerOf2(300, 30, 2, 2, 4);
 //	TestScheme::testPower(300, 30, 2, 2, 13);
-//	TestScheme::testProdOfPo2(300, 30, 2, 2, 4);
-//	TestScheme::testProd(300, 30, 2, 2, 13);
 
 
 //----------------------------------------------------------------------------------
@@ -56,9 +54,9 @@ int main() {
 //   MATRIX TESTS
 //----------------------------------------------------------------------------------
 
-	TestScheme::testTranspose(65, 30, 6);
-//	TestScheme::testSqrMatMult(300, 50, 1);
-//	TestScheme::testSqrMatPow(300, 30, 4, 4);
+//	TestScheme::testTranspose(65, 30, 6);
+//	TestScheme::testSqrMatMult(300, 30, 4);
+//	TestScheme::testSqrMatPow(300, 30, 6, 4);
 //	TestScheme::testMatInv(300, 30, 6, 4);
 
 
@@ -67,7 +65,7 @@ int main() {
 //----------------------------------------------------------------------------------
 
 
-//	TestScheme::testBootstrap(40, 35, 7, 8, 3, 4);
+	TestScheme::testBootstrap(40, 35, 7, 8, 3, 4);
 //	TestScheme::testCiphertextWriteAndRead(10, 65, 30, 2);
 //	TestScheme::test();
 

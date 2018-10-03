@@ -37,31 +37,17 @@ public:
 
 
 	//----------------------------------------------------------------------------------
-	//   ARRAY ENCRYPTION & DECRYPTION
-	//----------------------------------------------------------------------------------
-
-
-	Ciphertext** encryptSingleArray(complex<double>* vals, long size, long logp);
-
-	complex<double>* decryptSingleArray(SecretKey& secretKey, Ciphertext** ciphers, long size);
-
-
-	//----------------------------------------------------------------------------------
 	//   POWERS & PRODUCTS
 	//----------------------------------------------------------------------------------
 
 
-	Ciphertext* powerOf2(Ciphertext* cipher, long precisionBits, long logDegree);
+	void powerOf2(Ciphertext* res, Ciphertext* cipher, long precisionBits, long logDegree);
 
-	Ciphertext** powerOf2Extended(Ciphertext* cipher, long logp, long logDegree);
+	void powerOf2Extended(Ciphertext** res, Ciphertext* cipher, long logp, long logDegree);
 
-	Ciphertext* power(Ciphertext* cipher, long logp, long degree);
+	void power(Ciphertext* res, Ciphertext* cipher, long logp, long degree);
 
-	Ciphertext** powerExtended(Ciphertext* cipher, long logp, long degree);
-
-	Ciphertext* prodOfPo2(Ciphertext** ciphers, long logp, long logDegree);
-
-	Ciphertext* prod(Ciphertext** ciphers, long logp, long degree);
+	void powerExtended(Ciphertext** res, Ciphertext* cipher, long logp, long degree);
 
 
 	//----------------------------------------------------------------------------------
@@ -69,15 +55,11 @@ public:
 	//----------------------------------------------------------------------------------
 
 
-	Ciphertext* inverse(Ciphertext* cipher, long logp, long steps);
+	void inverse(Ciphertext* res, Ciphertext* cipher, long logp, long steps);
 
-	Ciphertext** inverseExtended(Ciphertext* cipher, long logp, long steps);
+	void function(Ciphertext* res, Ciphertext* cipher, string& funcName, long logp, long degree);
 
-	Ciphertext* function(Ciphertext* cipher, string& funcName, long logp, long degree);
-
-	Ciphertext* functionLazy(Ciphertext* cipher, string& funcName, long logp, long degree);
-
-	Ciphertext** functionExtended(Ciphertext* cipher, string& funcName, long logp, long degree);
+	void functionLazy(Ciphertext* res, Ciphertext* cipher, string& funcName, long logp, long degree);
 
 
 	//----------------------------------------------------------------------------------
@@ -85,31 +67,13 @@ public:
 	//----------------------------------------------------------------------------------
 
 
-	Ciphertext* sum(Ciphertext** ciphers, long size);
+	void transpose(Ciphertext* res, Ciphertext* cipher, long logp, long size);
 
-	Ciphertext** multVec(Ciphertext** ciphers1, Ciphertext** ciphers2, long size);
+	void sqrMatMult(Ciphertext* res, Ciphertext* cipher1, Ciphertext* cipher2, long logp, long size);
 
-	void multAndEqualVec(Ciphertext** ciphers1, Ciphertext** ciphers2, long size);
+	void sqrMatSqr(Ciphertext* res, Ciphertext* cipher, long logp, long size);
 
-	Ciphertext** multAndModSwitchVec(Ciphertext** ciphers1, Ciphertext** ciphers2, long logp, long size);
-
-	void multModSwitchAndEqualVec(Ciphertext** ciphers1, Ciphertext** ciphers2, long logp, long size);
-
-	Ciphertext* innerProd(Ciphertext** ciphers1, Ciphertext** ciphers2, long logp, long size);
-
-
-	//----------------------------------------------------------------------------------
-	//   MATRIX
-	//----------------------------------------------------------------------------------
-
-
-	Ciphertext* transpose(Ciphertext* cipher, long logp, long size);
-
-	Ciphertext* sqrMatMult(Ciphertext* cipher1, Ciphertext* cipher2, long logp, long size);
-
-	Ciphertext* sqrMatSqr(Ciphertext* cipher, long logp, long size);
-
-	Ciphertext* matInv(Ciphertext* cipher, long logp, long n, long r);
+	void matInv(Ciphertext* res, Ciphertext* cipher, long logp, long n, long r);
 
 
 	//----------------------------------------------------------------------------------

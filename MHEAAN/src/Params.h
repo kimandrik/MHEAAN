@@ -5,8 +5,8 @@
 using namespace NTL;
 
 static const long logN0 = 7;
-static const long logN1 = 8;
-static const long logQ = 65;
+static const long logN1 = 4;
+static const long logQ = 400;
 static const double sigma = 3.2;
 static const long h = 64;
 static const long pbnd = 59;

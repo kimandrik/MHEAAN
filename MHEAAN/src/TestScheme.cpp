@@ -120,12 +120,14 @@ void TestScheme::testStandard(long logq, long logp, long logn0, long logn1) {
 	Ciphertext* cipher1 = scheme.encrypt(mmat1, n0, n1, logp, logq);
 	Ciphertext* cipher2 = scheme.encrypt(mmat2, n0, n1, logp, logq);
 
+	Ciphertext* cadd = new Ciphertext(cipher1);
 	timeutils.start("add matrix");
-	Ciphertext* cadd = scheme.add(cipher1, cipher2);
+	scheme.addAndEqual(cadd, cipher2);
 	timeutils.stop("add matrix");
 
+	Ciphertext* cmult = new Ciphertext(cipher1);
 	timeutils.start("mult matrix");
-	Ciphertext* cmult = scheme.mult(cipher1, cipher2);
+	scheme.multAndEqual(cmult, cipher2);
 	scheme.reScaleByAndEqual(cmult, logp);
 	timeutils.stop("mult matrix");
 
@@ -163,10 +165,10 @@ void TestScheme::testimult(long logq, long logp, long logn0, long logn1) {
 	Ciphertext* cipher = scheme.encrypt(mmat, n0, n1, logp, logq);
 
 	timeutils.start("Multiplication by i");
-	Ciphertext* cimult = scheme.imult(cipher);
+	scheme.imultAndEqual(cipher);
 	timeutils.stop("Multiplication by i");
 
-	complex<double>* dmatimult = scheme.decrypt(secretKey, cimult);
+	complex<double>* dmatimult = scheme.decrypt(secretKey, cipher);
 
 	StringUtils::compare(mmatimult, dmatimult, n, "imult");
 
@@ -236,10 +238,10 @@ void TestScheme::testConjugate(long logq, long logp, long logn0, long logn1) {
 	Ciphertext* cipher = scheme.encrypt(mmat, n0, n1, logp, logq);
 
 	timeutils.start("Conjugate");
-	Ciphertext* cconj = scheme.conjugate(cipher);
+	scheme.conjugateAndEqual(cipher);
 	timeutils.stop("Conjugate");
 
-	complex<double>* dmatconj = scheme.decrypt(secretKey, cconj);
+	complex<double>* dmatconj = scheme.decrypt(secretKey, cipher);
 	StringUtils::compare(mmatconj, dmatconj, n, "conj");
 
 	cout << "!!! END TEST CONJUGATE !!!" << endl;
@@ -275,9 +277,10 @@ void TestScheme::testPowerOf2(long logq, long logp, long logn0, long logn1, long
 	}
 
 	Ciphertext* cipher = scheme.encrypt(mmat, n0, n1, logp, logq);
+	Ciphertext* cpow = new Ciphertext();
 
 	timeutils.start("Power of 2");
-	Ciphertext* cpow = algo.powerOf2(cipher, logp, logDegree);
+	algo.powerOf2(cpow, cipher, logp, logDegree);
 	timeutils.stop("Power of 2");
 
 	complex<double>* dpow = scheme.decrypt(secretKey, cpow);
@@ -309,106 +312,15 @@ void TestScheme::testPower(long logq, long logp, long logn0, long logn1, long de
 	}
 
 	Ciphertext* cipher = scheme.encrypt(mmat, n0, n1, logp, logq);
-
+	Ciphertext* cpow = new Ciphertext();
 	timeutils.start("Power");
-	Ciphertext* cpow = algo.power(cipher, logp, degree);
+	algo.power(cpow, cipher, logp, degree);
 	timeutils.stop("Power");
 
 	complex<double>* dpow = scheme.decrypt(secretKey, cpow);
 	StringUtils::compare(mpow, dpow, n, "pow");
 
 	cout << "!!! END TEST POWER !!!" << endl;
-}
-
-//-----------------------------------------
-
-void TestScheme::testProdOfPo2(long logq, long logp, long logn0, long logn1, long logDegree) {
-	cout << "!!! START TEST PROD OF POWER OF 2 !!!" << endl;
-
-	srand(time(NULL));
-	SetNumThreads(8);
-
-	TimeUtils timeutils;
-	Ring ring;
-	SecretKey secretKey(ring);
-	Scheme scheme(secretKey, ring);
-	SchemeAlgo algo(scheme);
-
-	long n0 = (1 << logn0);
-	long n1 = (1 << logn1);
-	long n = n0 * n1;
-	long degree = 1 << logDegree;
-
-	complex<double>** mmatvec = new complex<double>*[degree];
-	for (long i = 0; i < degree; ++i) {
-		mmatvec[i] = EvaluatorUtils::randomCircleArray(n);
-	}
-
-	complex<double>* pmat = new complex<double>[n];
-	for (long j = 0; j < n; ++j) {
-		pmat[j] = mmatvec[0][j];
-		for (long i = 1; i < degree; ++i) {
-			pmat[j] *= mmatvec[i][j];
-		}
-	}
-
-	Ciphertext** cvec = new Ciphertext*[degree];
-	for (long i = 0; i < degree; ++i) {
-		cvec[i] = scheme.encrypt(mmatvec[i], n0, n1, logp, logq);
-	}
-
-	timeutils.start("Product of power of 2");
-	Ciphertext* cprod = algo.prodOfPo2(cvec, logp, logDegree);
-	timeutils.stop("Product of power of 2");
-
-	complex<double>* dmat = scheme.decrypt(secretKey, cprod);
-	StringUtils::compare(pmat, dmat, n, "prod");
-
-	cout << "!!! END TEST PROD OF POWER OF 2 !!!" << endl;
-}
-
-void TestScheme::testProd(long logq, long logp, long logn0, long logn1, long degree) {
-	cout << "!!! START TEST PROD !!!" << endl;
-
-	srand(time(NULL));
-	SetNumThreads(8);
-
-	TimeUtils timeutils;
-	Ring ring;
-	SecretKey secretKey(ring);
-	Scheme scheme(secretKey, ring);
-	SchemeAlgo algo(scheme);
-
-	long n0 = (1 << logn0);
-	long n1 = (1 << logn1);
-	long n = n0 * n1;
-
-	complex<double>** mmatvec = new complex<double>*[degree];
-	for (long i = 0; i < degree; ++i) {
-		mmatvec[i] = EvaluatorUtils::randomCircleArray(n);
-	}
-
-	complex<double>* pmat = new complex<double>[n];
-	for (long j = 0; j < n; ++j) {
-		pmat[j] = mmatvec[0][j];
-		for (long i = 1; i < degree; ++i) {
-			pmat[j] *= mmatvec[i][j];
-		}
-	}
-
-	Ciphertext** cvec = new Ciphertext*[degree];
-	for (long i = 0; i < degree; ++i) {
-		cvec[i] = scheme.encrypt(mmatvec[i], n0, n1, logp, logq);
-	}
-
-	timeutils.start("Product");
-	Ciphertext* cprod = algo.prod(cvec, logp, degree);
-	timeutils.stop("Product");
-
-	complex<double>* dmat = scheme.decrypt(secretKey, cprod);
-	StringUtils::compare(pmat, dmat, n, "prod");
-
-	cout << "!!! END TEST PROD !!!" << endl;
 }
 
 
@@ -440,9 +352,9 @@ void TestScheme::testInverse(long logq, long logp, long logn0, long logn1, long 
 	}
 
 	Ciphertext* cipher = scheme.encrypt(mmat, n0, n1, logp, logq);
-
+	Ciphertext* cinv = new Ciphertext();
 	timeutils.start("Inverse");
-	Ciphertext* cinv = algo.inverse(cipher, logp, steps);
+	algo.inverse(cinv, cipher, logp, steps);
 	timeutils.stop("Inverse");
 
 	complex<double>* dinv = scheme.decrypt(secretKey, cinv);
@@ -476,9 +388,9 @@ void TestScheme::testLogarithm(long logq, long logp, long logn0, long logn1, lon
 	}
 
 	Ciphertext* cipher = scheme.encrypt(mmat, n0, n1, logp, logq);
-
+	Ciphertext* clog = new Ciphertext();
 	timeutils.start(LOGARITHM);
-	Ciphertext* clog = algo.function(cipher, LOGARITHM, logp, degree);
+	algo.function(clog, cipher, LOGARITHM, logp, degree);
 	timeutils.stop(LOGARITHM);
 
 	complex<double>* dlog = scheme.decrypt(secretKey, clog);
@@ -510,9 +422,9 @@ void TestScheme::testExponent(long logq, long logp, long logn0, long logn1, long
 	}
 
 	Ciphertext* cipher = scheme.encrypt(mmat, n0, n1, logp, logq);
-
+	Ciphertext* cexp = new Ciphertext();
 	timeutils.start(EXPONENT);
-	Ciphertext* cexp = algo.function(cipher, EXPONENT, logp, degree);
+	algo.function(cexp, cipher, EXPONENT, logp, degree);
 	timeutils.stop(EXPONENT);
 
 	complex<double>* dexp = scheme.decrypt(secretKey, cexp);
@@ -544,9 +456,9 @@ void TestScheme::testExponentLazy(long logq, long logp, long logn0, long logn1, 
 	}
 
 	Ciphertext* cipher = scheme.encrypt(mmat, n0, n1, logp, logq);
-
+	Ciphertext* cexp = new Ciphertext();
 	timeutils.start(EXPONENT + " lazy");
-	Ciphertext* cexp = algo.functionLazy(cipher, EXPONENT, logp, degree);
+	algo.functionLazy(cexp, cipher, EXPONENT, logp, degree);
 	timeutils.stop(EXPONENT + " lazy");
 
 	complex<double>* dexp = scheme.decrypt(secretKey, cexp);
@@ -578,9 +490,9 @@ void TestScheme::testSigmoid(long logq, long logp, long logn0, long logn1, long 
 	}
 
 	Ciphertext* cipher = scheme.encrypt(mmat, n0, n1, logp, logq);
-
+	Ciphertext* csig = new Ciphertext();
 	timeutils.start(SIGMOID);
-	Ciphertext* csig = algo.function(cipher, SIGMOID, logp, degree);
+	algo.function(csig, cipher, SIGMOID, logp, degree);
 	timeutils.stop(SIGMOID);
 
 	complex<double>* dsig = scheme.decrypt(secretKey, csig);
@@ -612,9 +524,9 @@ void TestScheme::testSigmoidLazy(long logq, long logp, long logn0, long logn1, l
 	}
 
 	Ciphertext* cipher = scheme.encrypt(mmat, n0, n1, logp, logq);
-
+	Ciphertext* csig = new Ciphertext();
 	timeutils.start(SIGMOID + " lazy");
-	Ciphertext* csig = algo.functionLazy(cipher, SIGMOID, logp, degree);
+	algo.functionLazy(csig, cipher, SIGMOID, logp, degree);
 	timeutils.stop(SIGMOID + " lazy");
 
 	complex<double>* dsig = scheme.decrypt(secretKey, csig);
@@ -648,9 +560,9 @@ void TestScheme::testTranspose(long logq, long logp, long logn) {
 	complex<double>* mmat = EvaluatorUtils::randomComplexArray(n2);
 	complex<double>* mt = EvaluatorUtils::transpose(mmat, n);
 	Ciphertext* cipher = scheme.encrypt(mmat, n, n, logp, logq);
-
+	Ciphertext* ct = new Ciphertext();
 	timeutils.start("Transpose");
-	Ciphertext* ct = algo.transpose(cipher, logp, n);
+	algo.transpose(ct, cipher, logp, n);
 	timeutils.stop("Transpose");
 
 	complex<double>* dt = scheme.decrypt(secretKey, ct);
@@ -684,9 +596,9 @@ void TestScheme::testSqrMatMult(long logq, long logp, long logn) {
 
 	Ciphertext* cipher1 = scheme.encrypt(mmat1, n, n, logp, logq);
 	Ciphertext* cipher2 = scheme.encrypt(mmat2, n, n, logp, logq);
-
+	Ciphertext* cmatmult = new Ciphertext();
 	timeutils.start("Square Matrix Mult");
-	Ciphertext* cmatmult = algo.sqrMatMult(cipher1, cipher2, logp, n);
+	algo.sqrMatMult(cmatmult, cipher1, cipher2, logp, n);
 	timeutils.stop("Square Matrix Mult");
 
 	complex<double>* dmatmult = scheme.decrypt(secretKey, cmatmult);
@@ -715,12 +627,12 @@ void TestScheme::testSqrMatPow(long logq, long logp, long logn, long logDegree) 
 	complex<double>* mmat = EvaluatorUtils::randomComplexSignedArray(n2);
 
 	Ciphertext* cipher = scheme.encrypt(mmat, n, n, logp, logq);
+	Ciphertext* tmp = new Ciphertext();
 
 	timeutils.start("Square Matrix Mult");
 	for (long i = 0; i < logDegree; ++i) {
-		Ciphertext* tmp = algo.sqrMatSqr(cipher, logp, n);
-		delete cipher;
-		cipher = tmp;
+		algo.sqrMatSqr(tmp, cipher, logp, n);
+		cipher->copy(tmp);
 	}
 	timeutils.stop("Square Matrix Mult");
 
@@ -755,9 +667,10 @@ void TestScheme::testMatInv(long logq, long logp, long logn, long steps) {
 	}
 
 	Ciphertext* cipher = scheme.encrypt(mmat, n, n, logp, logq);
+	Ciphertext* cmatinv = new Ciphertext();
 
 	timeutils.start("Matrix Inv");
-	Ciphertext* cmatinv = algo.matInv(cipher, logp, n, steps);
+	algo.matInv(cmatinv, cipher, logp, n, steps);
 	timeutils.stop("Matrix Inv");
 
 	complex<double>* dmatinv = scheme.decrypt(secretKey, cmatinv);

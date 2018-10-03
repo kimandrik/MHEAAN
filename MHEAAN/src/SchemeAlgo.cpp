@@ -8,70 +8,52 @@
 
 #include "SchemeAlgo.h"
 
-Ciphertext** SchemeAlgo::encryptSingleArray(complex<double>* vals, long size, long logp) {
-	Ciphertext** res = new Ciphertext*[size];
-	for (long i = 0; i < size; ++i) {
-		res[i] = scheme.encryptSingle(vals[i], logp, logQ);
-	}
-	return res;
-}
 
-complex<double>* SchemeAlgo::decryptSingleArray(SecretKey& secretKey, Ciphertext** ciphers, long size) {
-	complex<double>* res = new complex<double>[size];
-	for (int i = 0; i < size; ++i) {
-		res[i] = scheme.decryptSingle(secretKey, ciphers[i]);
-	}
-	return res;
-}
-
-Ciphertext* SchemeAlgo::powerOf2(Ciphertext* cipher, const long logp, const long logDegree) {
-	Ciphertext* res = new Ciphertext(cipher);
+void SchemeAlgo::powerOf2(Ciphertext* res, Ciphertext* cipher, const long logp, const long logDegree) {
+	res->copy(cipher);
 	for (long i = 0; i < logDegree; ++i) {
 		scheme.squareAndEqual(res);
 		scheme.reScaleByAndEqual(res, logp);
 	}
-	return res;
 }
 
-Ciphertext** SchemeAlgo::powerOf2Extended(Ciphertext* cipher, const long logp, const long logDegree) {
-	Ciphertext** res = new Ciphertext*[logDegree + 1];
+void SchemeAlgo::powerOf2Extended(Ciphertext** res, Ciphertext* cipher, const long logp, const long logDegree) {
 	res[0] = new Ciphertext(cipher);
 	for (long i = 1; i < logDegree + 1; ++i) {
-		res[i] = scheme.square(res[i - 1]);
+		res[i] = new Ciphertext(res[i - 1]);
+		scheme.squareAndEqual(res[i]);
 		scheme.reScaleByAndEqual(res[i], logp);
 	}
-	return res;
 }
 
 //-----------------------------------------
 
-Ciphertext* SchemeAlgo::power(Ciphertext* cipher, const long logp, const long degree) {
+void SchemeAlgo::power(Ciphertext* res, Ciphertext* cipher, const long logp, const long degree) {
 	long logDegree = log2((double) degree);
 	long po2Degree = 1 << logDegree;
-
-	Ciphertext* res = powerOf2(cipher, logp, logDegree);
+	powerOf2(res, cipher, logp, logDegree);
 	long remDegree = degree - po2Degree;
 	if (remDegree > 0) {
-		Ciphertext* tmp = power(cipher, logp, remDegree);
-		long bitsDown = tmp->logq - res->logq;
-		scheme.modDownByAndEqual(tmp, bitsDown);
+		Ciphertext* tmp = new Ciphertext();
+		power(tmp, cipher, logp, remDegree);
+		scheme.modDownToAndEqual(tmp, res->logq);
 		scheme.multAndEqual(res, tmp);
 		scheme.reScaleByAndEqual(res, logp);
 		delete tmp;
 	}
-	return res;
 }
 
-Ciphertext** SchemeAlgo::powerExtended(Ciphertext* cipher, const long logp, const long degree) {
-	Ciphertext** res = new Ciphertext*[degree];
+void SchemeAlgo::powerExtended(Ciphertext** res, Ciphertext* cipher, const long logp, const long degree) {
 	long logDegree = log2((double) degree);
-	Ciphertext** cpows = powerOf2Extended(cipher, logp, logDegree);
+	Ciphertext** cpows = new Ciphertext*[logDegree + 1];
+	powerOf2Extended(cpows, cipher, logp, logDegree);
 	long idx = 0;
 	for (long i = 0; i < logDegree; ++i) {
 		long powi = (1 << i);
 		res[idx++] = new Ciphertext(cpows[i]);
 		for (long j = 0; j < powi - 1; ++j) {
-			res[idx] = scheme.modDownTo(res[j], cpows[i]->logq);
+			res[idx] = new Ciphertext(res[j]);
+			scheme.modDownToAndEqual(res[idx], cpows[i]->logq);
 			scheme.multAndEqual(res[idx], cpows[i]);
 			scheme.reScaleByAndEqual(res[idx++], logp);
 		}
@@ -79,7 +61,8 @@ Ciphertext** SchemeAlgo::powerExtended(Ciphertext* cipher, const long logp, cons
 	res[idx++] = new Ciphertext(cpows[logDegree]);
 	long degree2 = (1 << logDegree);
 	for (int i = 0; i < (degree - degree2); ++i) {
-		res[idx] = scheme.modDownTo(res[i], cpows[logDegree]->logq);
+		res[idx] = new Ciphertext(res[i]);
+		scheme.modDownToAndEqual(res[idx], cpows[logDegree]->logq);
 		scheme.multAndEqual(res[idx], cpows[logDegree]);
 		scheme.reScaleByAndEqual(res[idx++], logp);
 	}
@@ -88,124 +71,25 @@ Ciphertext** SchemeAlgo::powerExtended(Ciphertext* cipher, const long logp, cons
 		delete cpows[i];
 	}
 	delete[] cpows;
-	return res;
 }
 
-//-----------------------------------------
 
-Ciphertext* SchemeAlgo::prodOfPo2(Ciphertext** ciphers, const long logp, const long logDegree) {
-	Ciphertext** res = ciphers;
-	for (long i = logDegree - 1; i >= 0; --i) {
-		long powih = (1 << i);
-		Ciphertext** tmp = new Ciphertext*[powih];
-		NTL_EXEC_RANGE(powih, first, last);
-		for (long j = first; j < last; ++j) {
-			tmp[j] = scheme.mult(res[2 * j], res[2 * j + 1]);
-			scheme.reScaleByAndEqual(tmp[j], logp);
-		}
-		NTL_EXEC_RANGE_END;
-		res = tmp;
-	}
-	return res[0];
-}
+//----------------------------------------------------------------------------------
+//   METHODS ON ARRAYS OF CIPHERTEXTS
+//----------------------------------------------------------------------------------
 
-Ciphertext* SchemeAlgo::prod(Ciphertext** ciphers, const long logp, const long degree) {
-	long logDegree = log2((double) degree) + 1;
-	long idx = 0;
-	bool isinit = false;
-	Ciphertext* res;
-	for (long i = 0; i < logDegree; ++i) {
-		if (bit(degree, i)) {
-			long powi = (1 << i);
-			Ciphertext** tmp = new Ciphertext*[powi];
-			for (long j = 0; j < powi; ++j) {
-				tmp[j] = new Ciphertext(ciphers[idx + j]);
-			}
-			Ciphertext* iprod = prodOfPo2(tmp, logp, i);
-			if (isinit) {
-				long bitsDown = res->logq - iprod->logq;
-				scheme.modDownByAndEqual(res, bitsDown);
-				scheme.multAndEqual(res, iprod);
-				scheme.reScaleByAndEqual(res, logp);
-			} else {
-				res = new Ciphertext(iprod);
-				isinit = true;
-			}
-			idx += powi;
-		}
-	}
-	return res;
-}
 
-Ciphertext* SchemeAlgo::sum(Ciphertext** ciphers, const long size) {
-	Ciphertext* res = new Ciphertext(ciphers[0]);
-	for (long i = 1; i < size; ++i) {
-		scheme.addAndEqual(res, ciphers[i]);
-	}
-	return res;
-}
-
-Ciphertext** SchemeAlgo::multVec(Ciphertext** ciphers1, Ciphertext** ciphers2, const long size) {
-	Ciphertext** res = new Ciphertext*[size];
-	NTL_EXEC_RANGE(size, first, last);
-	for (long i = first; i < last; ++i) {
-		res[i] = scheme.mult(ciphers1[i], ciphers2[i]);
-	}
-	NTL_EXEC_RANGE_END;
-	return res;
-}
-
-void SchemeAlgo::multAndEqualVec(Ciphertext** ciphers1, Ciphertext** ciphers2, const long size) {
-	NTL_EXEC_RANGE(size, first, last);
-	for (long i = first; i < last; ++i) {
-		scheme.multAndEqual(ciphers1[i], ciphers2[i]);
-	}
-	NTL_EXEC_RANGE_END;
-}
-
-Ciphertext** SchemeAlgo::multAndModSwitchVec(Ciphertext** ciphers1, Ciphertext** ciphers2, const long precisionBits, const long size) {
-	Ciphertext** res = new Ciphertext*[size];
-	NTL_EXEC_RANGE(size, first, last);
-	for (long i = first; i < last; ++i) {
-		res[i] = scheme.mult(ciphers1[i], ciphers2[i]);
-		scheme.reScaleByAndEqual(res[i], precisionBits);
-	}
-	NTL_EXEC_RANGE_END;
-	return res;
-}
-
-void SchemeAlgo::multModSwitchAndEqualVec(Ciphertext** ciphers1, Ciphertext** ciphers2, const long precisionBits, const long size) {
-	NTL_EXEC_RANGE(size, first, last);
-	for (long i = first; i < last; ++i) {
-		scheme.multAndEqual(ciphers1[i], ciphers2[i]);
-		scheme.reScaleByAndEqual(ciphers1[i], precisionBits);
-	}
-	NTL_EXEC_RANGE_END;
-}
-
-Ciphertext* SchemeAlgo::innerProd(Ciphertext** ciphers1, Ciphertext** ciphers2, const long logp, const long size) {
-	Ciphertext* cip = scheme.mult(ciphers1[size - 1], ciphers2[size - 1]);
-
-	NTL_EXEC_RANGE(size-1, first, last);
-	for (long i = first; i < last; ++i) {
-		Ciphertext* cprodi = scheme.mult(ciphers1[i], ciphers2[i]);
-		scheme.addAndEqual(cip, cprodi);
-		delete cprodi;
-	}
-	NTL_EXEC_RANGE_END;
-
-	scheme.reScaleByAndEqual(cip, logp);
-	return cip;
-}
-
-Ciphertext* SchemeAlgo::transpose(Ciphertext* cipher, long logp, long n) {
+void SchemeAlgo::transpose(Ciphertext* res, Ciphertext* cipher, long logp, long n) {
 	long logn = log2(n);
 	mutex m;
 	SqrMatContext& sqrMatContext = scheme.ring.sqrMatContextMap.at(logn);
-	Ciphertext* res = new Ciphertext(cipher->logp + sqrMatContext.logp, cipher->logq, cipher->n0, cipher->n1);
+	res->free();
+	res->copyParams(cipher);
+	res->logp += sqrMatContext.logp;
 	NTL_EXEC_RANGE(n, first, last);
 	for (long i = first; i < last; ++i) {
-		Ciphertext* tmp = scheme.multPoly(cipher, sqrMatContext.mvec[i], sqrMatContext.logp);
+		Ciphertext* tmp = new Ciphertext(cipher);
+		scheme.multPolyAndEqual(tmp, sqrMatContext.mvec[i], sqrMatContext.logp);
 		if(i > 0) scheme.leftRotateAndEqual(tmp,i, N1 - i);
 		m.lock();
 		scheme.addAndEqual(res, tmp);
@@ -213,219 +97,172 @@ Ciphertext* SchemeAlgo::transpose(Ciphertext* cipher, long logp, long n) {
 		delete tmp;
 	}
 	NTL_EXEC_RANGE_END;
+
 	scheme.reScaleByAndEqual(res, sqrMatContext.logp);
-	return res;
 }
 
-Ciphertext* SchemeAlgo::sqrMatMult(Ciphertext* cipher1, Ciphertext* cipher2, long logp, long n) {
+void SchemeAlgo::sqrMatMult(Ciphertext* res, Ciphertext* cipher1, Ciphertext* cipher2, long logp, long n) {
 	long logn = log2(n);
-
 	SqrMatContext& sqrMatContext = scheme.ring.sqrMatContextMap.at(logn);
 	mutex m;
-	Ciphertext* res = new Ciphertext(cipher1->logp + cipher2->logp, cipher1->logq - sqrMatContext.logp, cipher1->n0, cipher1->n1);
+	res->free();
+	res->copyParams(cipher1);
+	res->logp += cipher2->logp;
+	res->logq -= sqrMatContext.logp;
+
 	NTL_EXEC_RANGE(n, first, last);
 	for (long i = first; i < last; ++i) {
-		Ciphertext* tmp2 = scheme.multPoly(cipher2, sqrMatContext.mvec[i], sqrMatContext.logp);
+		Ciphertext* tmp2 = new Ciphertext(cipher2);
+		scheme.multPolyAndEqual(tmp2, sqrMatContext.mvec[i], sqrMatContext.logp);
 		scheme.reScaleByAndEqual(tmp2, sqrMatContext.logp);
-
+		Ciphertext* aux = new Ciphertext();
 		for (long j = 0; j < logn; ++j) {
-			Ciphertext* rot = scheme.leftRotate(tmp2, 0, (1 << j));
-			scheme.addAndEqual(tmp2, rot);
-			delete rot;
+			scheme.leftRotate(aux, tmp2, 0, (1 << j));
+			scheme.addAndEqual(tmp2, aux);
 		}
-
-		Ciphertext* tmp1 = (i == 0) ? new Ciphertext(cipher1) : scheme.rightRotate(cipher1, i, 0);
-		scheme.modDownByAndEqual(tmp1, sqrMatContext.logp);
-		scheme.multAndEqual(tmp1, tmp2);
+		aux->copy(cipher1);
+		if(i > 0) scheme.rightRotateAndEqual(aux, i, 0);
+		scheme.modDownByAndEqual(aux, sqrMatContext.logp);
+		scheme.multAndEqual(aux, tmp2);
 		delete tmp2;
 		m.lock();
-		scheme.addAndEqual(res, tmp1);
+		scheme.addAndEqual(res, aux);
 		m.unlock();
-		delete tmp1;
+		delete aux;
 	}
 	NTL_EXEC_RANGE_END;
-
 	scheme.reScaleByAndEqual(res, logp);
-
-	return res;
 }
 
-Ciphertext* SchemeAlgo::sqrMatSqr(Ciphertext* cipher, long logp, long n) {
+void SchemeAlgo::sqrMatSqr(Ciphertext* res, Ciphertext* cipher, long logp, long n) {
 	long logn = log2(n);
-
 	SqrMatContext& sqrMatContext = scheme.ring.sqrMatContextMap.at(logn);
 	mutex m;
-	Ciphertext* res = new Ciphertext(2 * cipher->logp, cipher->logq - sqrMatContext.logp, cipher->n0, cipher->n1);
+	res->free();
+	res->copyParams(cipher);
+	res->logp *= 2;
+	res->logq -= sqrMatContext.logp;
 	NTL_EXEC_RANGE(n, first, last);
 	for (long i = first; i < last; ++i) {
-		Ciphertext* tmp = scheme.multPoly(cipher, sqrMatContext.mvec[i], sqrMatContext.logp);
+		Ciphertext* tmp = new Ciphertext(cipher);
+		scheme.multPolyAndEqual(tmp, sqrMatContext.mvec[i], sqrMatContext.logp);
 		scheme.reScaleByAndEqual(tmp, sqrMatContext.logp);
+
+		Ciphertext* aux = new Ciphertext();
 		for (long j = 0; j < logn; ++j) {
-			Ciphertext* rot = scheme.leftRotate(tmp, 0, (1 << j));
-			scheme.addAndEqual(tmp, rot);
-			delete rot;
+			scheme.leftRotate(aux, tmp, 0, (1 << j));
+			scheme.addAndEqual(tmp, aux);
 		}
-		Ciphertext* rtmp = (i == 0) ? new Ciphertext(cipher) : scheme.rightRotate(cipher, i, 0);
-		scheme.modDownByAndEqual(rtmp, sqrMatContext.logp);
-		scheme.multAndEqual(rtmp, tmp);
+		aux->copy(cipher);
+		if (i > 0) scheme.rightRotateAndEqual(aux, i, 0);
+		scheme.modDownByAndEqual(aux, sqrMatContext.logp);
+		scheme.multAndEqual(aux, tmp);
 		delete tmp;
 		m.lock();
-		scheme.addAndEqual(res, rtmp);
+		scheme.addAndEqual(res, aux);
 		m.unlock();
-		delete rtmp;
+		delete aux;
 	}
 	NTL_EXEC_RANGE_END;
 
 	scheme.reScaleByAndEqual(res, logp);
-
-	return res;
 }
 
 
-Ciphertext* SchemeAlgo::matInv(Ciphertext* cipher, long logp, long n, long r) {
+void SchemeAlgo::matInv(Ciphertext* res, Ciphertext* cipher, long logp, long n, long r) {
 	long logn = log2(n);
-	Ciphertext* cbar = scheme.negate(cipher);
 	SqrMatContext& sqrMatContext = scheme.ring.sqrMatContextMap.at(logn);
-	scheme.addPolyAndEqual(cbar, sqrMatContext.mvec[0], sqrMatContext.logp);
-	Ciphertext* cpow = new Ciphertext(cbar);
-	Ciphertext* res = scheme.addPoly(cbar, sqrMatContext.mvec[0], sqrMatContext.logp);
 
+	Ciphertext* cbar = new Ciphertext();
+	scheme.negate(cbar, cipher);
+	scheme.addPolyAndEqual(cbar, sqrMatContext.mvec[0], sqrMatContext.logp);
+
+	Ciphertext* cpow = new Ciphertext(cbar);
+	scheme.addPoly(res, cbar, sqrMatContext.mvec[0], sqrMatContext.logp);
+	Ciphertext* x = new Ciphertext();
+	Ciphertext* tmp = new Ciphertext();
 	for (long i = 1; i < r; ++i) {
-		Ciphertext* tmp = sqrMatSqr(cpow, logp, n);
-		delete cpow;
-		cpow = new Ciphertext(tmp);
+		sqrMatSqr(tmp, cpow, logp, n);
+		cpow->copy(tmp);
 		scheme.addPolyAndEqual(tmp, sqrMatContext.mvec[0], sqrMatContext.logp);
 		scheme.modDownToAndEqual(res, tmp->logq);
-		Ciphertext* x = sqrMatMult(tmp, res, logp, n);
-		delete res;
-		delete tmp;
-		res = x;
+		sqrMatMult(x, tmp, res, logp, n);
+		res->copy(x);
 	}
-	return res;
+	delete cbar; delete cpow; delete tmp; delete x;
 }
 
 //-----------------------------------------
 
-Ciphertext* SchemeAlgo::inverse(Ciphertext* cipher, long logp, long steps) {
-	Ciphertext* cbar = scheme.negate(cipher);
+void SchemeAlgo::inverse(Ciphertext* res, Ciphertext* cipher, long logp, long steps) {
+	Ciphertext* cbar = new Ciphertext();
+	scheme.negate(cbar, cipher);
 	scheme.addConstAndEqual(cbar, 1.0, logp);
 	Ciphertext* cpow = new Ciphertext(cbar);
-	Ciphertext* tmp = scheme.addConst(cbar, 1.0, logp);
+	Ciphertext* tmp = new Ciphertext(cbar);
+	scheme.addConstAndEqual(tmp, 1.0, logp);
 	scheme.modDownByAndEqual(tmp, logp);
-	Ciphertext* res = new Ciphertext(tmp);
+	res->copy(tmp);
 
 	for (long i = 1; i < steps; ++i) {
 		scheme.squareAndEqual(cpow);
 		scheme.reScaleByAndEqual(cpow, logp);
-		delete tmp;
-		tmp = new Ciphertext(cpow);
+		tmp->copy(cpow);
 		scheme.addConstAndEqual(tmp, 1.0, logp);
 		scheme.multAndEqual(tmp, res);
 		scheme.reScaleByAndEqual(tmp, logp);
-		res = new Ciphertext(tmp);
+		res->copy(tmp);
 	}
 	delete tmp; delete cpow; delete cbar;
-
-	return res;
-}
-
-Ciphertext** SchemeAlgo::inverseExtended(Ciphertext* cipher, const long logp, const long steps) {
-	Ciphertext** res = new Ciphertext*[steps];
-	Ciphertext* cpow = cipher;
-	Ciphertext* tmp = scheme.addConst(cipher, 1.0, logp);
-	scheme.modDownByAndEqual(tmp, logp);
-	res[0] = new Ciphertext(tmp);
-
-	for (long i = 1; i < steps; ++i) {
-		scheme.squareAndEqual(cpow);
-		scheme.reScaleByAndEqual(cpow, logp);
-		delete tmp;
-		tmp = new Ciphertext(cpow);
-		scheme.addConstAndEqual(tmp, 1.0, logp);
-		scheme.multAndEqual(tmp, res[i - 1]);
-		scheme.reScaleByAndEqual(tmp, logp);
-		res[i] = new Ciphertext(tmp);
-	}
-	delete tmp; delete cpow;
-	return res;
 }
 
 //-----------------------------------------
 
-Ciphertext* SchemeAlgo::function(Ciphertext* cipher, string& funcName, long logp, long degree) {
-	Ciphertext** cpows = powerExtended(cipher, logp, degree);
+void SchemeAlgo::function(Ciphertext* res, Ciphertext* cipher, string& funcName, long logp, long degree) {
+	Ciphertext** cpows = new Ciphertext*[degree];
+	powerExtended(cpows, cipher, logp, degree);
 	long dlogp = 2 * logp;
 	double* coeffs = taylorCoeffsMap.at(funcName);
-	Ciphertext* res = scheme.multConst(cpows[0], coeffs[1], logp);
+	scheme.multConst(res, cpows[0], coeffs[1], logp);
 	scheme.addConstAndEqual(res, coeffs[0], dlogp);
 
-	for (int i = 1; i < degree; ++i) {
+	Ciphertext* aixi = new Ciphertext();
+	for (long i = 1; i < degree; ++i) {
 		if (abs(coeffs[i + 1]) > 1e-27) {
-			Ciphertext* aixi = scheme.multConst(cpows[i], coeffs[i + 1], logp);
+			scheme.multConst(aixi, cpows[i], coeffs[i + 1], logp);
 			scheme.modDownToAndEqual(res, aixi->logq);
 			scheme.addAndEqual(res, aixi);
-			delete aixi;
 		}
 	}
+	delete aixi;
+
 	scheme.reScaleByAndEqual(res, logp);
 	for (long i = 0; i < degree; ++i) {
 		delete cpows[i];
 	}
 	delete[] cpows;
-	return res;
 }
 
-Ciphertext* SchemeAlgo::functionLazy(Ciphertext* cipher, string& funcName, long logp, long degree) {
-	Ciphertext** cpows = powerExtended(cipher, logp, degree);
-
+void SchemeAlgo::functionLazy(Ciphertext* res, Ciphertext* cipher, string& funcName, long logp, long degree) {
+	Ciphertext** cpows = new Ciphertext*[degree];
+	powerExtended(cpows, cipher, logp, degree);
 	long dlogp = 2 * logp;
-
 	double* coeffs = taylorCoeffsMap.at(funcName);
-
-	Ciphertext* res = scheme.multConst(cpows[0], coeffs[1], logp);
+	scheme.multConst(res, cpows[0], coeffs[1], logp);
 	scheme.addConstAndEqual(res, coeffs[0], dlogp);
-
+	Ciphertext* aixi = new Ciphertext();
 	for (long i = 1; i < degree; ++i) {
 		if (abs(coeffs[i + 1]) > 1e-27) {
-			Ciphertext* aixi = scheme.multConst(cpows[i], coeffs[i + 1], logp);
+			scheme.multConst(aixi, cpows[i], coeffs[i + 1], logp);
 			scheme.modDownToAndEqual(res, aixi->logq);
 			scheme.addAndEqual(res, aixi);
-			delete aixi;
 		}
 	}
+	delete aixi;
 	for (long i = 0; i < degree; ++i) {
 		delete cpows[i];
 	}
 	delete[] cpows;
-
-	return res;
-}
-
-Ciphertext** SchemeAlgo::functionExtended(Ciphertext* cipher, string& funcName, long logp, long degree) {
-	Ciphertext** cpows = powerExtended(cipher, logp, degree);
-
-	long dlogp = 2 * logp;
-	double* coeffs = taylorCoeffsMap.at(funcName);
-	Ciphertext** res = new Ciphertext*[degree];
-
-	res[0] = scheme.multConst(cpows[0], coeffs[1], logp);
-	scheme.addConstAndEqual(res[0], coeffs[0], dlogp);
-	for (long i = 1; i < degree; ++i) {
-		if (abs(coeffs[i + 1]) > 1e-27) {
-			res[i] = scheme.multConst(cpows[i], coeffs[i + 1], logp);
-			Ciphertext* ctmp = scheme.modDownTo(res[i - 1], res[i]->logq);
-			scheme.addAndEqual(res[i], ctmp);
-			delete ctmp;
-		} else {
-			res[i] = new Ciphertext(res[i - 1]);
-		}
-	}
-	NTL_EXEC_RANGE(degree, first, last);
-	for (long i = first; i < last; ++i) {
-		scheme.reScaleByAndEqual(res[i], logp);
-	}
-	NTL_EXEC_RANGE_END;
-	return res;
 }
 
 void SchemeAlgo::bitReverse(Ciphertext** ciphers, const long n) {
