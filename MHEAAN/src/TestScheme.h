@@ -22,15 +22,15 @@ public:
 
 	static void testEncryptSingle(long logq, long logp);
 
-	static void testStandard(long logq, long logp, long logn0, long logn1);
+	static void testMult(long logq, long logp, long logn0, long logn1);
+
+
+	//----------------------------------------------------------------------------------
+	//   ROTATION & CONJUGATION & i MULTIPLICATION TESTS
+	//----------------------------------------------------------------------------------
+
 
 	static void testimult(long logq, long logp, long logn0, long logn1);
-
-
-	//----------------------------------------------------------------------------------
-	//   ROTATION & CONJUGATION & TRANSPOSITION TESTS
-	//----------------------------------------------------------------------------------
-
 
 	static void testRotateFast(long logq, long logp, long logn0, long logn1, long r0, long r1);
 

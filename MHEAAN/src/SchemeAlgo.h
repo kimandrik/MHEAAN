@@ -14,7 +14,6 @@
 #include <complex>
 
 #include "EvaluatorUtils.h"
-#include "Plaintext.h"
 #include "SecretKey.h"
 #include "Ciphertext.h"
 #include "Scheme.h"
@@ -41,13 +40,13 @@ public:
 	//----------------------------------------------------------------------------------
 
 
-	void powerOf2(Ciphertext* res, Ciphertext* cipher, long precisionBits, long logDegree);
+	void powerOf2AndEqual(Ciphertext& cipher, long precisionBits, long logDegree);
 
-	void powerOf2Extended(Ciphertext** res, Ciphertext* cipher, long logp, long logDegree);
+	void powerOf2Extended(Ciphertext* res, Ciphertext& cipher, long logp, long logDegree);
 
-	void power(Ciphertext* res, Ciphertext* cipher, long logp, long degree);
+	void powerAndEqual(Ciphertext& cipher, long logp, long degree);
 
-	void powerExtended(Ciphertext** res, Ciphertext* cipher, long logp, long degree);
+	void powerExtended(Ciphertext* res, Ciphertext& cipher, long logp, long degree);
 
 
 	//----------------------------------------------------------------------------------
@@ -55,11 +54,11 @@ public:
 	//----------------------------------------------------------------------------------
 
 
-	void inverse(Ciphertext* res, Ciphertext* cipher, long logp, long steps);
+	void inverseAndEqual(Ciphertext& cipher, long logp, long steps);
 
-	void function(Ciphertext* res, Ciphertext* cipher, string& funcName, long logp, long degree);
+	void functionAndEqual(Ciphertext& cipher, string& funcName, long logp, long degree);
 
-	void functionLazy(Ciphertext* res, Ciphertext* cipher, string& funcName, long logp, long degree);
+	void functionLazyAndEqual(Ciphertext& cipher, string& funcName, long logp, long degree);
 
 
 	//----------------------------------------------------------------------------------
@@ -67,32 +66,13 @@ public:
 	//----------------------------------------------------------------------------------
 
 
-	void transpose(Ciphertext* res, Ciphertext* cipher, long logp, long size);
+	void transpose(Ciphertext& res, Ciphertext& cipher, long logp, long size);
 
-	void sqrMatMult(Ciphertext* res, Ciphertext* cipher1, Ciphertext* cipher2, long logp, long size);
+	void sqrMatMult(Ciphertext& res, Ciphertext& cipher1, Ciphertext& cipher2, long logp, long size);
 
-	void sqrMatSqr(Ciphertext* res, Ciphertext* cipher, long logp, long size);
+	void sqrMatSqr(Ciphertext& res, Ciphertext& cipher, long logp, long size);
 
-	void matInv(Ciphertext* res, Ciphertext* cipher, long logp, long n, long r);
-
-
-	//----------------------------------------------------------------------------------
-	//   FFT & IFFT
-	//----------------------------------------------------------------------------------
-
-	void bitReverse(Ciphertext** ciphers, long n);
-
-	void DFTX0(Ciphertext** ciphers, long n0);
-	void IDFTX0(Ciphertext** ciphers, long n0);
-	void IDFTX0Lazy(Ciphertext** ciphers, long n0);
-
-	void DFTX1(Ciphertext** ciphers, long n1);
-	void IDFTX1(Ciphertext** ciphers, long n1);
-	void IDFTX1Lazy(Ciphertext** ciphers, long n1);
-
-	void DFT(Ciphertext** ciphers, long n0, long n1);
-	void IDFT(Ciphertext** ciphers, long n0, long n1);
-	void IDFTLazy(Ciphertext** ciphers, long n0, long n1);
+	void matInv(Ciphertext& res, Ciphertext& cipher, long logp, long n, long r);
 
 };
 

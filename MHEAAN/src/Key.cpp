@@ -12,4 +12,6 @@ Key::Key() {
 }
 
 Key::~Key() {
+	delete[] rax;
+	delete[] rbx;
 }

@@ -17,8 +17,8 @@ using namespace NTL;
 class Key {
 public:
 
-	uint64_t rax[Nnprimes];
-	uint64_t rbx[Nnprimes];
+	uint64_t* rax = new uint64_t[Nnprimes];
+	uint64_t* rbx = new uint64_t[Nnprimes];
 
 	Key();
 

@@ -14,10 +14,10 @@ using namespace NTL;
 class SerializationUtils {
 public:
 
-	static void writeCiphertext(Ciphertext* ciphertext, string path);
+	static void writeCiphertext(Ciphertext& ciphertext, string path);
 	static Ciphertext& readCiphertext(string path);
 
-	static void writeKey(Key* key, string path);
+	static void writeKey(Key& key, string path);
 	static Key& readKey(string path);
 };
 
