@@ -121,7 +121,7 @@ void TestScheme::testMult(long logq, long logp, long logn0, long logn1) {
 
 	StringUtils::compare(mmult, dmult, n, "mult");
 
-	cout << "!!! END TEST STANDARD !!!" << endl;
+	cout << "!!! END TEST MULT !!!" << endl;
 }
 
 void TestScheme::testimult(long logq, long logp, long logn0, long logn1) {

@@ -304,7 +304,7 @@ void RingMultiplier::INTT(uint64_t* a, long index) {
 	}
 }
 
-void RingMultiplier::toNTTX0(uint64_t* ra, ZZ a[], long np) {
+void RingMultiplier::toNTTX0(uint64_t* ra, ZZ* a, long np) {
 	NTL_EXEC_RANGE(np, first, last);
 	for (long i = first; i < last; ++i) {
 		uint64_t pi = pVec[i];
@@ -319,7 +319,7 @@ void RingMultiplier::toNTTX0(uint64_t* ra, ZZ a[], long np) {
 	NTL_EXEC_RANGE_END;
 }
 
-void RingMultiplier::toNTTX1(uint64_t* ra, ZZ a[], long np) {
+void RingMultiplier::toNTTX1(uint64_t* ra, ZZ* a, long np) {
 	NTL_EXEC_RANGE(np, first, last);
 	for (long i = first; i < last; ++i) {
 		uint64_t pi = pVec[i];
@@ -334,7 +334,7 @@ void RingMultiplier::toNTTX1(uint64_t* ra, ZZ a[], long np) {
 	NTL_EXEC_RANGE_END;
 }
 
-void RingMultiplier::toNTT(uint64_t* ra, ZZ a[], long np) {
+void RingMultiplier::toNTT(uint64_t* ra, ZZ* a, long np) {
 	NTL_EXEC_RANGE(np, first, last);
 	for (long i = first; i < last; ++i) {
 		uint64_t pi = pVec[i];
@@ -361,7 +361,7 @@ void RingMultiplier::addNTTAndEqual(uint64_t* ra, uint64_t* rb, long np) {
 	}
 }
 
-void RingMultiplier::reconstruct(ZZ x[], uint64_t* rx, long np, const ZZ& q) {
+void RingMultiplier::reconstruct(ZZ* x, uint64_t* rx, long np, const ZZ& q) {
 	ZZ* pHatnp = pHat[np - 1];
 	uint64_t* pHatInvModpnp = pHatInvModp[np - 1];
 	mulmod_precon_t* coeffpinv_arraynp = coeffpinv_array[np - 1];
@@ -389,7 +389,7 @@ void RingMultiplier::reconstruct(ZZ x[], uint64_t* rx, long np, const ZZ& q) {
 	NTL_EXEC_RANGE_END;
 }
 
-void RingMultiplier::multX0(ZZ x[], ZZ a[], ZZ b[], long np, const ZZ& q) {
+void RingMultiplier::multX0(ZZ* x, ZZ* a, ZZ* b, long np, const ZZ& q) {
 	uint64_t* ra = new uint64_t[np << logN];
 	uint64_t* rb = new uint64_t[np << logN0];
 
@@ -434,7 +434,7 @@ void RingMultiplier::multX0(ZZ x[], ZZ a[], ZZ b[], long np, const ZZ& q) {
 	delete[] ra;
 }
 
-void RingMultiplier::multX0AndEqual(ZZ a[], ZZ b[], long np, const ZZ& q) {
+void RingMultiplier::multX0AndEqual(ZZ* a, ZZ* b, long np, const ZZ& q) {
 	uint64_t* ra = new uint64_t[np << logN];
 	uint64_t* rb = new uint64_t[np << logN0];
 	NTL_EXEC_RANGE(np, first, last);
@@ -480,7 +480,7 @@ void RingMultiplier::multX0AndEqual(ZZ a[], ZZ b[], long np, const ZZ& q) {
 	delete[] ra;
 }
 
-void RingMultiplier::multNTTX0(ZZ x[], ZZ a[], uint64_t* rb, long np, const ZZ& q) {
+void RingMultiplier::multNTTX0(ZZ* x, ZZ* a, uint64_t* rb, long np, const ZZ& q) {
 	uint64_t* ra = new uint64_t[np << logN];
 	NTL_EXEC_RANGE(np, first, last);
 	for (long i = first; i < last; ++i) {
@@ -518,7 +518,7 @@ void RingMultiplier::multNTTX0(ZZ x[], ZZ a[], uint64_t* rb, long np, const ZZ& 
 	delete[] ra;
 }
 
-void RingMultiplier::multNTTX0AndEqual(ZZ a[], uint64_t* rb, long np, const ZZ& q) {
+void RingMultiplier::multNTTX0AndEqual(ZZ* a, uint64_t* rb, long np, const ZZ& q) {
 	uint64_t* ra = new uint64_t[np << logN];
 	NTL_EXEC_RANGE(np, first, last);
 	for (long i = first; i < last; ++i) {
@@ -557,7 +557,7 @@ void RingMultiplier::multNTTX0AndEqual(ZZ a[], uint64_t* rb, long np, const ZZ& 
 	delete[] ra;
 }
 
-void RingMultiplier::multDNTTX0(ZZ x[], uint64_t* ra, uint64_t* rb, long np, const ZZ& q) {
+void RingMultiplier::multDNTTX0(ZZ* x, uint64_t* ra, uint64_t* rb, long np, const ZZ& q) {
 	uint64_t* rx = new uint64_t[np << logN];
 	NTL_EXEC_RANGE(np, first, last);
 	for (long i = first; i < last; ++i) {
@@ -587,7 +587,7 @@ void RingMultiplier::multDNTTX0(ZZ x[], uint64_t* ra, uint64_t* rb, long np, con
 }
 
 
-void RingMultiplier::multX1(ZZ x[], ZZ a[], ZZ b[], long np, const ZZ& q) {
+void RingMultiplier::multX1(ZZ* x, ZZ* a, ZZ* b, long np, const ZZ& q) {
 	uint64_t* ra = new uint64_t[np << logN];
 	uint64_t* rb = new uint64_t[np << logN1];
 
@@ -645,7 +645,7 @@ void RingMultiplier::multX1(ZZ x[], ZZ a[], ZZ b[], long np, const ZZ& q) {
 	delete[] ra;
 }
 
-void RingMultiplier::multX1AndEqual(ZZ a[], ZZ b[], long np, const ZZ& q) {
+void RingMultiplier::multX1AndEqual(ZZ* a, ZZ* b, long np, const ZZ& q) {
 	uint64_t* ra = new uint64_t[np << logN];
 	uint64_t* rb = new uint64_t[np << logN1];
 
@@ -703,7 +703,7 @@ void RingMultiplier::multX1AndEqual(ZZ a[], ZZ b[], long np, const ZZ& q) {
 	delete[] ra;
 }
 
-void RingMultiplier::multNTTX1(ZZ x[], ZZ a[], uint64_t* rb, long np, const ZZ& q) {
+void RingMultiplier::multNTTX1(ZZ* x, ZZ* a, uint64_t* rb, long np, const ZZ& q) {
 	uint64_t* ra = new uint64_t[np << logN];
 
 	NTL_EXEC_RANGE(np, first, last);
@@ -754,7 +754,7 @@ void RingMultiplier::multNTTX1(ZZ x[], ZZ a[], uint64_t* rb, long np, const ZZ& 
 	delete[] ra;
 }
 
-void RingMultiplier::multNTTX1AndEqual(ZZ a[], uint64_t* rb, long np, const ZZ& q) {
+void RingMultiplier::multNTTX1AndEqual(ZZ* a, uint64_t* rb, long np, const ZZ& q) {
 	uint64_t* ra = new uint64_t[np << logN];
 
 	NTL_EXEC_RANGE(np, first, last);
@@ -805,7 +805,7 @@ void RingMultiplier::multNTTX1AndEqual(ZZ a[], uint64_t* rb, long np, const ZZ& 
 	delete[] ra;
 }
 
-void RingMultiplier::multDNTTX1(ZZ x[], uint64_t* ra, uint64_t* rb, long np, const ZZ& q) {
+void RingMultiplier::multDNTTX1(ZZ* x, uint64_t* ra, uint64_t* rb, long np, const ZZ& q) {
 	uint64_t* rx = new uint64_t[np << logN];
 
 	NTL_EXEC_RANGE(np, first, last);
@@ -843,7 +843,7 @@ void RingMultiplier::multDNTTX1(ZZ x[], uint64_t* ra, uint64_t* rb, long np, con
 	delete[] rx;
 }
 
-void RingMultiplier::mult(ZZ x[], ZZ a[], ZZ b[], long np, const ZZ& q) {
+void RingMultiplier::mult(ZZ* x, ZZ* a, ZZ* b, long np, const ZZ& q) {
 	uint64_t* ra = new uint64_t[np << logN];
 	uint64_t* rb = new uint64_t[np << logN];
 
@@ -875,7 +875,7 @@ void RingMultiplier::mult(ZZ x[], ZZ a[], ZZ b[], long np, const ZZ& q) {
 	delete[] ra;
 }
 
-void RingMultiplier::multAndEqual(ZZ a[], ZZ b[], long np, const ZZ& q) {
+void RingMultiplier::multAndEqual(ZZ* a, ZZ* b, long np, const ZZ& q) {
 	uint64_t* ra = new uint64_t[np << logN];
 	uint64_t* rb = new uint64_t[np << logN];
 
@@ -908,7 +908,7 @@ void RingMultiplier::multAndEqual(ZZ a[], ZZ b[], long np, const ZZ& q) {
 	delete[] ra;
 }
 
-void RingMultiplier::multNTT(ZZ x[], ZZ a[], uint64_t* rb, long np, const ZZ& q) {
+void RingMultiplier::multNTT(ZZ* x, ZZ* a, uint64_t* rb, long np, const ZZ& q) {
 	uint64_t* ra = new uint64_t[np << logN];
 
 	NTL_EXEC_RANGE(np, first, last);
@@ -937,7 +937,7 @@ void RingMultiplier::multNTT(ZZ x[], ZZ a[], uint64_t* rb, long np, const ZZ& q)
 	delete[] ra;
 }
 
-void RingMultiplier::multNTTAndEqual(ZZ a[], uint64_t* rb, long np, const ZZ& q) {
+void RingMultiplier::multNTTAndEqual(ZZ* a, uint64_t* rb, long np, const ZZ& q) {
 	uint64_t* ra = new uint64_t[np << logN];
 
 	NTL_EXEC_RANGE(np, first, last);
@@ -965,7 +965,7 @@ void RingMultiplier::multNTTAndEqual(ZZ a[], uint64_t* rb, long np, const ZZ& q)
 	delete[] ra;
 }
 
-void RingMultiplier::multDNTT(ZZ x[], uint64_t* ra, uint64_t* rb, long np, const ZZ& q) {
+void RingMultiplier::multDNTT(ZZ* x, uint64_t* ra, uint64_t* rb, long np, const ZZ& q) {
 	uint64_t* rx = new uint64_t[np << logN];
 
 	NTL_EXEC_RANGE(np, first, last);
@@ -989,7 +989,7 @@ void RingMultiplier::multDNTT(ZZ x[], uint64_t* ra, uint64_t* rb, long np, const
 	delete[] rx;
 }
 
-void RingMultiplier::square(ZZ x[], ZZ a[], long np, const ZZ& q) {
+void RingMultiplier::square(ZZ* x, ZZ* a, long np, const ZZ& q) {
 	uint64_t* ra = new uint64_t[np << logN];
 
 	NTL_EXEC_RANGE(np, first, last);
@@ -1017,7 +1017,7 @@ void RingMultiplier::square(ZZ x[], ZZ a[], long np, const ZZ& q) {
 	delete[] ra;
 }
 
-void RingMultiplier::squareAndEqual(ZZ a[], long np, const ZZ& q) {
+void RingMultiplier::squareAndEqual(ZZ* a, long np, const ZZ& q) {
 	uint64_t* ra = new uint64_t[np << logN];
 
 	NTL_EXEC_RANGE(np, first, last);
@@ -1045,7 +1045,7 @@ void RingMultiplier::squareAndEqual(ZZ a[], long np, const ZZ& q) {
 	delete[] ra;
 }
 
-void RingMultiplier::squareNTT(ZZ x[], uint64_t* ra, long np, const ZZ& q) {
+void RingMultiplier::squareNTT(ZZ* x, uint64_t* ra, long np, const ZZ& q) {
 	uint64_t* rx = new uint64_t[np << logN];
 
 	NTL_EXEC_RANGE(np, first, last);
@@ -1220,4 +1220,35 @@ uint64_t RingMultiplier::findMthRootOfUnity(uint64_t M, uint64_t mod) {
 	uint64_t factor = (mod - 1) / M;
 	res = powMod(res, factor, mod);
 	return res;
+}
+
+void RingMultiplier::CRT(mpz_t x, mpz_ptr *v, mpz_ptr *m, int t) {
+  mpz_t u;
+  mpz_t C[t];
+  int i, j;
+
+  mpz_init(u);
+  for (i=1; i<t; i++) {
+    mpz_init(C[i]);
+    mpz_set_ui(C[i], 1);
+    for (j=0; j<i; j++) {
+      mpz_invert(u, m[j], m[i]);
+      mpz_mul(C[i], C[i], u);
+      mpz_mod(C[i], C[i], m[i]);
+    }
+  }
+  mpz_set(u, v[0]);
+  mpz_set(x, u);
+  for (i=1; i<t; i++) {
+    mpz_sub(u, v[i], x);
+    mpz_mul(u, u, C[i]);
+    mpz_mod(u, u, m[i]);
+    for (j=0; j<i; j++) {
+      mpz_mul(u, u, m[j]);
+    }
+    mpz_add(x, x, u);
+  }
+
+  for (i=1; i<t; i++) mpz_clear(C[i]);
+  mpz_clear(u);
 }

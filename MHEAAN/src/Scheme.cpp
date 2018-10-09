@@ -495,13 +495,15 @@ void Scheme::multAndEqual(Ciphertext& cipher1, Ciphertext& cipher2) {
 	uint64_t* rb1 = new uint64_t[np << logN];
 	uint64_t* ra2 = new uint64_t[np << logN];
 	uint64_t* rb2 = new uint64_t[np << logN];
+	ZZ* aax = new ZZ[N];
+	ZZ* bbx = new ZZ[N];
+	ZZ* abx = new ZZ[N];
 
 	ring.toNTT(ra1, cipher1.ax, np);
 	ring.toNTT(rb1, cipher1.bx, np);
 	ring.toNTT(ra2, cipher2.ax, np);
 	ring.toNTT(rb2, cipher2.bx, np);
 
-	ZZ aax[N], bbx[N], abx[N];
 	ring.multDNTT(aax, ra1, ra2, np, q);
 	ring.multDNTT(bbx, rb1, rb2, np, q);
 
@@ -526,7 +528,7 @@ void Scheme::multAndEqual(Ciphertext& cipher1, Ciphertext& cipher2) {
 	ring.subAndEqual(cipher1.ax, bbx, q);
 	ring.subAndEqual(cipher1.ax, aax, q);
 	ring.addAndEqual(cipher1.bx, bbx, q);
-
+	delete[] aax; delete[] bbx; delete[] abx;
 	cipher1.logp += cipher2.logp;
 }
 

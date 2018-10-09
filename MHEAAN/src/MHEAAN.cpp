@@ -16,7 +16,7 @@ int main() {
 
 //	TestScheme::testEncrypt(300, 30, 2, 2);
 //	TestScheme::testEncryptSingle(300, 30);
-	TestScheme::testMult(300, 30, 2, 2);
+	TestScheme::testMult(1200, 50, 2, 2);
 
 //----------------------------------------------------------------------------------
 //   ROTATION & CONJUGATION & TRANSPOSITION TESTS

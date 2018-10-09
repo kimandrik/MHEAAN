@@ -13,6 +13,7 @@
 #include <NTL/ZZ.h>
 #include <vector>
 #include "Params.h"
+#include <gmp.h>
 
 using namespace std;
 using namespace NTL;
@@ -109,6 +110,8 @@ public:
 	uint64_t findPrimitiveRoot(uint64_t m);
 
 	uint64_t findMthRootOfUnity(uint64_t M, uint64_t p);
+
+	void CRT(mpz_t x, mpz_ptr *v, mpz_ptr *m, int t);
 
 };
 
