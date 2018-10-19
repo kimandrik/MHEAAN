@@ -28,7 +28,7 @@ static const long N1nprimes = (nprimes << logN1);
 static const long Nnprimes = (nprimes << logN);
 
 static const long cbnd = (logQQ + NTL_ZZ_NBITS - 1) / NTL_ZZ_NBITS;
-
+static const long bignum = 0xfffffff;
 static const ZZ Q = power2_ZZ(logQ);
 static const ZZ QQ = power2_ZZ(logQQ);
 

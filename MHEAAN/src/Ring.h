@@ -109,12 +109,15 @@ public:
 	void multDNTTX1(ZZ* x, uint64_t* ra, uint64_t* rb, long np, const ZZ& q);
 
 	void mult(ZZ* x, ZZ* a, ZZ* b, long np, const ZZ& q);
+	void mult(ZZ* x, ZZ* a, long* b, long np, const ZZ& q);
 	void multAndEqual(ZZ* a, ZZ* b, long np, const ZZ& q);
 	void multNTT(ZZ* x, ZZ* a, uint64_t* rb, long np, const ZZ& q);
+	void multNTT(ZZ* x, long* a, uint64_t* rb, long np, const ZZ& q);
 	void multNTTAndEqual(ZZ* a, uint64_t* rb, long np, const ZZ& q);
 	void multDNTT(ZZ* x, uint64_t* ra, uint64_t* rb, long np, const ZZ& q);
 
 	void square(ZZ* x, ZZ* a, long np, const ZZ& q);
+	void square(ZZ* x, long* a, const ZZ& q);
 	void squareAndEqual(ZZ* a, long np, const ZZ& q);
 	void squareNTT(ZZ* x, uint64_t* ra, long np, const ZZ& q);
 
@@ -130,15 +133,14 @@ public:
 	void negate(ZZ* res, ZZ* p);
 	void negateAndEqual(ZZ* p);
 
-	void add(ZZ* res, ZZ p1[], ZZ p2[], const ZZ& q);
-	void addAndEqual(ZZ p1[], ZZ p2[], const ZZ& q);
+	void add(ZZ* res, ZZ* p1, ZZ* p2, const ZZ& q);
+	void addAndEqual(ZZ* p1, ZZ* p2, const ZZ& q);
 
-	void sub(ZZ* res, ZZ p1[], ZZ p2[], const ZZ& q);
-	void subAndEqual(ZZ p1[], ZZ p2[], const ZZ& q);
-	void subAndEqual2(ZZ p1[], ZZ p2[], const ZZ& q);
+	void sub(ZZ* res, ZZ* p1, ZZ* p2, const ZZ& q);
+	void subAndEqual(ZZ* p1, ZZ* p2, const ZZ& q);
+	void subAndEqual2(ZZ* p1, ZZ* p2, const ZZ& q);
 
 	void multByMonomial(ZZ* res, ZZ* p, long deg0, long deg1, const ZZ& q);
-
 	void multByMonomialAndEqual(ZZ* p, long deg0, long deg1, const ZZ& q);
 
 	void multByConst(ZZ* res, ZZ* p, ZZ& cnst, const ZZ& q);
@@ -163,8 +165,10 @@ public:
 
 
 	void leftRotate(ZZ* res, ZZ* p, long r0, long r1);
+	void leftRotate(ZZ* res, long* p, long r0, long r1);
 
 	void conjugate(ZZ* res, ZZ* p);
+	void conjugate(ZZ* res, long* p);
 
 
 	//----------------------------------------------------------------------------------
@@ -172,10 +176,12 @@ public:
 	//----------------------------------------------------------------------------------
 
 
-	void sampleGauss(ZZ* res);
-	void sampleHWT(ZZ* res);
-	void sampleZO(ZZ* res);
-	void sampleUniform(ZZ* res, long bits);
+	void sampleRLWE(ZZ* ax, ZZ* bx, long* sx, long logq);
+
+	void addGauss(ZZ* ax, const ZZ& q);
+	void sampleHWT(long* res);
+	void sampleZO(long* res);
+	void sampleUniform(ZZ* res, long logq);
 
 };
 

@@ -83,12 +83,15 @@ public:
 	void multDNTTX1(ZZ* x, uint64_t* ra, uint64_t* rb, long np, const ZZ& q);
 
 	void mult(ZZ* x, ZZ* a, ZZ* b, long np, const ZZ& q);
+	void mult(ZZ* x, ZZ* a, long* b, long np, const ZZ& q);
 	void multAndEqual(ZZ* a, ZZ* b, long np, const ZZ& q);
 	void multNTT(ZZ* x, ZZ* a, uint64_t* rb, long np, const ZZ& q);
+	void multNTT(ZZ* x, long* a, uint64_t* rb, long np, const ZZ& q);
 	void multNTTAndEqual(ZZ* a, uint64_t* rb, long np, const ZZ& q);
 	void multDNTT(ZZ* x, uint64_t* ra, uint64_t* rb, long np, const ZZ& q);
 
 	void square(ZZ* x, ZZ* a, long np, const ZZ& q);
+	void square(ZZ* x, long* a, const ZZ& q);
 	void squareAndEqual(ZZ* a, long np, const ZZ& q);
 	void squareNTT(ZZ* x, uint64_t* ra, long np, const ZZ& q);
 

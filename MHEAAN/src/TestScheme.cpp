@@ -45,7 +45,7 @@ void TestScheme::testEncrypt(long logq, long logp, long logn0, long logn1) {
 	long n1 = (1 << logn1);
 	long n = n0 * n1;
 
-	complex<double>* mmat = EvaluatorUtils::randomComplexSignedArray(n);;
+	complex<double>* mmat = EvaluatorUtils::randomComplexSignedArray(n);
 	Ciphertext cipher;
 
 	timeutils.start("Encrypt");

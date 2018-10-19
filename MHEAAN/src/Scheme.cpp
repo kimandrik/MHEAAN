@@ -23,22 +23,14 @@ Scheme::Scheme(SecretKey& secretKey, Ring& ring, bool isSerialized) : ring(ring)
 
 
 void Scheme::addEncKey(SecretKey& secretKey) {
-	ZZ* ax = new ZZ[N];
-	ZZ* bx = new ZZ[N];
-	ZZ* ex = new ZZ[N];
+	ZZ ax[N], bx[N];
 
-	long np = ceil((1 + logQQ + logN + 3)/(double)pbnd);
-	ring.sampleUniform(ax, logQQ);
-	ring.mult(bx, secretKey.sx, ax, np, QQ);
-	ring.sampleGauss(ex);
-	ring.subAndEqual2(ex, bx, QQ);
-	delete[] ex;
+	ring.sampleRLWE(ax, bx, secretKey.sx, logQQ);
 
 	Key* key = new Key();
 
 	ring.toNTT(key->rax, ax, nprimes);
 	ring.toNTT(key->rbx, bx, nprimes);
-	delete[] ax; delete[] bx;
 
 	if(isSerialized) {
 		string path = "serkey/ENCRYPTION.txt";
@@ -51,17 +43,13 @@ void Scheme::addEncKey(SecretKey& secretKey) {
 }
 
 void Scheme::addMultKey(SecretKey& secretKey) {
-	long np = ceil((1 + 1 + logN + 3)/(double)pbnd);
-	ZZ sx2[N], ex[N], ax[N], bx[N];
-	ring.square(sx2, secretKey.sx, np, Q);
-	ring.leftShiftAndEqual(sx2, logQ, QQ);
-	ring.sampleGauss(ex);
-	ring.addAndEqual(ex, sx2, QQ);
+	ZZ sx2[N], ax[N], bx[N];
 
-	np = ceil((1 + logQQ + logN + 3)/(double)pbnd);
-	ring.sampleUniform(ax, logQQ);
-	ring.mult(bx, secretKey.sx, ax, np, QQ);
-	ring.subAndEqual2(ex, bx, QQ);
+	ring.sampleRLWE(ax, bx, secretKey.sx, logQQ);
+
+	ring.square(sx2, secretKey.sx, Q);
+	ring.leftShiftAndEqual(sx2, logQ, QQ);
+	ring.addAndEqual(bx, sx2, QQ);
 
 	Key* key = new Key();
 	ring.toNTT(key->rax, ax, nprimes);
@@ -78,20 +66,13 @@ void Scheme::addMultKey(SecretKey& secretKey) {
 }
 
 void Scheme::addConjKey(SecretKey& secretKey) {
-	ZZ* sxcnj = new ZZ[N];
-	ZZ* ax = new ZZ[N];
-	ZZ* bx = new ZZ[N];
-	ZZ* ex = new ZZ[N];
+	ZZ sxcnj[N], ax[N], bx[N];
+
+	ring.sampleRLWE(ax, bx, secretKey.sx, logQQ);
 
 	ring.conjugate(sxcnj, secretKey.sx);
 	ring.leftShiftAndEqual(sxcnj, logQ, QQ);
-	ring.sampleGauss(ex);
-	ring.addAndEqual(ex, sxcnj, QQ);
-
-	ring.sampleUniform(ax, logQQ);
-	long np = ceil((1 + logQQ + logN + 3)/(double)pbnd);
-	ring.mult(bx, secretKey.sx, ax, np, QQ);
-	ring.subAndEqual2(ex, bx, QQ);
+	ring.addAndEqual(bx, sxcnj, QQ);
 
 	Key* key = new Key();
 	ring.toNTT(key->rax, ax, nprimes);
@@ -108,20 +89,13 @@ void Scheme::addConjKey(SecretKey& secretKey) {
 }
 
 void Scheme::addLeftRotKey(SecretKey& secretKey, long r0, long r1) {
-	ZZ* sxrot = new ZZ[N];
-	ZZ* ax = new ZZ[N];
-	ZZ* bx = new ZZ[N];
-	ZZ* ex = new ZZ[N];
+	ZZ sxrot[N], ax[N], bx[N];
+
+	ring.sampleRLWE(ax, bx, secretKey.sx, logQQ);
 
 	ring.leftRotate(sxrot, secretKey.sx, r0, r1);
 	ring.leftShiftAndEqual(sxrot, logQ, QQ);
-	ring.sampleGauss(ex);
-	ring.addAndEqual(ex, sxrot, QQ);
-
-	long np = ceil((1 + logQQ + logN + 3)/(double)pbnd);
-	ring.sampleUniform(ax, logQQ);
-	ring.mult(bx, secretKey.sx, ax, np, QQ);
-	ring.subAndEqual2(ex, bx, QQ);
+	ring.addAndEqual(bx, sxrot, QQ);
 
 	Key* key = new Key();
 	ring.toNTT(key->rax, ax, nprimes);
@@ -243,21 +217,18 @@ void Scheme::addTransposeKeys(SecretKey& secretKey, long logn, long logp) {
 
 void Scheme::rlwe(Ciphertext& res, long logq) {
 	ZZ qQ = ring.qvec[logq + logQ];
-	ZZ* ex = new ZZ[N];
-	ZZ* vx = new ZZ[N];
+	long vx[N];
 
 	Key& key = isSerialized ? SerializationUtils::readKey(serKeyMap.at(ENCRYPTION)) : keyMap.at(ENCRYPTION);
 	long np = ceil((1 + logQQ + logN + 3)/(double)pbnd);
 	ring.sampleZO(vx);
 
 	ring.multNTT(res.ax, vx, key.rax, np, qQ);
-	ring.sampleGauss(ex);
-	ring.addAndEqual(res.ax, ex, qQ);
+	ring.addGauss(res.ax, qQ);
 	ring.rightShiftAndEqual(res.ax, logQ);
 
 	ring.multNTT(res.bx, vx, key.rbx, np, qQ);
-	ring.sampleGauss(ex);
-	ring.addAndEqual(res.bx, ex, qQ);
+	ring.addGauss(res.bx, qQ);
 	ring.rightShiftAndEqual(res.bx, logQ);
 
 	if(isSerialized) delete &key;
@@ -274,10 +245,9 @@ void Scheme::encrypt(Ciphertext& res, complex<double>* vals, long n0, long n1, l
 	ZZ q = ring.qvec[logq];
 	encryptZeros(res, n0, n1, logp, logq);
 
-	ZZ* mx = new ZZ[N];
+	ZZ mx[N];
 	ring.encode(mx, vals, n0, n1, logp);
 	ring.addAndEqual(res.bx, mx, q);
-	delete[] mx;
 }
 
 void Scheme::encrypt(Ciphertext& res, double* vals, long n0, long n1, long logp, long logq) {
@@ -307,18 +277,15 @@ void Scheme::encryptZeros(Ciphertext& res, long n0, long n1, long logp, long log
 }
 
 complex<double>* Scheme::decrypt(SecretKey& secretKey, Ciphertext& cipher) {
-	ZZ* mx = new ZZ[N];
+	ZZ mx[N];
 	decryptMsg(mx, secretKey, cipher);
-	complex<double>* res = ring.decode(mx, cipher.n0, cipher.n1, cipher.logp, cipher.logq);
-	delete[] mx;
-	return res;
+	return ring.decode(mx, cipher.n0, cipher.n1, cipher.logp, cipher.logq);
 }
 
 complex<double> Scheme::decryptSingle(SecretKey& secretKey, Ciphertext& cipher) {
 	complex<double> res;
-	ZZ* mx = new ZZ[N];
+	ZZ mx[N];
 	decryptMsg(mx, secretKey, cipher);
-	delete[] mx;
 	return res;
 }
 

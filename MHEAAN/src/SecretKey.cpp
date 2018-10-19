@@ -9,5 +9,6 @@
 #include "SecretKey.h"
 
 SecretKey::SecretKey(Ring& ring) {
+	fill_n(sx, N, 0);
 	ring.sampleHWT(sx);
 }

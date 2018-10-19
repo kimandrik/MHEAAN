@@ -465,11 +465,19 @@ void Ring::mult(ZZ* x, ZZ* a, ZZ* b, long np, const ZZ& q) {
 	multiplier.mult(x, a, b, np, q);
 }
 
+void Ring::mult(ZZ* x, ZZ* a, long* b, long np, const ZZ& q) {
+	multiplier.mult(x, a, b, np, q);
+}
+
 void Ring::multAndEqual(ZZ* a, ZZ* b, long np, const ZZ& q) {
 	multiplier.multAndEqual(a, b, np, q);
 }
 
 void Ring::multNTT(ZZ* x, ZZ* a, uint64_t* rb, long np, const ZZ& q) {
+	multiplier.multNTT(x, a, rb, np, q);
+}
+
+void Ring::multNTT(ZZ* x, long* a, uint64_t* rb, long np, const ZZ& q) {
 	multiplier.multNTT(x, a, rb, np, q);
 }
 
@@ -483,6 +491,10 @@ void Ring::multDNTT(ZZ* x, uint64_t* ra, uint64_t* rb, long np, const ZZ& q) {
 
 void Ring::square(ZZ* x, ZZ* a, long np, const ZZ& q) {
 	multiplier.square(x, a, np, q);
+}
+
+void Ring::square(ZZ* x, long* a, const ZZ& q) {
+	multiplier.square(x, a, q);
 }
 
 void Ring::squareAndEqual(ZZ* a, long np, const ZZ& q) {
@@ -523,31 +535,31 @@ void Ring::negateAndEqual(ZZ* p) {
 	}
 }
 
-void Ring::add(ZZ* res, ZZ p1[], ZZ p2[], const ZZ& q) {
+void Ring::add(ZZ* res, ZZ* p1, ZZ* p2, const ZZ& q) {
 	for (long i = 0; i < N; ++i) {
 		AddMod(res[i], p1[i], p2[i], q);
 	}
 }
 
-void Ring::addAndEqual(ZZ p1[], ZZ p2[], const ZZ& q) {
+void Ring::addAndEqual(ZZ* p1, ZZ* p2, const ZZ& q) {
 	for (long i = 0; i < N; ++i) {
 		AddMod(p1[i], p1[i], p2[i], q);
 	}
 }
 
-void Ring::sub(ZZ* res, ZZ p1[], ZZ p2[], const ZZ& q) {
+void Ring::sub(ZZ* res, ZZ* p1, ZZ* p2, const ZZ& q) {
 	for (long i = 0; i < N; ++i) {
 		AddMod(res[i], p1[i], -p2[i], q);
 	}
 }
 
-void Ring::subAndEqual(ZZ p1[], ZZ p2[], const ZZ& q) {
+void Ring::subAndEqual(ZZ* p1, ZZ* p2, const ZZ& q) {
 	for (long i = 0; i < N; ++i) {
 		AddMod(p1[i], p1[i], -p2[i], q);
 	}
 }
 
-void Ring::subAndEqual2(ZZ p1[], ZZ p2[], const ZZ& q) {
+void Ring::subAndEqual2(ZZ* p1, ZZ* p2, const ZZ& q) {
 	for (long i = 0; i < N; ++i) {
 		AddMod(p2[i], p1[i], -p2[i], q);
 	}
@@ -694,7 +706,53 @@ void Ring::leftRotate(ZZ* res, ZZ* p, long r0, long r1) {
 	}
 }
 
+void Ring::leftRotate(ZZ* res, long* p, long r0, long r1) {
+	long deg0 = gM0Pows[r0];
+	for (long j = 0; j < N; j += N0) {
+		for (long i = 0; i < N0; ++i) {
+			long ipow = i * deg0;
+			long shift = ipow % M0;
+			if (shift < N0) {
+				res[shift + j] = p[i + j];
+			} else {
+				res[shift - N0 + j] = -p[i + j];
+			}
+		}
+	}
+
+	r1 %= N1;
+	if(r1 != 0) {
+		long divisor = GCD(r1, N1);
+		long steps = N1 / divisor;
+		for (long i = 0; i < N0; ++i) {
+			for (long j = 0; j < divisor; ++j) {
+				ZZ tmp = res[i + (j << logN0)];
+				long idx = j;
+				for (long k = 0; k < steps - 1; ++k) {
+					res[i + (idx << logN0)] = res[i + (((idx + r1) % N1) << logN0)];
+					idx = (idx + r1) % N1;
+				}
+				res[i + (idx << logN0)] = tmp;
+			}
+		}
+	}
+}
+
 void Ring::conjugate(ZZ* res, ZZ* p) {
+	for (long j = 0; j < N; j += N0) {
+		res[j] = p[j];
+		for (long i = 1; i < N0; ++i) {
+			res[N0 - i + j] = -p[i + j];
+		}
+	}
+	for (long i = 0; i < N0; ++i) {
+		for (long j = 0; j < Nh; j+=N0) {
+			swap(res[i+j], res[i+j+Nh]);
+		}
+	}
+}
+
+void Ring::conjugate(ZZ* res, long* p) {
 	for (long j = 0; j < N; j += N0) {
 		res[j] = p[j];
 		for (long i = 1; i < N0; ++i) {
@@ -713,40 +771,54 @@ void Ring::conjugate(ZZ* res, ZZ* p) {
 //----------------------------------------------------------------------------------
 
 
-void Ring::sampleGauss(ZZ* res) {
-	static double Pi = 4.0 * atan(1.0);
-	static long const bignum = 0xfffffff;
+void Ring::sampleRLWE(ZZ* ax, ZZ* bx, long* sx, long logq) {
+	ZZ q = qvec[logq];
+	long np = ceil((1 + logq + logN + 3)/(double)pbnd);
+
+	sampleUniform(ax, logq);
+	mult(bx, ax, sx, np, q);
 
 	for (long i = 0; i < N; i+=2) {
 		double r1 = (1 + RandomBnd(bignum)) / ((double)bignum + 1);
 		double r2 = (1 + RandomBnd(bignum)) / ((double)bignum + 1);
-		double theta=2 * Pi * r1;
+		double theta = 2.0 * M_PI * r1;
 		double rr= sqrt(-2.0 * log(r2)) * sigma;
-
-		res[i] = (long) floor(rr * cos(theta) + 0.5);
-		res[i + 1] = (long) floor(rr * sin(theta) + 0.5);
+		AddMod(bx[i], (long) floor(rr * cos(theta) + 0.5), -bx[i], q);
+		AddMod(bx[i+1], (long) floor(rr * sin(theta) + 0.5), -bx[i+1], q);
 	}
 }
 
-void Ring::sampleHWT(ZZ* res) {
+void Ring::addGauss(ZZ* ax, const ZZ& q) {
+	for (long i = 0; i < N; i+=2) {
+		double r1 = (1 + RandomBnd(bignum)) / ((double)bignum + 1);
+		double r2 = (1 + RandomBnd(bignum)) / ((double)bignum + 1);
+		double theta=2 * M_PI * r1;
+		double rr= sqrt(-2.0 * log(r2)) * sigma;
+
+		AddMod(ax[i], (long) floor(rr * cos(theta) + 0.5), ax[i], q);
+		AddMod(ax[i+1], (long) floor(rr * sin(theta) + 0.5), ax[i+1], q);
+	}
+}
+
+void Ring::sampleHWT(long* res) {
 	long idx = 0;
 	while(idx < h) {
 		long i = RandomBnd(N);
 		if(res[i] == 0) {
-			res[i] = (rand()&1) ? ZZ(1) : ZZ(-1);
+			res[i] = (rand()&1) ? 1 : -1;
 			idx++;
 		}
 	}
 }
 
-void Ring::sampleZO(ZZ* res) {
+void Ring::sampleZO(long* res) {
 	for (long i = 0; i < N; ++i) {
-		res[i] = (rand()&1) ? ZZ(0) : (rand()&1) ? ZZ(1) : ZZ(-1);
+		res[i] = (rand()&1) ? 0 : (rand()&1) ? 1 : -1;
 	}
 }
 
-void Ring::sampleUniform(ZZ* res, long bits) {
+void Ring::sampleUniform(ZZ* res, long logq) {
 	for (long i = 0; i < N; i++) {
-		res[i] = RandomBits_ZZ(bits);
+		res[i] = RandomBits_ZZ(logq);
 	}
 }

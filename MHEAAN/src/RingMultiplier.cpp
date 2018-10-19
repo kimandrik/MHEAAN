@@ -367,7 +367,6 @@ void RingMultiplier::reconstruct(ZZ* x, uint64_t* rx, long np, const ZZ& q) {
 	mulmod_precon_t* coeffpinv_arraynp = coeffpinv_array[np - 1];
 	ZZ& pProdnp = pProd[np - 1];
 	ZZ& pProdhnp = pProdh[np - 1];
-
 	NTL_EXEC_RANGE(N, first, last);
 	for (long n = first; n < last; ++n) {
 		ZZ& acc = x[n];
@@ -380,10 +379,8 @@ void RingMultiplier::reconstruct(ZZ* x, uint64_t* rx, long np, const ZZ& q) {
 			QuickAccumMulAdd(acc, pHatnp[i], s);
 		}
 		QuickAccumEnd(acc);
-//		QuickRem(x[n], pProdnp);
 		rem(x[n], x[n], pProdnp);
 		if (x[n] > pProdhnp) x[n] -= pProdnp;
-//		QuickRem(x[n], q);
 		x[n] %= q;
 	}
 	NTL_EXEC_RANGE_END;
@@ -875,6 +872,38 @@ void RingMultiplier::mult(ZZ* x, ZZ* a, ZZ* b, long np, const ZZ& q) {
 	delete[] ra;
 }
 
+void RingMultiplier::mult(ZZ* x, ZZ* a, long* b, long np, const ZZ& q) {
+	uint64_t* ra = new uint64_t[np << logN];
+	uint64_t* rb = new uint64_t[np << logN];
+
+	NTL_EXEC_RANGE(np, first, last);
+	for (long i = first; i < last; ++i) {
+		uint64_t pi = pVec[i];
+		uint64_t pri = prVec[i];
+		long pTwoki = pTwok[i];
+
+		_ntl_general_rem_one_struct* red_ss = red_ss_array[i];
+		uint64_t* rai = ra + (i << logN);
+		uint64_t* rbi = rb + (i << logN);
+		for (long n = 0; n < N; ++n) {
+			rai[n] = _ntl_general_rem_one_struct_apply(a[n].rep, pi, red_ss);
+			rbi[n] = b[n] >= 0 ? b[n] : pi - b[n];
+		}
+		NTT(rai, i);
+		NTT(rbi, i);
+
+		for (long n = 0; n < N; ++n) {
+			mulModBarrettAndEqual(rai[n], rbi[n], pi, pri, pTwoki);
+		}
+		INTT(rai, i);
+	}
+	NTL_EXEC_RANGE_END;
+	delete[] rb;
+
+	reconstruct(x, ra, np, q);
+	delete[] ra;
+}
+
 void RingMultiplier::multAndEqual(ZZ* a, ZZ* b, long np, const ZZ& q) {
 	uint64_t* ra = new uint64_t[np << logN];
 	uint64_t* rb = new uint64_t[np << logN];
@@ -922,6 +951,34 @@ void RingMultiplier::multNTT(ZZ* x, ZZ* a, uint64_t* rb, long np, const ZZ& q) {
 		uint64_t* rbi = rb + (i << logN);
 		for (long n = 0; n < N; ++n) {
 			rai[n] = _ntl_general_rem_one_struct_apply(a[n].rep, pi, red_ss);
+		}
+		NTT(rai, i);
+
+		for (long n = 0; n < N; ++n) {
+			mulModBarrettAndEqual(rai[n], rbi[n], pi, pri, pTwoki);
+		}
+
+		INTT(rai, i);
+	}
+	NTL_EXEC_RANGE_END;
+
+	reconstruct(x, ra, np, q);
+	delete[] ra;
+}
+
+void RingMultiplier::multNTT(ZZ* x, long* a, uint64_t* rb, long np, const ZZ& q) {
+	uint64_t* ra = new uint64_t[np << logN];
+
+	NTL_EXEC_RANGE(np, first, last);
+	for (long i = first; i < last; ++i) {
+		uint64_t pi = pVec[i];
+		uint64_t pri = prVec[i];
+		long pTwoki = pTwok[i];
+
+		uint64_t* rai = ra + (i << logN);
+		uint64_t* rbi = rb + (i << logN);
+		for (long n = 0; n < N; ++n) {
+			rai[n] = a[n] >= 0 ? a[n] : pi - a[n];
 		}
 		NTT(rai, i);
 
@@ -1014,6 +1071,25 @@ void RingMultiplier::square(ZZ* x, ZZ* a, long np, const ZZ& q) {
 	NTL_EXEC_RANGE_END;
 
 	reconstruct(x, ra, np, q);
+	delete[] ra;
+}
+
+void RingMultiplier::square(ZZ* x, long* a, const ZZ& q) {
+	uint64_t* ra = new uint64_t[N];
+
+	for (long n = 0; n < N; ++n) {
+		ra[n] = a[n] >= 0 ? a[n] : pVec[0] - a[n];
+	}
+
+	NTT(ra, 0);
+
+	for (long n = 0; n < N; ++n) {
+		mulModBarrettAndEqual(ra[n], ra[n], pVec[0], prVec[0], pTwok[0]);
+	}
+
+	INTT(ra, 0);
+
+	reconstruct(x, ra, 1, q);
 	delete[] ra;
 }
 
