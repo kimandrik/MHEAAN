@@ -12,6 +12,7 @@
 #include <cmath>
 #include <cstdint>
 
+
 RingMultiplier::RingMultiplier() {
 
 	uint64_t g1 = findPrimitiveRoot(M1);
@@ -38,8 +39,7 @@ RingMultiplier::RingMultiplier() {
 	for (long i = 0; i < nprimes; ++i) {
 		red_ss_array[i] = _ntl_general_rem_one_struct_build(pVec[i]);
 		pInvVec[i] = inv(pVec[i]);
-		pTwok[i] = (2 * ((long) log2(pVec[i]) + 1));
-		prVec[i] = (static_cast<unsigned __int128>(1) << pTwok[i]) / pVec[i];
+		prVec[i] = (static_cast<unsigned __int128>(1) << kbar2) / pVec[i];
 
 		uint64_t NxInvModp = powMod(N0, pVec[i] - 2, pVec[i]);
 		mulMod(scaledN0Inv[i], NxInvModp, (1ULL << 32), pVec[i]);
@@ -48,7 +48,6 @@ RingMultiplier::RingMultiplier() {
 		uint64_t NyInvModp = powMod(N1, pVec[i] - 2, pVec[i]);
 		mulMod(scaledN1Inv[i], NyInvModp, (1ULL << 32), pVec[i]);
 		mulMod(scaledN1Inv[i], scaledN1Inv[i],(1ULL << 32), pVec[i]);
-
 
 		uint64_t rootM0 = findMthRootOfUnity(M0, pVec[i]);
 		uint64_t rootM0inv = powMod(rootM0, pVec[i] - 2, pVec[i]);
@@ -244,12 +243,11 @@ void RingMultiplier::INTTPO2X1(uint64_t* a, long index) {
 void RingMultiplier::NTTX1(uint64_t* a, long index) {
 	uint64_t pi = pVec[index];
 	uint64_t pri = prVec[index];
-	long pti = pTwok[index];
 	uint64_t* rootM1DFTPowsi = rootM1DFTPows[index];
 
 	NTTPO2X1(a, index);
 	for (long i = 0; i < N1; ++i) {
-		mulModBarrettAndEqual(a[i], rootM1DFTPowsi[i], pi, pri, pti);
+		mulModBarrettAndEqual(a[i], rootM1DFTPowsi[i], pi, pri);
 	}
 	INTTPO2X1(a, index);
 }
@@ -257,12 +255,11 @@ void RingMultiplier::NTTX1(uint64_t* a, long index) {
 void RingMultiplier::INTTX1(uint64_t* a, long index) {
 	uint64_t pi = pVec[index];
 	uint64_t pri = prVec[index];
-	long pti = pTwok[index];
 	uint64_t* rootM1DFTPowsInvi = rootM1DFTPowsInv[index];
 
 	NTTPO2X1(a, index);
 	for (long i = 0; i < N1; ++i) {
-		mulModBarrett(a[i], a[i], rootM1DFTPowsInvi[i], pi, pri, pti);
+		mulModBarrett(a[i], a[i], rootM1DFTPowsInvi[i], pi, pri);
 	}
 	INTTPO2X1(a, index);
 }
@@ -396,7 +393,7 @@ void RingMultiplier::multX0(ZZ* x, ZZ* a, ZZ* b, long np, const ZZ& q) {
 		uint64_t* rbi = rb + (i << logN0);
 		uint64_t pi = pVec[i];
 		uint64_t pri = prVec[i];
-		long pTwoki = pTwok[i];
+
 		_ntl_general_rem_one_struct* red_ss = red_ss_array[i];
 
 		for (long n = 0; n < N; ++n) {
@@ -415,7 +412,7 @@ void RingMultiplier::multX0(ZZ* x, ZZ* a, ZZ* b, long np, const ZZ& q) {
 		for (long ix = 0; ix < N0; ++ix) {
 			for (long iy = 0; iy < N; iy += N0) {
 				long n = ix + iy;
-				mulModBarrettAndEqual(rai[n], rbi[ix], pi, pri, pTwoki);
+				mulModBarrettAndEqual(rai[n], rbi[ix], pi, pri);
 			}
 		}
 
@@ -440,7 +437,6 @@ void RingMultiplier::multX0AndEqual(ZZ* a, ZZ* b, long np, const ZZ& q) {
 		uint64_t* rbi = rb + (i << logN0);
 		uint64_t pi = pVec[i];
 		uint64_t pri = prVec[i];
-		long pTwoki = pTwok[i];
 
 		_ntl_general_rem_one_struct* red_ss = red_ss_array[i];
 
@@ -460,7 +456,7 @@ void RingMultiplier::multX0AndEqual(ZZ* a, ZZ* b, long np, const ZZ& q) {
 		for (long ix = 0; ix < N0; ++ix) {
 			for (long iy = 0; iy < N; iy += N0) {
 				long n = ix + iy;
-				mulModBarrett(rai[n], rai[n], rbi[ix], pi, pri, pTwoki);
+				mulModBarrett(rai[n], rai[n], rbi[ix], pi, pri);
 			}
 		}
 
@@ -485,7 +481,6 @@ void RingMultiplier::multNTTX0(ZZ* x, ZZ* a, uint64_t* rb, long np, const ZZ& q)
 		uint64_t* rbi = rb + (i << logN0);
 		uint64_t pi = pVec[i];
 		uint64_t pri = prVec[i];
-		long pTwoki = pTwok[i];
 
 		_ntl_general_rem_one_struct* red_ss = red_ss_array[i];
 
@@ -499,7 +494,7 @@ void RingMultiplier::multNTTX0(ZZ* x, ZZ* a, uint64_t* rb, long np, const ZZ& q)
 
 		for (long ix = 0; ix < N0; ++ix) {
 			for (long n = ix; n < N; n += N0) {
-				mulModBarrettAndEqual(rai[n], rbi[ix], pi, pri, pTwoki);
+				mulModBarrettAndEqual(rai[n], rbi[ix], pi, pri);
 			}
 		}
 
@@ -523,7 +518,6 @@ void RingMultiplier::multNTTX0AndEqual(ZZ* a, uint64_t* rb, long np, const ZZ& q
 		uint64_t* rbi = rb + (i << logN0);
 		uint64_t pi = pVec[i];
 		uint64_t pri = prVec[i];
-		long pTwoki = pTwok[i];
 
 		_ntl_general_rem_one_struct* red_ss = red_ss_array[i];
 
@@ -538,7 +532,7 @@ void RingMultiplier::multNTTX0AndEqual(ZZ* a, uint64_t* rb, long np, const ZZ& q
 		for (long ix = 0; ix < N0; ++ix) {
 			for (long iy = 0; iy < N; iy += N0) {
 				long n = ix + iy;
-				mulModBarrettAndEqual(rai[n], rbi[ix], pi, pri, pTwoki);
+				mulModBarrettAndEqual(rai[n], rbi[ix], pi, pri);
 			}
 		}
 
@@ -562,12 +556,11 @@ void RingMultiplier::multDNTTX0(ZZ* x, uint64_t* ra, uint64_t* rb, long np, cons
 		uint64_t* rbi = rb + (i << logN0);
 		uint64_t pi = pVec[i];
 		uint64_t pri = prVec[i];
-		long pTwoki = pTwok[i];
 
 		uint64_t* rxi = rx + (i << logN);
 		for (long ix = 0; ix < N0; ++ix) {
 			for (long n = ix; n < N; n += N0) {
-				mulModBarrett(rxi[n], rai[n], rbi[ix], pi, pri, pTwoki);
+				mulModBarrett(rxi[n], rai[n], rbi[ix], pi, pri);
 			}
 		}
 
@@ -592,7 +585,6 @@ void RingMultiplier::multX1(ZZ* x, ZZ* a, ZZ* b, long np, const ZZ& q) {
 	for (long i = first; i < last; ++i) {
 		uint64_t pi = pVec[i];
 		uint64_t pri = prVec[i];
-		long pTwoki = pTwok[i];
 		_ntl_general_rem_one_struct* red_ss = red_ss_array[i];
 
 		uint64_t* tmp = new uint64_t[1 << logN1];
@@ -620,7 +612,7 @@ void RingMultiplier::multX1(ZZ* x, ZZ* a, ZZ* b, long np, const ZZ& q) {
 			uint64_t rbiy = rbi[iy];
 			uint64_t* raiy = rai + (iy << logN0);
 			for (long ix = 0; ix < N0; ++ix) {
-				mulModBarrettAndEqual(raiy[ix], rbiy, pi, pri, pTwoki);
+				mulModBarrettAndEqual(raiy[ix], rbiy, pi, pri);
 			}
 		}
 
@@ -650,7 +642,6 @@ void RingMultiplier::multX1AndEqual(ZZ* a, ZZ* b, long np, const ZZ& q) {
 	for (long i = first; i < last; ++i) {
 		uint64_t pi = pVec[i];
 		uint64_t pri = prVec[i];
-		long pTwoki = pTwok[i];
 		_ntl_general_rem_one_struct* red_ss = red_ss_array[i];
 
 		uint64_t* rai = ra + (i << logN);
@@ -678,7 +669,7 @@ void RingMultiplier::multX1AndEqual(ZZ* a, ZZ* b, long np, const ZZ& q) {
 			uint64_t rbiy = rbi[iy];
 			uint64_t* raiy = rai + (iy << logN0);
 			for (long ix = 0; ix < N0; ++ix) {
-				mulModBarrettAndEqual(raiy[ix], rbiy, pi, pri, pTwoki);
+				mulModBarrettAndEqual(raiy[ix], rbiy, pi, pri);
 			}
 		}
 
@@ -707,7 +698,6 @@ void RingMultiplier::multNTTX1(ZZ* x, ZZ* a, uint64_t* rb, long np, const ZZ& q)
 	for (long i = first; i < last; ++i) {
 		uint64_t pi = pVec[i];
 		uint64_t pri = prVec[i];
-		long pTwoki = pTwok[i];
 		_ntl_general_rem_one_struct* red_ss = red_ss_array[i];
 
 		uint64_t* tmp = new uint64_t[1 << logN1];
@@ -730,7 +720,7 @@ void RingMultiplier::multNTTX1(ZZ* x, ZZ* a, uint64_t* rb, long np, const ZZ& q)
 			uint64_t rbiy = rbi[iy];
 			uint64_t* raiy = rai + (iy << logN0);
 			for (long ix = 0; ix < N0; ++ix) {
-				mulModBarrettAndEqual(raiy[ix], rbiy, pi, pri, pTwoki);
+				mulModBarrettAndEqual(raiy[ix], rbiy, pi, pri);
 			}
 		}
 
@@ -758,7 +748,6 @@ void RingMultiplier::multNTTX1AndEqual(ZZ* a, uint64_t* rb, long np, const ZZ& q
 	for (long i = first; i < last; ++i) {
 		uint64_t pi = pVec[i];
 		uint64_t pri = prVec[i];
-		long pTwoki = pTwok[i];
 		_ntl_general_rem_one_struct* red_ss = red_ss_array[i];
 
 		uint64_t* rai = ra + (i << logN);
@@ -781,7 +770,7 @@ void RingMultiplier::multNTTX1AndEqual(ZZ* a, uint64_t* rb, long np, const ZZ& q
 			uint64_t rbiy = rbi[iy];
 			uint64_t* raiy = rai + (iy << logN0);
 			for (long ix = 0; ix < N0; ++ix) {
-				mulModBarrettAndEqual(raiy[ix], rbiy, pi, pri, pTwoki);
+				mulModBarrettAndEqual(raiy[ix], rbiy, pi, pri);
 			}
 		}
 
@@ -809,7 +798,6 @@ void RingMultiplier::multDNTTX1(ZZ* x, uint64_t* ra, uint64_t* rb, long np, cons
 	for (long i = first; i < last; ++i) {
 		uint64_t pi = pVec[i];
 		uint64_t pri = prVec[i];
-		long pTwoki = pTwok[i];
 		uint64_t* rai = ra + (i << logN);
 		uint64_t* rbi = rb + (i << logN1);
 		uint64_t* rxi = rx + (i << logN);
@@ -818,7 +806,7 @@ void RingMultiplier::multDNTTX1(ZZ* x, uint64_t* ra, uint64_t* rb, long np, cons
 			uint64_t* rxiy = rxi + (iy << logN0);
 			uint64_t* raiy = rai + (iy << logN0);
 			for (long ix = 0; ix < N0; ++ix) {
-				mulModBarrett(rxiy[ix], raiy[ix], rbiy, pi, pri, pTwoki);
+				mulModBarrett(rxiy[ix], raiy[ix], rbiy, pi, pri);
 			}
 		}
 
@@ -848,7 +836,6 @@ void RingMultiplier::mult(ZZ* x, ZZ* a, ZZ* b, long np, const ZZ& q) {
 	for (long i = first; i < last; ++i) {
 		uint64_t pi = pVec[i];
 		uint64_t pri = prVec[i];
-		long pTwoki = pTwok[i];
 
 		_ntl_general_rem_one_struct* red_ss = red_ss_array[i];
 		uint64_t* rai = ra + (i << logN);
@@ -861,7 +848,7 @@ void RingMultiplier::mult(ZZ* x, ZZ* a, ZZ* b, long np, const ZZ& q) {
 		NTT(rbi, i);
 
 		for (long n = 0; n < N; ++n) {
-			mulModBarrettAndEqual(rai[n], rbi[n], pi, pri, pTwoki);
+			mulModBarrettAndEqual(rai[n], rbi[n], pi, pri);
 		}
 		INTT(rai, i);
 	}
@@ -880,7 +867,6 @@ void RingMultiplier::mult(ZZ* x, ZZ* a, long* b, long np, const ZZ& q) {
 	for (long i = first; i < last; ++i) {
 		uint64_t pi = pVec[i];
 		uint64_t pri = prVec[i];
-		long pTwoki = pTwok[i];
 
 		_ntl_general_rem_one_struct* red_ss = red_ss_array[i];
 		uint64_t* rai = ra + (i << logN);
@@ -893,7 +879,7 @@ void RingMultiplier::mult(ZZ* x, ZZ* a, long* b, long np, const ZZ& q) {
 		NTT(rbi, i);
 
 		for (long n = 0; n < N; ++n) {
-			mulModBarrettAndEqual(rai[n], rbi[n], pi, pri, pTwoki);
+			mulModBarrettAndEqual(rai[n], rbi[n], pi, pri);
 		}
 		INTT(rai, i);
 	}
@@ -912,7 +898,6 @@ void RingMultiplier::multAndEqual(ZZ* a, ZZ* b, long np, const ZZ& q) {
 	for (long i = first; i < last; ++i) {
 		uint64_t pi = pVec[i];
 		uint64_t pri = prVec[i];
-		long pTwoki = pTwok[i];
 		_ntl_general_rem_one_struct* red_ss = red_ss_array[i];
 
 		uint64_t* rai = ra + (i << logN);
@@ -925,7 +910,7 @@ void RingMultiplier::multAndEqual(ZZ* a, ZZ* b, long np, const ZZ& q) {
 		NTT(rbi, i);
 
 		for (long n = 0; n < N; ++n) {
-			mulModBarrettAndEqual(rai[n], rbi[n], pi, pri, pTwoki);
+			mulModBarrettAndEqual(rai[n], rbi[n], pi, pri);
 		}
 
 		INTT(rai, i);
@@ -944,7 +929,6 @@ void RingMultiplier::multNTT(ZZ* x, ZZ* a, uint64_t* rb, long np, const ZZ& q) {
 	for (long i = first; i < last; ++i) {
 		uint64_t pi = pVec[i];
 		uint64_t pri = prVec[i];
-		long pTwoki = pTwok[i];
 
 		_ntl_general_rem_one_struct* red_ss = red_ss_array[i];
 		uint64_t* rai = ra + (i << logN);
@@ -955,7 +939,7 @@ void RingMultiplier::multNTT(ZZ* x, ZZ* a, uint64_t* rb, long np, const ZZ& q) {
 		NTT(rai, i);
 
 		for (long n = 0; n < N; ++n) {
-			mulModBarrettAndEqual(rai[n], rbi[n], pi, pri, pTwoki);
+			mulModBarrettAndEqual(rai[n], rbi[n], pi, pri);
 		}
 
 		INTT(rai, i);
@@ -973,7 +957,6 @@ void RingMultiplier::multNTT(ZZ* x, long* a, uint64_t* rb, long np, const ZZ& q)
 	for (long i = first; i < last; ++i) {
 		uint64_t pi = pVec[i];
 		uint64_t pri = prVec[i];
-		long pTwoki = pTwok[i];
 
 		uint64_t* rai = ra + (i << logN);
 		uint64_t* rbi = rb + (i << logN);
@@ -983,7 +966,7 @@ void RingMultiplier::multNTT(ZZ* x, long* a, uint64_t* rb, long np, const ZZ& q)
 		NTT(rai, i);
 
 		for (long n = 0; n < N; ++n) {
-			mulModBarrettAndEqual(rai[n], rbi[n], pi, pri, pTwoki);
+			mulModBarrettAndEqual(rai[n], rbi[n], pi, pri);
 		}
 
 		INTT(rai, i);
@@ -1001,7 +984,6 @@ void RingMultiplier::multNTTAndEqual(ZZ* a, uint64_t* rb, long np, const ZZ& q) 
 	for (long i = first; i < last; ++i) {
 		uint64_t pi = pVec[i];
 		uint64_t pri = prVec[i];
-		long pTwoki = pTwok[i];
 		_ntl_general_rem_one_struct* red_ss = red_ss_array[i];
 
 		uint64_t* rai = ra + (i << logN);
@@ -1011,7 +993,7 @@ void RingMultiplier::multNTTAndEqual(ZZ* a, uint64_t* rb, long np, const ZZ& q) 
 		}
 		NTT(rai, i);
 		for (long n = 0; n < N; ++n) {
-			mulModBarrettAndEqual(rai[n], rbi[n], pi, pri, pTwoki);
+			mulModBarrettAndEqual(rai[n], rbi[n], pi, pri);
 		}
 
 		INTT(rai, i);
@@ -1029,13 +1011,12 @@ void RingMultiplier::multDNTT(ZZ* x, uint64_t* ra, uint64_t* rb, long np, const 
 	for (long i = first; i < last; ++i) {
 		uint64_t pi = pVec[i];
 		uint64_t pri = prVec[i];
-		long pTwoki = pTwok[i];
 
 		uint64_t* rai = ra + (i << logN);
 		uint64_t* rbi = rb + (i << logN);
 		uint64_t* rxi = rx + (i << logN);
 		for (long n = 0; n < N; ++n) {
-			mulModBarrett(rxi[n], rai[n], rbi[n], pi, pri, pTwoki);
+			mulModBarrett(rxi[n], rai[n], rbi[n], pi, pri);
 		}
 
 		INTT(rxi, i);
@@ -1053,7 +1034,6 @@ void RingMultiplier::square(ZZ* x, ZZ* a, long np, const ZZ& q) {
 	for (long i = first; i < last; ++i) {
 		uint64_t pi = pVec[i];
 		uint64_t pri = prVec[i];
-		long pTwoki = pTwok[i];
 		_ntl_general_rem_one_struct* red_ss = red_ss_array[i];
 
 		uint64_t* rai = ra + (i << logN);
@@ -1063,7 +1043,7 @@ void RingMultiplier::square(ZZ* x, ZZ* a, long np, const ZZ& q) {
 		NTT(rai, i);
 
 		for (long n = 0; n < N; ++n) {
-			mulModBarrettAndEqual(rai[n], rai[n], pi, pri, pTwoki);
+			mulModBarrettAndEqual(rai[n], rai[n], pi, pri);
 		}
 
 		INTT(rai, i);
@@ -1084,7 +1064,7 @@ void RingMultiplier::square(ZZ* x, long* a, const ZZ& q) {
 	NTT(ra, 0);
 
 	for (long n = 0; n < N; ++n) {
-		mulModBarrettAndEqual(ra[n], ra[n], pVec[0], prVec[0], pTwok[0]);
+		mulModBarrettAndEqual(ra[n], ra[n], pVec[0], prVec[0]);
 	}
 
 	INTT(ra, 0);
@@ -1100,7 +1080,6 @@ void RingMultiplier::squareAndEqual(ZZ* a, long np, const ZZ& q) {
 	for (long i = 0; i < np; ++i) {
 		uint64_t pi = pVec[i];
 		uint64_t pri = prVec[i];
-		long pTwoki = pTwok[i];
 		_ntl_general_rem_one_struct* red_ss = red_ss_array[i];
 
 		uint64_t* rai = ra + (i << logN);
@@ -1110,7 +1089,7 @@ void RingMultiplier::squareAndEqual(ZZ* a, long np, const ZZ& q) {
 		NTT(rai, i);
 
 		for (long n = 0; n < N; ++n) {
-			mulModBarrettAndEqual(rai[n], rai[n], pi, pri, pTwoki);
+			mulModBarrettAndEqual(rai[n], rai[n], pi, pri);
 		}
 
 		INTT(rai, i);
@@ -1128,11 +1107,10 @@ void RingMultiplier::squareNTT(ZZ* x, uint64_t* ra, long np, const ZZ& q) {
 	for (long i = first; i < last; ++i) {
 		uint64_t pi = pVec[i];
 		uint64_t pri = prVec[i];
-		long pTwoki = pTwok[i];
 		uint64_t* rai = ra + (i << logN);
 		uint64_t* rxi = rx + (i << logN);
 		for (long n = 0; n < N; ++n) {
-			mulModBarrett(rxi[n], rai[n], rai[n], pi, pri, pTwoki);
+			mulModBarrett(rxi[n], rai[n], rai[n], pi, pri);
 		}
 		INTT(rxi, i);
 	}
@@ -1188,42 +1166,26 @@ void RingMultiplier::mulMod(uint64_t &r, uint64_t a, uint64_t b, uint64_t m) {
 	r = static_cast<uint64_t>(mul);
 }
 
-void RingMultiplier::mulModBarrett(uint64_t& r, uint64_t a, uint64_t b, uint64_t p, uint64_t pr, long twok) {
-	unsigned __int128
-	mul = static_cast<unsigned __int128>(a) * b;
-	uint64_t atop, abot;
-	abot = static_cast<uint64_t>(mul);
-	atop = static_cast<uint64_t>(mul >> 64);
-	unsigned __int128
-	tmp = static_cast<unsigned __int128>(abot) * pr;
-	tmp >>= 64;
-	tmp += static_cast<unsigned __int128>(atop) * pr;
-	tmp >>= twok - 64;
-	tmp *= p;
-	tmp = mul - tmp;
-	r = static_cast<uint64_t>(tmp);
-	if (r >= p) {
-		r -= p;
-	}
+void RingMultiplier::mulModBarrett(uint64_t& r, uint64_t a, uint64_t b, uint64_t p, uint64_t pr) {
+	unsigned __int128 mul = static_cast<unsigned __int128>(a) * b;
+	unsigned __int128 atop = mul >> kbar;
+	atop = atop * pr;
+	atop = atop >> kbar;
+	atop = atop * p;
+	atop = mul - atop;
+	r = static_cast<uint64_t>(atop);
+	if (r >= p) r -= p;
 }
 
-void RingMultiplier::mulModBarrettAndEqual(uint64_t& r, uint64_t b, uint64_t p, uint64_t pr, long twok) {
-	unsigned __int128
-	mul = static_cast<unsigned __int128>(r) * b;
-	uint64_t atop, abot;
-	abot = static_cast<uint64_t>(mul);
-	atop = static_cast<uint64_t>(mul >> 64);
-	unsigned __int128
-	tmp = static_cast<unsigned __int128>(abot) * pr;
-	tmp >>= 64;
-	tmp += static_cast<unsigned __int128>(atop) * pr;
-	tmp >>= twok - 64;
-	tmp *= p;
-	tmp = mul - tmp;
-	r = static_cast<uint64_t>(tmp);
-	if (r >= p) {
-		r -= p;
-	}
+void RingMultiplier::mulModBarrettAndEqual(uint64_t& r, uint64_t b, uint64_t p, uint64_t pr) {
+	unsigned __int128 mul = static_cast<unsigned __int128>(r) * b;
+	unsigned __int128 atop = mul >> kbar;
+	atop = atop * pr;
+	atop = atop >> kbar;
+	atop = atop * p;
+	atop = mul - atop;
+	r = static_cast<uint64_t>(atop);
+	if (r >= p) r -= p;
 }
 
 uint64_t RingMultiplier::powMod(uint64_t x, uint64_t y, uint64_t modulus) {

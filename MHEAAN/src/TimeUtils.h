@@ -10,6 +10,7 @@
 #define MHEAAN_TIMEUTILS_H_
 
 #include <iostream>
+#include <stdlib.h>
 
 struct timeval;
 

@@ -27,7 +27,6 @@ public:
 
 	uint64_t pVec[nprimes];
 	uint64_t prVec[nprimes];
-	long pTwok[nprimes];
 
 	uint64_t pInvVec[nprimes];
 
@@ -99,8 +98,8 @@ public:
 	void butt2(uint64_t& a1, uint64_t& a2, uint64_t p, uint64_t pInv, uint64_t W);
 	void divByN(uint64_t& a, uint64_t p, uint64_t pInv, uint64_t NScaleInv);
 	void mulMod(uint64_t& r, uint64_t a, uint64_t b, uint64_t p);
-	void mulModBarrett(uint64_t& r, uint64_t a, uint64_t b, uint64_t p, uint64_t pr, long twok);
-	void mulModBarrettAndEqual(uint64_t& r, uint64_t b, uint64_t p, uint64_t pr, long twok);
+	void mulModBarrett(uint64_t& r, uint64_t a, uint64_t b, uint64_t p, uint64_t pr);
+	void mulModBarrettAndEqual(uint64_t& r, uint64_t b, uint64_t p, uint64_t pr);
 
 	uint64_t powMod(uint64_t x, uint64_t y, uint64_t p);
 

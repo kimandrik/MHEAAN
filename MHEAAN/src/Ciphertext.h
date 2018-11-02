@@ -6,8 +6,8 @@
 * work.  If not, see <http://creativecommons.org/licenses/by-nc/3.0/>.
 */
 
-#ifndef MPHEAAN_CIPHERTEXT_H_
-#define MPHEAAN_CIPHERTEXT_H_
+#ifndef MHEAAN_CIPHERTEXT_H_
+#define MHEAAN_CIPHERTEXT_H_
 
 #include <NTL/ZZ.h>
 #include "Params.h"
@@ -16,6 +16,7 @@ using namespace std;
 using namespace NTL;
 
 class Ciphertext {
+
 public:
 
 	ZZ* ax = new ZZ[N];

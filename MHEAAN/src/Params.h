@@ -10,6 +10,8 @@ static const long logQ = 1200;
 static const double sigma = 3.2;
 static const long h = 64;
 static const long pbnd = 59;
+static const long kbar = 60;
+static const long kbar2 = 120;
 
 static const long logN0h = (logN0 - 1);
 static const long logN = (logN0 + logN1);
