@@ -92,7 +92,6 @@ void Scheme::addLeftRotKey(SecretKey& secretKey, long r0, long r1) {
 	ZZ sxrot[N], ax[N], bx[N];
 
 	ring.sampleRLWE(ax, bx, secretKey.sx, logQQ);
-
 	ring.leftRotate(sxrot, secretKey.sx, r0, r1);
 	ring.leftShiftAndEqual(sxrot, logQ, QQ);
 	ring.addAndEqual(bx, sxrot, QQ);

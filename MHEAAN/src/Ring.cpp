@@ -713,9 +713,9 @@ void Ring::leftRotate(ZZ* res, long* p, long r0, long r1) {
 			long ipow = i * deg0;
 			long shift = ipow % M0;
 			if (shift < N0) {
-				res[shift + j] = p[i + j];
+				res[shift + j] = ZZ(p[i + j]);
 			} else {
-				res[shift - N0 + j] = -p[i + j];
+				res[shift - N0 + j] = ZZ(-p[i + j]);
 			}
 		}
 	}

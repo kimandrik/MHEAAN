@@ -259,7 +259,7 @@ void RingMultiplier::INTTX1(uint64_t* a, long index) {
 
 	NTTPO2X1(a, index);
 	for (long i = 0; i < N1; ++i) {
-		mulModBarrett(a[i], a[i], rootM1DFTPowsInvi[i], pi, pri);
+		mulModBarrettAndEqual(a[i], rootM1DFTPowsInvi[i], pi, pri);
 	}
 	INTTPO2X1(a, index);
 }
@@ -456,7 +456,7 @@ void RingMultiplier::multX0AndEqual(ZZ* a, ZZ* b, long np, const ZZ& q) {
 		for (long ix = 0; ix < N0; ++ix) {
 			for (long iy = 0; iy < N; iy += N0) {
 				long n = ix + iy;
-				mulModBarrett(rai[n], rai[n], rbi[ix], pi, pri);
+				mulModBarrettAndEqual(rai[n], rbi[ix], pi, pri);
 			}
 		}
 
@@ -1160,9 +1160,8 @@ void RingMultiplier::divByN(uint64_t& a, uint64_t p, uint64_t pInv, uint64_t NSc
 }
 
 void RingMultiplier::mulMod(uint64_t &r, uint64_t a, uint64_t b, uint64_t m) {
-	unsigned __int128
-	mul = static_cast<unsigned __int128>(a) * b;
-	mul %= static_cast<unsigned __int128>(m);
+	unsigned __int128 mul = static_cast<unsigned __int128>(a) * b;
+	mul = mul % static_cast<unsigned __int128>(m);
 	r = static_cast<uint64_t>(mul);
 }
 
