@@ -19,7 +19,7 @@ using namespace NTL;
 class SecretKey {
 public:
 
-	long sx[N];
+	ZZ sx[N];
 
 	SecretKey(Ring& ring);
 

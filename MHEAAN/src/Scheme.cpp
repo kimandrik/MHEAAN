@@ -47,7 +47,7 @@ void Scheme::addMultKey(SecretKey& secretKey) {
 
 	ring.sampleRLWE(ax, bx, secretKey.sx, logQQ);
 
-	ring.square(sx2, secretKey.sx, Q);
+	ring.square(sx2, secretKey.sx, 1, Q);
 	ring.leftShiftAndEqual(sx2, logQ, QQ);
 	ring.addAndEqual(bx, sx2, QQ);
 

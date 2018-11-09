@@ -771,7 +771,7 @@ void Ring::conjugate(ZZ* res, long* p) {
 //----------------------------------------------------------------------------------
 
 
-void Ring::sampleRLWE(ZZ* ax, ZZ* bx, long* sx, long logq) {
+void Ring::sampleRLWE(ZZ* ax, ZZ* bx, ZZ* sx, long logq) {
 	ZZ q = qvec[logq];
 	long np = ceil((1 + logq + logN + 3)/(double)pbnd);
 
@@ -800,12 +800,12 @@ void Ring::addGauss(ZZ* ax, const ZZ& q) {
 	}
 }
 
-void Ring::sampleHWT(long* res) {
+void Ring::sampleHWT(ZZ* res) {
 	long idx = 0;
 	while(idx < h) {
 		long i = RandomBnd(N);
 		if(res[i] == 0) {
-			res[i] = (rand()&1) ? 1 : -1;
+			res[i] = (rand()&1) ? ZZ(1) : ZZ(-1);
 			idx++;
 		}
 	}

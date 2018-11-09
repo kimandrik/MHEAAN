@@ -176,10 +176,10 @@ public:
 	//----------------------------------------------------------------------------------
 
 
-	void sampleRLWE(ZZ* ax, ZZ* bx, long* sx, long logq);
+	void sampleRLWE(ZZ* ax, ZZ* bx, ZZ* sx, long logq);
 
 	void addGauss(ZZ* ax, const ZZ& q);
-	void sampleHWT(long* res);
+	void sampleHWT(ZZ* res);
 	void sampleZO(long* res);
 	void sampleUniform(ZZ* res, long logq);
 
