@@ -70,7 +70,7 @@ public:
 	void encode(ZZ* mx, complex<double>* vals, long n0, long n1, long logp);
 	void encode(ZZ* mx, double* vals, long n0, long n1, long logp);
 
-	complex<double>* decode(ZZ* mx, long n0, long n1, long logp, long logq);
+	complex<double>* decode(ZZ* mx, long n0, long n1, long logp);
 
 
 	//----------------------------------------------------------------------------------
@@ -114,6 +114,8 @@ public:
 	//   OTHER
 	//----------------------------------------------------------------------------------
 
+
+	void normalizeAndEqual(ZZ* p, const ZZ& q);
 
 	void mod(ZZ* res, ZZ* p, const ZZ& q);
 	void modAndEqual(ZZ* p, const ZZ& q);

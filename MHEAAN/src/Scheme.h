@@ -52,24 +52,17 @@ public:
 
 
 	void addEncKey(SecretKey& secretKey);
-
 	void addMultKey(SecretKey& secretKey);
-
 	void addConjKey(SecretKey& secretKey);
 
 	void addLeftRotKey(SecretKey& secretKey, long r0, long r1);
-
 	void addLeftX0RotKeys(SecretKey& secretKey);
-
 	void addLeftX1RotKeys(SecretKey& secretKey);
-
 	void addRightX0RotKeys(SecretKey& secretKey);
-
 	void addRightX1RotKeys(SecretKey& secretKey);
 
 	void addBootContext(long logn0, long logn1, long logp);
 	void addSqrMatContext(long logn, long logp);
-
 	void addBootKey(SecretKey& secretKey, long logn0, long logn1, long logp);
 	void addSqrMatKeys(SecretKey& secretKey, long logn, long logp);
 	void addTransposeKeys(SecretKey& secretKey, long logn, long logp);
@@ -92,9 +85,8 @@ public:
 	void encryptZeros(Ciphertext& res, long n0, long n1, long logp, long logq);
 
 	void decryptMsg(Plaintext& msg, Ciphertext& cipher, SecretKey& secretKey);
-
+	complex<double>* decode(Plaintext& msg);
 	complex<double>* decrypt(SecretKey& secretKey, Ciphertext& cipher);
-
 	complex<double> decryptSingle(SecretKey& secretKey, Ciphertext& cipher);
 
 
@@ -203,6 +195,7 @@ public:
 	//----------------------------------------------------------------------------------
 
 
+	void normalizeAndEqual(Plaintext& msg, long logq);
 	void normalizeAndEqual(Ciphertext& cipher);
 
 	void coeffToSlotX0AndEqual(Ciphertext& cipher);

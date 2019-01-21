@@ -268,26 +268,16 @@ void Ring::encode(ZZ* mx, double* vals, long n0, long n1, long logp) {
 	delete[] uvals;
 }
 
-complex<double>* Ring::decode(ZZ* mx, long n0, long n1, long logp, long logq) {
-	ZZ q = qvec[logq];
-	ZZ qh = qvec[logq - 1];
-	complex<double>* vals = new complex<double>[n0*n1];
+complex<double>* Ring::decode(ZZ* mx, long n0, long n1, long logp) {
+	complex<double>* vals = new complex<double>[n0 * n1];
 
 	long gap0 = N0h / n0;
 	long gap1 = N1 / n1;
 
-	ZZ tmp;
 	for (long i0 = 0, ii0 = N0h, ir0 = 0; i0 < n0; ++i0, ii0 += gap0, ir0 += gap0) {
 		for (long i1 = 0; i1 < n1; ++i1) {
-			rem(tmp, mx[ir0 + N0 * i1], q);
-			while (tmp < 0) tmp += q;
-			while (tmp > qh) tmp -= q;
-			vals[i0 + n0 * i1].real(EvaluatorUtils::scaleDownToReal(tmp, logp));
-
-			rem(tmp, mx[ii0 + N0 * i1], q);
-			while (tmp < 0) tmp += q;
-			while (tmp > qh) tmp -= q;
-			vals[i0 + n0 * i1].imag(EvaluatorUtils::scaleDownToReal(tmp, logp));
+			vals[i0 + n0 * i1].real(EvaluatorUtils::scaleDownToReal(mx[ir0 + N0 * i1], logp));
+			vals[i0 + n0 * i1].imag(EvaluatorUtils::scaleDownToReal(mx[ii0 + N0 * i1], logp));
 		}
 	}
 
@@ -411,6 +401,14 @@ void Ring::squareNTT(ZZ* x, uint64_t* ra, long np, const ZZ& q) {
 //   OTHER
 //----------------------------------------------------------------------------------
 
+
+void Ring::normalizeAndEqual(ZZ* p, const ZZ& q) {
+	ZZ qh = q / 2;
+	for (long i = 0; i < N; ++i) {
+		if (p[i] > qh) p[i] -= q;
+		else if (p[i] < -qh) p[i] += q;
+	}
+}
 
 void Ring::mod(ZZ* res, ZZ* p, const ZZ& q) {
 	for (long i = 0; i < N; ++i) {

@@ -383,18 +383,24 @@ void Scheme::decryptMsg(Plaintext& msg, Ciphertext& cipher, SecretKey& secretKey
 	long np = ceil((1 + cipher.logq + logN + 3)/(double)pbnd);
 	ring.mult(msg.mx, cipher.ax, secretKey.sx, np, q);
 	ring.addAndEqual(msg.mx, cipher.bx, q);
+	ring.normalizeAndEqual(msg.mx, q);
+	msg.n0 = cipher.n0;
+	msg.n1 = cipher.n1;
+	msg.logp = cipher.logp;
+}
+
+complex<double>* Scheme::decode(Plaintext& msg) {
+	return ring.decode(msg.mx, msg.n0, msg.n1, msg.logp);
 }
 
 complex<double>* Scheme::decrypt(SecretKey& secretKey, Ciphertext& cipher) {
 	Plaintext msg;
 	decryptMsg(msg, cipher, secretKey);
-	return ring.decode(msg.mx, cipher.n0, cipher.n1, cipher.logp, cipher.logq);
+	return decode(msg);
 }
 
 complex<double> Scheme::decryptSingle(SecretKey& secretKey, Ciphertext& cipher) {
 	complex<double> res;
-	Plaintext msg;
-	decryptMsg(msg, cipher, secretKey);
 	return res;
 }
 
@@ -1096,19 +1102,8 @@ void Scheme::conjugateAndEqual(Ciphertext& cipher) {
 
 void Scheme::normalizeAndEqual(Ciphertext& cipher) {
 	ZZ q = ring.qvec[cipher.logq];
-	ZZ qh = ring.qvec[cipher.logq - 1];
-	for (long i = 0; i < N; ++i) {
-		if (cipher.ax[i] > qh) {
-			cipher.ax[i] -= q;
-		} else if (cipher.ax[i] < -qh) {
-			cipher.ax[i] += q;
-		}
-		if (cipher.bx[i] > qh) {
-			cipher.bx[i] -= q;
-		} else if (cipher.bx[i] < -qh) {
-			cipher.bx[i] += q;
-		}
-	}
+	ring.normalizeAndEqual(cipher.ax, q);
+	ring.normalizeAndEqual(cipher.bx, q);
 }
 
 void Scheme::coeffToSlotX0AndEqual(Ciphertext& cipher) {
