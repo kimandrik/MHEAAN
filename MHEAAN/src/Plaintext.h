@@ -5,21 +5,27 @@
 * You should have received a copy of the license along with this
 * work.  If not, see <http://creativecommons.org/licenses/by-nc/3.0/>.
 */
-
-#ifndef MPHEAAN_MATRIXCONTEXT_H_
-#define MPHEAAN_MATRIXCONTEXT_H_
+#ifndef MHEAAN_PLAINTEXT_H_
+#define MHEAAN_PLAINTEXT_H_
 
 #include <NTL/ZZ.h>
-#include "Plaintext.h"
+#include "Params.h"
 
+using namespace std;
 using namespace NTL;
 
-class SqrMatContext {
+class Plaintext {
 public:
 
-	Plaintext* msgvec;
+	ZZ* mx = new ZZ[N];
 
-	SqrMatContext(Plaintext* msgvec);
+	long logp;
+	long n0;
+	long n1;
+
+	Plaintext(long logp = 0, long n0 = 0, long n1 = 0);
+
+	virtual ~Plaintext();
 };
 
-#endif /* MATRIXCONTEXT_H_ */
+#endif

@@ -339,7 +339,7 @@ void RingMultiplier::toNTT(uint64_t* ra, ZZ* a, long np) {
 
 		uint64_t* rai = ra + (i << logN);
 		for (long n = 0; n < N; ++n) {
-			rai[n] = _ntl_general_rem_one_struct_apply(a[n].rep, pi, red_ss);
+			rai[n] = _ntl_general_rem_one_struct_apply(a[n].rep, pi, red_ss); // an mod pi
 		}
 		NTT(rai, i);
 	}

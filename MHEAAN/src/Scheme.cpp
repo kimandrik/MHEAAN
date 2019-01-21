@@ -144,8 +144,106 @@ void Scheme::addRightX1RotKeys(SecretKey& secretKey) {
 	}
 }
 
+void Scheme::addBootContext(long logn0, long logn1, long logp) {
+	if (bootContextMap.find({logn0, logn1}) == bootContextMap.end()) {
+		long n0 = 1 << logn0;
+		long logk0 = logn0 >> 1;
+		long k0 = 1 << logk0;
+
+		uint64_t** rpVec = new uint64_t*[n0];
+		uint64_t** rpInvVec = new uint64_t*[n0];
+		uint64_t* rp1 = NULL;
+		uint64_t* rp2 = NULL;
+
+		long* bndVec = new long[n0];
+		long* bndInvVec = new long[n0];
+		long bnd1 = 0;
+		long bnd2 = 0;
+
+		long np;
+		complex<double>* pvals = new complex<double>[n0];
+		ZZ pVec[N0];
+
+		long gap0 = N0h >> logn0;
+		long deg;
+		for (long ki = 0; ki < n0; ki += k0) {
+			for (long pos = ki; pos < ki + k0; ++pos) {
+				for (long i = 0; i < n0 - pos; ++i) {
+					deg = ((M0 - ring.gM0Pows[i + pos]) * i * gap0) % M0;
+					pvals[i] = ring.ksiM0Pows[deg];
+				}
+				for (long i = n0 - pos; i < n0; ++i) {
+					deg = ((M0 - ring.gM0Pows[i + pos - n0]) * i * gap0) % M0;
+					pvals[i] = ring.ksiM0Pows[deg];
+				}
+				EvaluatorUtils::rightRotateAndEqual(pvals, n0, 1, ki, 0);
+				ring.IEMBX0(pvals, n0);
+				for (long i = 0, jd = N0h, id = 0; i < n0; ++i, jd += gap0, id += gap0) {
+					pVec[id] = EvaluatorUtils::scaleUpToZZ(pvals[i].real(), logp);
+					pVec[jd] = EvaluatorUtils::scaleUpToZZ(pvals[i].imag(), logp);
+				}
+				bndVec[pos] = ring.MaxBits(pVec, N0);
+				np = ceil((logQ + bndVec[pos] + logN0 + 3)/(double)pbnd);
+				rpVec[pos] = new uint64_t[np << logN0];
+				ring.toNTTX0(rpVec[pos], pVec, np);
+			}
+		}
+
+		for (long ki = 0; ki < n0; ki += k0) {
+			for (long pos = ki; pos < ki + k0; ++pos) {
+				for (long i = 0; i < n0 - pos; ++i) {
+					deg = (ring.gM0Pows[i] * (i + pos) * gap0) % M0;
+					pvals[i] = ring.ksiM0Pows[deg];
+				}
+				for (long i = n0 - pos; i < n0; ++i) {
+					deg = (ring.gM0Pows[i] * (i + pos - n0) * gap0) % M0;
+					pvals[i] = ring.ksiM0Pows[deg];
+				}
+				EvaluatorUtils::rightRotateAndEqual(pvals, n0, 1, ki, 0);
+				ring.IEMBX0(pvals, n0);
+				for (long i = 0, jd = N0h, id = 0; i < n0; ++i, jd += gap0, id += gap0) {
+					pVec[id] = EvaluatorUtils::scaleUpToZZ(pvals[i].real(), logp);
+					pVec[jd] = EvaluatorUtils::scaleUpToZZ(pvals[i].imag(), logp);
+				}
+				bndInvVec[pos] = ring.MaxBits(pVec, N0);
+				np = ceil((logQ + bndInvVec[pos] + logN0 + 3)/(double)pbnd);
+				rpInvVec[pos] = new uint64_t[np << logN0];
+				ring.toNTTX0(rpInvVec[pos], pVec, np);
+			}
+		}
+
+		delete[] pvals;
+
+		BootContext* bootContext = new BootContext(rpVec, rpInvVec, rp1, rp2, bndVec, bndInvVec, bnd1, bnd2, logp);
+		bootContextMap.insert(pair<pair<long, long>, BootContext&>({logn0, logn1}, *bootContext));
+	}
+}
+
+void Scheme::addSqrMatContext(long logn, long logp) {
+	if (sqrMatContextMap.find(logn) == sqrMatContextMap.end()) {
+		long n = (1 << logn);
+
+		Plaintext* msgvec = new Plaintext[n];
+		double* tmp = new double[n * n]();
+		for (long i = 0; i < n; ++i) {
+			for (long j = 0; j < n; ++j) {
+				tmp[j + (((j + n - i) % n) * n)] = 1.0;
+			}
+			encode(msgvec[i], tmp, n, n, logp);
+
+			for (long j = 0; j < n; ++j) {
+				tmp[j + (((j + n - i) % n) * n)] = 0.0;
+			}
+		}
+		delete[] tmp;
+
+		SqrMatContext* sqrMatContext = new SqrMatContext(msgvec);
+		sqrMatContextMap.insert(pair<long, SqrMatContext&>(logn, *sqrMatContext));
+	}
+}
+
 void Scheme::addBootKey(SecretKey& secretKey, long logn0, long logn1, long logp) {
-	ring.addBootContext(logn0, logn1, logp);
+	addBootContext(logn0, logn1, logp);
 
 	addConjKey(secretKey);
 	addLeftX0RotKeys(secretKey);
@@ -187,7 +285,7 @@ void Scheme::addBootKey(SecretKey& secretKey, long logn0, long logn1, long logp)
 }
 
 void Scheme::addSqrMatKeys(SecretKey& secretKey, long logn, long logp) {
-	ring.addSqrMatContext(logn, logp);
+	addSqrMatContext(logn, logp);
 	long n = (1 << logn);
 	for (long i = 1; i < n; ++i) {
 		long idx = N0h - i;
@@ -199,7 +297,7 @@ void Scheme::addSqrMatKeys(SecretKey& secretKey, long logn, long logp) {
 }
 
 void Scheme::addTransposeKeys(SecretKey& secretKey, long logn, long logp) {
-	ring.addSqrMatContext(logn, logp);
+	addSqrMatContext(logn, logp);
 	long n = (1 << logn);
 	for (long i = 1; i < n; ++i) {
 		long i1 = N1 - i;
@@ -214,9 +312,23 @@ void Scheme::addTransposeKeys(SecretKey& secretKey, long logn, long logp) {
 //   ENCRYPTION & DECRYPTION
 //----------------------------------------------------------------------------------
 
+void Scheme::encode(Plaintext& msg, complex<double>* vals, long n0, long n1, long logp) {
+	ring.encode(msg.mx, vals, n0, n1, logp);
+	msg.n0 = n0;
+	msg.n1 = n1;
+	msg.logp = logp;
+}
+
+void Scheme::encode(Plaintext& msg, double* vals, long n0, long n1, long logp) {
+	ring.encode(msg.mx, vals, n0, n1, logp);
+	msg.n0 = n0;
+	msg.n1 = n1;
+	msg.logp = logp;
+}
+
 void Scheme::rlwe(Ciphertext& res, long logq) {
 	ZZ qQ = ring.qvec[logq + logQ];
-	long vx[N];
+	long* vx = new long[N];
 
 	Key& key = isSerialized ? SerializationUtils::readKey(serKeyMap.at(ENCRYPTION)) : keyMap.at(ENCRYPTION);
 	long np = ceil((1 + logQQ + logN + 3)/(double)pbnd);
@@ -229,34 +341,25 @@ void Scheme::rlwe(Ciphertext& res, long logq) {
 	ring.multNTT(res.bx, vx, key.rbx, np, qQ);
 	ring.addGauss(res.bx, qQ);
 	ring.rightShiftAndEqual(res.bx, logQ);
+	delete[] vx;
 
 	if(isSerialized) delete &key;
 }
 
-void Scheme::decryptMsg(ZZ* res, SecretKey& secretKey, Ciphertext& cipher) {
-	ZZ q = ring.qvec[cipher.logq];
-	long np = ceil((1 + cipher.logq + logN + 3)/(double)pbnd);
-	ring.mult(res, cipher.ax, secretKey.sx, np, q);
-	ring.addAndEqual(res, cipher.bx, q);
-}
-
 void Scheme::encrypt(Ciphertext& res, complex<double>* vals, long n0, long n1, long logp, long logq) {
 	ZZ q = ring.qvec[logq];
+	Plaintext msg;
 	encryptZeros(res, n0, n1, logp, logq);
-
-	ZZ mx[N];
-	ring.encode(mx, vals, n0, n1, logp);
-	ring.addAndEqual(res.bx, mx, q);
+	encode(msg, vals, n0, n1, logp);
+	addAndEqual(res, msg);
 }
 
 void Scheme::encrypt(Ciphertext& res, double* vals, long n0, long n1, long logp, long logq) {
 	ZZ q = ring.qvec[logq];
+	Plaintext msg;
 	encryptZeros(res, n0, n1, logp, logq);
-
-	ZZ* mx = new ZZ[N];
-	ring.encode(mx, vals, n0, n1, logp);
-	ring.addAndEqual(res.bx, mx, q);
-	delete[] mx;
+	encode(msg, vals, n0, n1, logp);
+	addAndEqual(res, msg);
 }
 
 void Scheme::encryptSingle(Ciphertext& res, complex<double> val, long logp, long logq) {
@@ -275,16 +378,23 @@ void Scheme::encryptZeros(Ciphertext& res, long n0, long n1, long logp, long log
 	res.logq = logq;
 }
 
+void Scheme::decryptMsg(Plaintext& msg, Ciphertext& cipher, SecretKey& secretKey) {
+	ZZ q = ring.qvec[cipher.logq];
+	long np = ceil((1 + cipher.logq + logN + 3)/(double)pbnd);
+	ring.mult(msg.mx, cipher.ax, secretKey.sx, np, q);
+	ring.addAndEqual(msg.mx, cipher.bx, q);
+}
+
 complex<double>* Scheme::decrypt(SecretKey& secretKey, Ciphertext& cipher) {
-	ZZ mx[N];
-	decryptMsg(mx, secretKey, cipher);
-	return ring.decode(mx, cipher.n0, cipher.n1, cipher.logp, cipher.logq);
+	Plaintext msg;
+	decryptMsg(msg, cipher, secretKey);
+	return ring.decode(msg.mx, cipher.n0, cipher.n1, cipher.logp, cipher.logq);
 }
 
 complex<double> Scheme::decryptSingle(SecretKey& secretKey, Ciphertext& cipher) {
 	complex<double> res;
-	ZZ mx[N];
-	decryptMsg(mx, secretKey, cipher);
+	Plaintext msg;
+	decryptMsg(msg, cipher, secretKey);
 	return res;
 }
 
@@ -352,15 +462,15 @@ void Scheme::addConstAndEqual(Ciphertext& cipher, RR& cnst, long logp) {
 	}
 }
 
-void Scheme::addPoly(Ciphertext& res, Ciphertext& cipher, ZZ* poly, long logp) {
+void Scheme::add(Ciphertext& res, Ciphertext& cipher, Plaintext& msg) {
 	ZZ q = ring.qvec[cipher.logq];
 	res.copy(cipher);
-	ring.addAndEqual(res.bx, poly, q);
+	ring.addAndEqual(res.bx, msg.mx, q);
 }
 
-void Scheme::addPolyAndEqual(Ciphertext& cipher, ZZ* poly, long logp) {
+void Scheme::addAndEqual(Ciphertext& cipher, Plaintext& msg) {
 	ZZ q = ring.qvec[cipher.logq];
-	ring.addAndEqual(cipher.bx, poly, q);
+	ring.addAndEqual(cipher.bx, msg.mx, q);
 }
 
 void Scheme::sub(Ciphertext& res, Ciphertext& cipher1, Ciphertext& cipher2) {
@@ -409,8 +519,8 @@ void Scheme::idivAndEqual(Ciphertext& cipher) {
 }
 
 void Scheme::mult(Ciphertext& res, Ciphertext& cipher1, Ciphertext& cipher2) {
-	ZZ q = ring.qvec[cipher1.logq];
-	ZZ qQ = ring.qvec[cipher1.logq + logQ];
+	ZZ q = ring.qvec[cipher1.logq]; // 2^1200
+	ZZ qQ = ring.qvec[cipher1.logq + logQ]; // 2^2400
 
 	long np = ceil((2 + cipher1.logq + cipher2.logq + logN + 3)/(double)pbnd);
 	uint64_t* ra1 = new uint64_t[np << logN];
@@ -724,30 +834,30 @@ void Scheme::multPolyX1AndEqual(Ciphertext& cipher, ZZ* rpoly, ZZ* ipoly, long l
 	cipher.logp += logp;
 }
 
-void Scheme::multPoly(Ciphertext& res, Ciphertext& cipher, ZZ* poly, long logp) {
+void Scheme::mult(Ciphertext& res, Ciphertext& cipher, Plaintext& msg) {
 	ZZ q = ring.qvec[cipher.logq];
 
-	long bnd = ring.MaxBits(poly, N);
+	long bnd = ring.MaxBits(msg.mx, N);
 	long np = ceil((cipher.logq + bnd + logN + 3)/(double)pbnd);
 	uint64_t* rpoly = new uint64_t[np << logN];
-	ring.toNTT(rpoly, poly, np);
+	ring.toNTT(rpoly, msg.mx, np);
 	res.copy(cipher);
 	ring.multNTTAndEqual(res.ax, rpoly, np, q);
 	ring.multNTTAndEqual(res.bx, rpoly, np, q);
 	delete[] rpoly;
-	res.logp += logp;
+	res.logp += msg.logp;
 }
 
-void Scheme::multPolyAndEqual(Ciphertext& cipher, ZZ* poly, long logp) {
+void Scheme::multAndEqual(Ciphertext& cipher, Plaintext& msg) {
 	ZZ q = ring.qvec[cipher.logq];
-	long bnd = ring.MaxBits(poly, N);
+	long bnd = ring.MaxBits(msg.mx, N);
 	long np = ceil((cipher.logq + bnd + logN + 3)/(double)pbnd);
 	uint64_t* rpoly = new uint64_t[np << logN];
-	ring.toNTT(rpoly, poly, np);
+	ring.toNTT(rpoly, msg.mx, np);
 	ring.multNTTAndEqual(cipher.ax, rpoly, np, q);
 	ring.multNTTAndEqual(cipher.bx, rpoly, np, q);
 	delete[] rpoly;
-	cipher.logp += logp;
+	cipher.logp += msg.logp;
 }
 
 

@@ -8,4 +8,4 @@
 
 #include "SqrMatContext.h"
 
-SqrMatContext::SqrMatContext(ZZ** mvec, long logp) : mvec(mvec), logp(logp) {}
+SqrMatContext::SqrMatContext(Plaintext* msgvec) : msgvec(msgvec) {}

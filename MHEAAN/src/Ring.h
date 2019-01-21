@@ -45,21 +45,9 @@ public:
 	complex<double>* dftM1NTTPows[logN1 + 1];
 
 	map<pair<long, long>, BootContext&> bootContextMap;
-
 	map<long, SqrMatContext&> sqrMatContextMap;
 
 	Ring();
-
-
-	//----------------------------------------------------------------------------------
-	//   AUXILIARY CONTEXT
-	//----------------------------------------------------------------------------------
-
-
-	void addBootContext(long logn0, long logn1, long logp);
-
-	void addSqrMatContext(long logn, long logp);
-
 
 	//----------------------------------------------------------------------------------
 	//   ENCODING

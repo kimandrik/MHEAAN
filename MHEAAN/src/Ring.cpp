@@ -67,7 +67,6 @@ Ring::Ring() {
 			dftM1NTTPows[logn1][i] = dftM1Pows[logn1][i];
 		}
 		DFTX1(dftM1NTTPows[logn1], n1);
-
 		dftM1Pows[logn1][n1] = dftM1Pows[logn1][0];
 		dftM1NTTPows[logn1][n1] = dftM1NTTPows[logn1][0];
 	}
@@ -78,105 +77,7 @@ Ring::Ring() {
 	}
 }
 
-void Ring::addBootContext(long logn0, long logn1, long logp) {
-	if (bootContextMap.find({logn0, logn1}) == bootContextMap.end()) {
-		long n0 = 1 << logn0;
-		long logk0 = logn0 >> 1;
-		long k0 = 1 << logk0;
 
-		uint64_t** rpVec = new uint64_t*[n0];
-		uint64_t** rpInvVec = new uint64_t*[n0];
-		uint64_t* rp1 = NULL;
-		uint64_t* rp2 = NULL;
-
-		long* bndVec = new long[n0];
-		long* bndInvVec = new long[n0];
-		long bnd1 = 0;
-		long bnd2 = 0;
-
-		long np;
-		complex<double>* pvals = new complex<double>[n0];
-		ZZ pVec[N0];
-
-		long gap0 = N0h >> logn0;
-		long deg;
-		for (long ki = 0; ki < n0; ki += k0) {
-			for (long pos = ki; pos < ki + k0; ++pos) {
-				for (long i = 0; i < n0 - pos; ++i) {
-					deg = ((M0 - gM0Pows[i + pos]) * i * gap0) % M0;
-					pvals[i] = ksiM0Pows[deg];
-				}
-				for (long i = n0 - pos; i < n0; ++i) {
-					deg = ((M0 - gM0Pows[i + pos - n0]) * i * gap0) % M0;
-					pvals[i] = ksiM0Pows[deg];
-				}
-				EvaluatorUtils::rightRotateAndEqual(pvals, n0, 1, ki, 0);
-				IEMBX0(pvals, n0);
-				for (long i = 0, jd = N0h, id = 0; i < n0; ++i, jd += gap0, id += gap0) {
-					pVec[id] = EvaluatorUtils::scaleUpToZZ(pvals[i].real(), logp);
-					pVec[jd] = EvaluatorUtils::scaleUpToZZ(pvals[i].imag(), logp);
-				}
-				bndVec[pos] = MaxBits(pVec, N0);
-				np = ceil((logQ + bndVec[pos] + logN0 + 3)/(double)pbnd);
-				rpVec[pos] = new uint64_t[np << logN0];
-				toNTTX0(rpVec[pos], pVec, np);
-			}
-		}
-
-		for (long ki = 0; ki < n0; ki += k0) {
-			for (long pos = ki; pos < ki + k0; ++pos) {
-				for (long i = 0; i < n0 - pos; ++i) {
-					deg = (gM0Pows[i] * (i + pos) * gap0) % M0;
-					pvals[i] = ksiM0Pows[deg];
-				}
-				for (long i = n0 - pos; i < n0; ++i) {
-					deg = (gM0Pows[i] * (i + pos - n0) * gap0) % M0;
-					pvals[i] = ksiM0Pows[deg];
-				}
-				EvaluatorUtils::rightRotateAndEqual(pvals, n0, 1, ki, 0);
-				IEMBX0(pvals, n0);
-				for (long i = 0, jd = N0h, id = 0; i < n0; ++i, jd += gap0, id += gap0) {
-					pVec[id] = EvaluatorUtils::scaleUpToZZ(pvals[i].real(), logp);
-					pVec[jd] = EvaluatorUtils::scaleUpToZZ(pvals[i].imag(), logp);
-				}
-				bndInvVec[pos] = MaxBits(pVec, N0);
-				np = ceil((logQ + bndInvVec[pos] + logN0 + 3)/(double)pbnd);
-				rpInvVec[pos] = new uint64_t[np << logN0];
-				toNTTX0(rpInvVec[pos], pVec, np);
-			}
-		}
-
-		delete[] pvals;
-
-		BootContext* bootContext = new BootContext(rpVec, rpInvVec, rp1, rp2, bndVec, bndInvVec, bnd1, bnd2, logp);
-		bootContextMap.insert(pair<pair<long, long>, BootContext&>({logn0, logn1}, *bootContext));
-	}
-}
-
-void Ring::addSqrMatContext(long logn, long logp) {
-	if (sqrMatContextMap.find(logn) == sqrMatContextMap.end()) {
-		long n = (1 << logn);
-
-		ZZ** mvec = new ZZ*[n];
-		double* tmp = new double[n * n]();
-		for (long i = 0; i < n; ++i) {
-			for (long j = 0; j < n; ++j) {
-				tmp[j + (((j + n - i) % n) * n)] = 1.0;
-			}
-
-			mvec[i] = new ZZ[N];
-			encode(mvec[i], tmp, n, n, logp);
-
-			for (long j = 0; j < n; ++j) {
-				tmp[j + (((j + n - i) % n) * n)] = 0.0;
-			}
-		}
-		delete[] tmp;
-
-		SqrMatContext* sqrMatContext = new SqrMatContext(mvec, logp);
-		sqrMatContextMap.insert(pair<long, SqrMatContext&>(logn, *sqrMatContext));
-	}
-}
 
 void Ring::arrayBitReverse(complex<double>* vals, long n) {
 	for (long i = 1, j = 0; i < n; ++i) {

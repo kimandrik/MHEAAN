@@ -14,6 +14,7 @@
 
 #include "SecretKey.h"
 #include "Ciphertext.h"
+#include "Plaintext.h"
 #include "Key.h"
 #include "EvaluatorUtils.h"
 #include "Ring.h"
@@ -39,6 +40,8 @@ public:
 	map<long, string> serKeyMap;
 	map<pair<long, long>, string> serLeftRotKeyMap;
 
+	map<long, SqrMatContext&> sqrMatContextMap;
+	map<pair<long, long>, BootContext&> bootContextMap;
 
 	Scheme(SecretKey& secretKey, Ring& ring, bool isSerialized = false);
 
@@ -64,10 +67,11 @@ public:
 
 	void addRightX1RotKeys(SecretKey& secretKey);
 
+	void addBootContext(long logn0, long logn1, long logp);
+	void addSqrMatContext(long logn, long logp);
+
 	void addBootKey(SecretKey& secretKey, long logn0, long logn1, long logp);
-
 	void addSqrMatKeys(SecretKey& secretKey, long logn, long logp);
-
 	void addTransposeKeys(SecretKey& secretKey, long logn, long logp);
 
 
@@ -75,22 +79,19 @@ public:
 	//   ENCRYPTION & DECRYPTION
 	//----------------------------------------------------------------------------------
 
+	void encode(Plaintext& msg, complex<double>* vals, long n0, long n1, long logp);
+	void encode(Plaintext& msg, double* vals, long n0, long n1, long logp);
 
 	void rlwe(Ciphertext& res, long logq);
 
-	void encryptMsg(Ciphertext& res, ZZ* mx, long logq);
-
-	void decryptMsg(ZZ* res, SecretKey& secretKey, Ciphertext& cipher);
-
+	void encryptMsg(Ciphertext& res, Plaintext& mx, long logq);
 	void encrypt(Ciphertext& res, complex<double>* vals, long n0, long n1, long logp, long logq);
-
 	void encrypt(Ciphertext& res, double* vals, long n0, long n1, long logp, long logq);
-
 	void encryptSingle(Ciphertext& res, complex<double> val, long logp, long logq);
-
 	void encryptSingle(Ciphertext& res, double val, long logp, long logq);
-
 	void encryptZeros(Ciphertext& res, long n0, long n1, long logp, long logq);
+
+	void decryptMsg(Plaintext& msg, Ciphertext& cipher, SecretKey& secretKey);
 
 	complex<double>* decrypt(SecretKey& secretKey, Ciphertext& cipher);
 
@@ -114,8 +115,8 @@ public:
 	void addConstAndEqual(Ciphertext& cipher, RR& cnst, long logp = -1);
 	void addConstAndEqual(Ciphertext& cipher, double cnst, long logp = -1);
 
-	void addPoly(Ciphertext& res, Ciphertext& cipher, ZZ* poly, long logp);
-	void addPolyAndEqual(Ciphertext& cipher, ZZ* poly, long logp);
+	void add(Ciphertext& res, Ciphertext& cipher, Plaintext& msg);
+	void addAndEqual(Ciphertext& cipher, Plaintext& msg);
 
 	void sub(Ciphertext& res, Ciphertext& cipher1, Ciphertext& cipher2);
 	void subAndEqual(Ciphertext& cipher1, Ciphertext& cipher2);
@@ -129,6 +130,9 @@ public:
 
 	void mult(Ciphertext& res, Ciphertext& cipher1, Ciphertext& cipher2);
 	void multAndEqual(Ciphertext& cipher1, Ciphertext& cipher2);
+
+	void mult(Ciphertext& res, Ciphertext& cipher, Plaintext& msg);
+	void multAndEqual(Ciphertext& cipher, Plaintext& msg);
 
 	void square(Ciphertext& res, Ciphertext& cipher);
 	void squareAndEqual(Ciphertext& cipher);
@@ -148,9 +152,6 @@ public:
 
 	void multPolyX1(Ciphertext& res, Ciphertext& cipher, ZZ* rpoly, ZZ* ipoly, long logp);
 	void multPolyX1AndEqual(Ciphertext& cipher, ZZ* rpoly, ZZ* ipoly, long logp);
-
-	void multPoly(Ciphertext& res, Ciphertext& cipher, ZZ* poly, long logp);
-	void multPolyAndEqual(Ciphertext& cipher, ZZ* poly, long logp);
 
 	void multPolyNTT(Ciphertext& res, Ciphertext& cipher, uint64_t* rpoly, long bnd, long logp);
 	void multPolyNTTAndEqual(Ciphertext& cipher, uint64_t* rpoly, long bnd, long logp);
